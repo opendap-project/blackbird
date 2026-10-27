@@ -351,7 +351,7 @@ component StatusBar inherits Rectangle {
             opacity: root.wifi-dimmed ? Tokens.opacity-disabled : 1;
             accessible-label: root.labels.wifi;
         }
-        // One item, so one label: the percentage and its icon.
+        // One item, so one label: the percentage, the bolt while charging, and the level.
         if root.battery >= 0: Rectangle {
             horizontal-stretch: 0;
             accessible-role: AccessibleRole.text;
@@ -362,9 +362,14 @@ component StatusBar inherits Rectangle {
                     text: root.battery + "%";
                     accessible-role: AccessibleRole.none;
                 }
+                // Charging adds a bolt beside the level, which stays: at 16 px no glyph shows both
+                // in one shape legibly.
+                if root.charging: StatusIcon {
+                    source: @image-url("@blackbird/icons/16/status-charging.svg");
+                    accessible-role: AccessibleRole.none;
+                }
                 StatusIcon {
-                    source: root.charging ? @image-url("@blackbird/icons/16/status-charging.svg")
-                        : root.battery-glyph >= 4 ? @image-url("@blackbird/icons/16/status-battery-4.svg")
+                    source: root.battery-glyph >= 4 ? @image-url("@blackbird/icons/16/status-battery-4.svg")
                         : root.battery-glyph == 3 ? @image-url("@blackbird/icons/16/status-battery-3.svg")
                         : root.battery-glyph == 2 ? @image-url("@blackbird/icons/16/status-battery-2.svg")
                         : root.battery-glyph == 1 ? @image-url("@blackbird/icons/16/status-battery-1.svg")
