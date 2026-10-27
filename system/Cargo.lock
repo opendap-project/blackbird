@@ -3395,9 +3395,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "opendap-bus-model"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "opendap-device"
 version = "0.0.1"
 dependencies = [
+ "opendap-bus-model",
  "opendap-platform",
  "serde",
  "thiserror 2.0.21",
@@ -3418,6 +3428,7 @@ name = "opendap-input"
 version = "0.0.1"
 dependencies = [
  "criterion",
+ "opendap-bus-model",
  "proptest",
 ]
 

@@ -8,6 +8,7 @@ license = "MPL-2.0"
 publish = false
 
 [dependencies]
+opendap-bus-model.workspace = true
 opendap-platform.workspace = true
 serde.workspace = true
 thiserror.workspace = true

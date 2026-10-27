@@ -32,7 +32,7 @@ use crate::ends::{Ends, Step};
 
 /// What a node is to navigation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Role {
+pub enum NavRole {
     Leaf,
     Adjustable,
     /// One stop; engaged, its children are the level.
@@ -50,7 +50,7 @@ pub enum Role {
 #[derive(Debug, Clone, PartialEq)]
 pub struct NavNode {
     pub name: String,
-    pub role: Role,
+    pub role: NavRole,
     pub children: Vec<NavNode>,
     /// The screen's primary action: the focus lands here on entry (§8.4).
     pub primary: bool,
@@ -66,9 +66,9 @@ pub struct NavNode {
 }
 
 impl NavNode {
-    fn new(name: &str, role: Role, children: Vec<NavNode>) -> Self {
+    fn new(name: &str, role: NavRole, children: Vec<NavNode>) -> Self {
         // A modal traps the focus: going on past its last element can only mean its first.
-        let ends = if role == (Role::Layer { trap: true }) {
+        let ends = if role == (NavRole::Layer { trap: true }) {
             Ends::Cycle
         } else {
             Ends::Stop
@@ -85,22 +85,22 @@ impl NavNode {
         }
     }
     pub fn leaf(name: &str) -> Self {
-        Self::new(name, Role::Leaf, vec![])
+        Self::new(name, NavRole::Leaf, vec![])
     }
     pub fn adjustable(name: &str) -> Self {
-        Self::new(name, Role::Adjustable, vec![])
+        Self::new(name, NavRole::Adjustable, vec![])
     }
     pub fn stop(name: &str, children: Vec<NavNode>) -> Self {
-        Self::new(name, Role::Stop, children)
+        Self::new(name, NavRole::Stop, children)
     }
     pub fn group(name: &str, children: Vec<NavNode>) -> Self {
-        Self::new(name, Role::Transparent, children)
+        Self::new(name, NavRole::Transparent, children)
     }
     pub fn layer(name: &str, trap: bool, children: Vec<NavNode>) -> Self {
-        Self::new(name, Role::Layer { trap }, children)
+        Self::new(name, NavRole::Layer { trap }, children)
     }
     pub fn label(name: &str) -> Self {
-        Self::new(name, Role::None, vec![])
+        Self::new(name, NavRole::None, vec![])
     }
     pub fn primary(mut self) -> Self {
         self.primary = true;
@@ -142,9 +142,9 @@ impl NavNode {
                 continue;
             }
             match c.role {
-                Role::Transparent => out.extend(c.level()),
-                Role::Leaf | Role::Adjustable | Role::Stop => out.push(c),
-                Role::Layer { .. } | Role::None => {}
+                NavRole::Transparent => out.extend(c.level()),
+                NavRole::Leaf | NavRole::Adjustable | NavRole::Stop => out.push(c),
+                NavRole::Layer { .. } | NavRole::None => {}
             }
         }
         out
@@ -156,9 +156,9 @@ impl NavNode {
         let mut out = Vec::new();
         for c in &self.children {
             match c.role {
-                Role::Transparent => out.extend(c.order()),
-                Role::Leaf | Role::Adjustable | Role::Stop => out.push(c.name.as_str()),
-                Role::Layer { .. } | Role::None => {}
+                NavRole::Transparent => out.extend(c.order()),
+                NavRole::Leaf | NavRole::Adjustable | NavRole::Stop => out.push(c.name.as_str()),
+                NavRole::Layer { .. } | NavRole::None => {}
             }
         }
         out
@@ -269,7 +269,7 @@ impl Navigator {
             .iter()
             .rev()
             .filter_map(|e| self.root.find(e))
-            .find(|n| n.role == Role::Stop)
+            .find(|n| n.role == NavRole::Stop)
         {
             return s;
         }
@@ -282,12 +282,12 @@ impl Navigator {
     fn trapped(&self) -> bool {
         self.engaged
             .iter()
-            .all(|e| self.root.find(e).is_none_or(|n| n.role != Role::Stop))
+            .all(|e| self.root.find(e).is_none_or(|n| n.role != NavRole::Stop))
             && self
                 .layers
                 .last()
                 .and_then(|(l, _)| self.root.find(l))
-                .is_some_and(|l| l.role == Role::Layer { trap: true })
+                .is_some_and(|l| l.role == NavRole::Layer { trap: true })
     }
 
     pub fn key(&mut self, key: Key) -> Effect {
@@ -297,7 +297,7 @@ impl Navigator {
         let node = self.root.find(&focus).cloned();
         // An engaged adjustable takes Volume and its own keys.
         if self.engaged.last() == Some(&focus)
-            && node.as_ref().is_some_and(|n| n.role == Role::Adjustable)
+            && node.as_ref().is_some_and(|n| n.role == NavRole::Adjustable)
         {
             return match key {
                 Key::Previous | Key::Forward => Effect::Adjusted(focus, 1),
@@ -313,8 +313,8 @@ impl Navigator {
             Key::Forward | Key::Backward => {
                 let d = if key == Key::Forward { 1 } else { -1 };
                 match node.map(|n| n.role) {
-                    Some(Role::Adjustable) => Effect::Adjusted(focus, d),
-                    Some(Role::Stop) => {
+                    Some(NavRole::Adjustable) => Effect::Adjusted(focus, d),
+                    Some(NavRole::Stop) => {
                         let e = self.engage(&focus);
                         if d < 0 {
                             // From the far end, in reading order.
@@ -327,14 +327,16 @@ impl Navigator {
                         e
                     }
                     // Inside an engaged stop, the arrows walk its children like Volume.
-                    _ if self.scope().role == Role::Stop => self.step(&focus, d),
+                    _ if self.scope().role == NavRole::Stop => self.step(&focus, d),
                     _ => Effect::AtEnd,
                 }
             }
             Key::Action => match node {
                 Some(n) if !n.enabled => Effect::Refused(focus),
-                Some(n) if n.role == Role::Leaf => Effect::Activated(focus),
-                Some(n) if matches!(n.role, Role::Adjustable | Role::Stop) => self.engage(&focus),
+                Some(n) if n.role == NavRole::Leaf => Effect::Activated(focus),
+                Some(n) if matches!(n.role, NavRole::Adjustable | NavRole::Stop) => {
+                    self.engage(&focus)
+                }
                 _ => Effect::AtEnd,
             },
             Key::Escape => {
@@ -398,7 +400,7 @@ impl Navigator {
         } as i64;
         // The level's ends: an engaged stop's own; at a layer, a trap cycles only while no stop
         // inside it is engaged (that stop's ends then apply); the screen stops.
-        let ends = if scope.role == Role::Stop || self.trapped() {
+        let ends = if scope.role == NavRole::Stop || self.trapped() {
             scope.ends
         } else {
             Ends::Stop
@@ -417,7 +419,7 @@ impl Navigator {
             Step::Past => {}
         }
         // Past an end of an engaged stop: back to the stop, released.
-        if scope.role == Role::Stop {
+        if scope.role == NavRole::Stop {
             return self.release();
         }
         Effect::AtEnd
@@ -433,11 +435,11 @@ impl Navigator {
         let role = n.role;
         let entry = n.entry().map(|e| e.name.clone());
         // A stop with nothing to walk (everything in it disabled or leaving) cannot be entered.
-        if role == Role::Stop && entry.is_none() {
+        if role == NavRole::Stop && entry.is_none() {
             return Effect::Refused(name.into());
         }
         self.engaged.push(name.into());
-        if role == Role::Stop
+        if role == NavRole::Stop
             && let Some(e) = entry
         {
             self.focus = Some(e);
@@ -458,7 +460,10 @@ impl Navigator {
     /// level, when it was inside one).
     pub fn release_all(&mut self) {
         if let Some(first) = self.engaged.first().cloned() {
-            let outer_is_stop = self.root.find(&first).is_some_and(|n| n.role == Role::Stop);
+            let outer_is_stop = self
+                .root
+                .find(&first)
+                .is_some_and(|n| n.role == NavRole::Stop);
             if outer_is_stop {
                 self.focus = Some(first);
             }
@@ -474,13 +479,13 @@ impl Navigator {
                 return true;
             }
             for c in &n.children {
-                if c.role == Role::Stop {
+                if c.role == NavRole::Stop {
                     path.push(c.name.clone());
                 }
                 if stops_to(c, name, path) {
                     return true;
                 }
-                if c.role == Role::Stop {
+                if c.role == NavRole::Stop {
                     path.pop();
                 }
             }

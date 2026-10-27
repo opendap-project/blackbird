@@ -109,7 +109,7 @@ A level never sees coordinates or regions of the levels above it (an activity ne
 
 ### 3.3 Controls, by role
 
-Physical controls are used through their role (`action`, `volume-up`, `main`…), never their code (SYS-067). Every kind of control (hardware-support §5) produces the same family:
+Physical controls are used through their role (`action`, `volume-up`, `main`…), never their code (SYS-067). The roles are one vocabulary the device and the host share, the crate `opendap-bus-model` ([RFC 0020](https://github.com/opendap-project/rfcs/blob/main/text/0020-input-wire-model.md)): `action`, `volume-up`, `volume-down`, `main`, `back`, `select` and `menu`. A device declares the roles it has and rejects others; a new kind of control adds a role there. Every kind of control (hardware-support §5) produces the same family:
 
 | Event | Is (Android `KeyEvent`, evdev) |
 |---|---|

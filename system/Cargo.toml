@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "crates/opendap-workspace",
+    "crates/opendap-bus-model",
     "crates/opendap-device",
     "crates/opendap-platform",
     "crates/opendap-input",
@@ -37,10 +38,13 @@ opendap-layout = { path = "crates/opendap-layout" }
 opendap-media = { path = "crates/opendap-media" }
 opendap-audio-analysis = { path = "crates/opendap-audio-analysis" }
 opendap-motion = { path = "crates/opendap-motion" }
+opendap-bus-model = { path = "crates/opendap-bus-model" }
 opendap-forms = { path = "crates/opendap-forms" }
 opendap-splash = { path = "crates/opendap-splash" }
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.21"
+# JSON (dev): the input model's wire format checked as JSON (opendap-bus-model).
+serde_json = "1"
 toml = "1.1.8"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }

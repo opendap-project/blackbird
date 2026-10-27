@@ -4,7 +4,7 @@
 //! shrunk to the smallest screen and sequence that breaks one.
 
 use opendap_input::ends::Ends;
-use opendap_input::nav::{Effect, Key, NavNode, Navigator, Role};
+use opendap_input::nav::{Effect, Key, NavNode, NavRole, Navigator};
 use proptest::prelude::*;
 
 /// A node of a generated screen, before names: its role and its children.
@@ -177,7 +177,7 @@ fn focusable(root: &NavNode, name: &str) -> bool {
     };
     let mut anc = Vec::new();
     path(root, name, &mut anc);
-    matches!(n.role, Role::Leaf | Role::Adjustable | Role::Stop)
+    matches!(n.role, NavRole::Leaf | NavRole::Adjustable | NavRole::Stop)
         && !n.leaving
         && n.enabled
         && anc.iter().all(|a| a.enabled && !a.leaving)
@@ -186,7 +186,7 @@ fn focusable(root: &NavNode, name: &str) -> bool {
 /// Removes the node called `name` (and everything in it), except the screen and its layers.
 fn remove(n: &mut NavNode, name: &str) {
     n.children
-        .retain(|c| c.name != name || matches!(c.role, Role::Layer { .. }));
+        .retain(|c| c.name != name || matches!(c.role, NavRole::Layer { .. }));
     for c in &mut n.children {
         remove(c, name);
     }
@@ -207,11 +207,11 @@ fn check(nav: &Navigator) -> Result<(), TestCaseError> {
     if let Some(e) = nav.engaged() {
         let node = find(root, e);
         prop_assert!(
-            node.is_some_and(|n| matches!(n.role, Role::Stop | Role::Adjustable)),
+            node.is_some_and(|n| matches!(n.role, NavRole::Stop | NavRole::Adjustable)),
             "only stops and adjustables engage: {e}"
         );
         let f = nav.focus().unwrap_or_default();
-        if node.is_some_and(|n| n.role == Role::Stop) {
+        if node.is_some_and(|n| n.role == NavRole::Stop) {
             let mut anc = Vec::new();
             path(root, f, &mut anc);
             prop_assert!(
@@ -249,16 +249,16 @@ proptest! {
                         // Only a level that cycles wraps: an engaged stop declared cyclic, or a
                         // modal.
                         Effect::Wrapped(_) => {
-                            let cyclic = nav.engaged().and_then(|e| find(&nav.root, e)).is_some_and(|s| s.role == Role::Stop && s.ends == Ends::Cycle);
+                            let cyclic = nav.engaged().and_then(|e| find(&nav.root, e)).is_some_and(|s| s.role == NavRole::Stop && s.ends == Ends::Cycle);
                             let mut anc = Vec::new();
                             path(&nav.root, nav.focus().unwrap_or_default(), &mut anc);
-                            let modal = anc.iter().any(|a| a.role == (Role::Layer { trap: true }));
+                            let modal = anc.iter().any(|a| a.role == (NavRole::Layer { trap: true }));
                             prop_assert!(cyclic || modal, "wrapped in a level that stops");
                         }
                         // An engaged stop that cycles is never left by Volume.
                         Effect::Released(r) if matches!(k, Key::Next | Key::Previous) => {
                             let s = find(&nav.root, r);
-                            prop_assert!(!s.is_some_and(|s| s.role == Role::Stop && s.ends == Ends::Cycle), "Volume left the cyclic stop {}", r);
+                            prop_assert!(!s.is_some_and(|s| s.role == NavRole::Stop && s.ends == Ends::Cycle), "Volume left the cyclic stop {}", r);
                         }
                         _ => {}
                     }
@@ -268,7 +268,7 @@ proptest! {
                     // Only what is drawn can be touched: nothing inside a layer that is closed.
                     let mut anc = Vec::new();
                     path(&nav.root, name, &mut anc);
-                    let in_layer = anc.iter().any(|a| matches!(a.role, Role::Layer { .. }));
+                    let in_layer = anc.iter().any(|a| matches!(a.role, NavRole::Layer { .. }));
                     if focusable(&nav.root, name) && !in_layer {
                         nav.touched(name);
                         prop_assert_eq!(nav.focus(), Some(name.as_str()), "a touch gives the focus");
@@ -341,8 +341,8 @@ proptest! {
             for c in &n.children {
                 if c.leaving || !c.enabled { continue; }
                 match c.role {
-                    Role::Transparent => level(c, out),
-                    Role::Leaf | Role::Adjustable | Role::Stop => out.push(c.name.clone()),
+                    NavRole::Transparent => level(c, out),
+                    NavRole::Leaf | NavRole::Adjustable | NavRole::Stop => out.push(c.name.clone()),
                     _ => {}
                 }
             }

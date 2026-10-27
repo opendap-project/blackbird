@@ -1,14 +1,9 @@
 //! Roles and context to semantic actions (§3.4): what most handlers want, whatever produced it.
 //! The composer maps the T1's controls with it; other faceplates' controls map by the same rules.
 
-/// A control's role, as the device description names it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Role {
-    Action,
-    VolumeUp,
-    VolumeDown,
-    Main,
-}
+/// A control's role, as the device description names it: the vocabulary the device and the host
+/// share (RFC 0020).
+pub use opendap_bus_model::Role;
 
 /// What a control event means.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,6 +19,8 @@ pub enum Semantic {
     PlayPause,
     NextTrack,
     PreviousTrack,
+    /// Back one level: a back button, as the leading-edge swipe (§3.4).
+    Back,
     /// The system's (Main): never the activity's.
     System,
     /// Nothing (a long Action press with no action bound).
@@ -60,6 +57,11 @@ pub fn press(role: Role, ctx: Context) -> Semantic {
         Role::VolumeDown if ctx.locked => Semantic::Decrease,
         Role::VolumeUp => Semantic::Previous,
         Role::VolumeDown => Semantic::Next,
+        // Other hardware's controls (§3.4): a back button, a select button; a menu button has no
+        // semantic action yet.
+        Role::Back => Semantic::Back,
+        Role::Select => Semantic::Activate,
+        Role::Menu => Semantic::None,
     }
 }
 
@@ -70,7 +72,7 @@ pub fn long_press(role: Role, ctx: Context) -> Semantic {
     match role {
         Role::Main => Semantic::System,
         Role::VolumeUp | Role::VolumeDown => press(role, ctx),
-        Role::Action => Semantic::None,
+        Role::Action | Role::Select | Role::Back | Role::Menu => Semantic::None,
     }
 }
 
