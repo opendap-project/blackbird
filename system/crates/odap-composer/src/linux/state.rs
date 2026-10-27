@@ -47,44 +47,71 @@ pub struct Composer {
     pub output: Option<Output>,
     pub backend: Option<Backend>,
 
+    pub protocols: Protocols,
+    pub seat: Seat<Composer>,
+    pub contacts: Contacts,
+    pub keys: Keys,
+    pub liveness: Liveness,
+    pub system: System,
+}
+
+/// The Wayland protocols' server states.
+pub struct Protocols {
     pub compositor_state: CompositorState,
     pub xdg_shell_state: XdgShellState,
     pub shm_state: ShmState,
     pub _output_manager_state: OutputManagerState,
     pub seat_state: SeatState<Composer>,
-    pub seat: Seat<Composer>,
-    /// An absolute pointer acting as one finger (input.rs).
+}
+
+/// Contacts as the input pipeline follows them (input/).
+pub struct Contacts {
+    /// An absolute pointer acting as one finger.
     pub pointer_location: Point<f64, Logical>,
     pub pointer_contact: bool,
+    /// Where the last contact was, for a touch's release (which has no position).
+    pub last_touch: Point<f64, Logical>,
+    /// Contacts that started in the status bar: the system's until they end.
+    pub system_contacts: Vec<smithay::backend::input::TouchSlot>,
+    /// With the display off, the one gesture the screen takes: a double tap wakes the display.
+    pub wake: super::input::Wake,
+}
+
+/// What the activity was sent for the controls (input/forward.rs).
+#[derive(Default)]
+pub struct Keys {
+    /// The keys a role sent the activity when it went down, to release the same ones.
+    pub forwarded: std::collections::HashMap<opendap_device::Role, &'static [u32]>,
+    /// Counts the focus steps held down, so a held button's repeat stops with its release.
+    pub repeat_gen: u64,
+    /// The generation of an attached keyboard's held key (input/keyboard.rs).
+    pub key_repeat_gen: u64,
+    /// Volume + and Volume −'s presses, for their double press (T1-062).
+    pub volume_presses: [opendap_input::double::DoublePress; 2],
+}
+
+/// Whether the activity answers (input/liveness.rs): input to one that does not is dropped, never
+/// queued (SYS-072).
+#[derive(Default)]
+pub struct Liveness {
+    /// A ping to the activity still unanswered, since when.
+    pub ping_since: Option<std::time::Instant>,
+    /// Which client that ping went to: only its pong answers it.
+    pub pinged: Option<smithay::wayland::shell::xdg::ShellClient>,
+    /// A ping is due shortly after the last key.
+    pub ping_scheduled: bool,
+}
+
+/// What the composer draws and keeps of its own.
+pub struct System {
     /// The touch indicator, a developer option (touches.rs).
     pub touches: super::touches::Touches,
     /// The system control's presses (controls.rs).
     pub controls: super::controls::Controls,
-    /// The keys a role sent the activity when it went down, to release the same ones (input.rs).
-    pub forwarded: std::collections::HashMap<opendap_device::Role, &'static [u32]>,
-    /// Counts the focus steps held down, so a held button's repeat stops with its release.
-    pub repeat_gen: u64,
-    /// The generation of an attached keyboard's held key (input.rs `keyboard_repeat`).
-    pub key_repeat_gen: u64,
-    /// Volume + and Volume −'s presses, for their double press (T1-062).
-    pub volume_presses: [opendap_input::double::DoublePress; 2],
     /// What the status bar shows (status.rs).
     pub status: super::status::Status,
     /// The system layers (layers.rs), once the display is up.
     pub layers: Option<super::layers::SystemLayers>,
-    /// Where the last contact was, for a touch's release (which has no position).
-    pub last_touch: Point<f64, Logical>,
-    /// With the display off, the one gesture the screen takes: a double tap wakes the display.
-    pub wake: super::input::Wake,
-    /// Contacts that started in the status bar: the system's until they end (input.rs).
-    pub system_contacts: Vec<smithay::backend::input::TouchSlot>,
-    /// A ping to the activity still unanswered, since when (input.rs: input to an activity that
-    /// does not respond is dropped, never queued).
-    pub ping_since: Option<std::time::Instant>,
-    /// Which client that ping went to: only its pong answers it.
-    pub pinged: Option<smithay::wayland::shell::xdg::ShellClient>,
-    /// A ping is due shortly after the last key (input.rs).
-    pub ping_scheduled: bool,
 }
 
 impl Composer {
@@ -140,28 +167,29 @@ impl Composer {
             space: Space::default(),
             output: None,
             backend: None,
-            compositor_state,
-            xdg_shell_state,
-            shm_state,
-            _output_manager_state: output_manager_state,
-            seat_state,
+            protocols: Protocols {
+                compositor_state,
+                xdg_shell_state,
+                shm_state,
+                _output_manager_state: output_manager_state,
+                seat_state,
+            },
             seat,
-            pointer_location: Point::from((0.0, 0.0)),
-            pointer_contact: false,
-            touches: super::touches::Touches::new(),
-            controls: Default::default(),
-            forwarded: Default::default(),
-            repeat_gen: 0,
-            key_repeat_gen: 0,
-            status: Default::default(),
-            volume_presses: Default::default(),
-            layers: None,
-            last_touch: Point::from((0.0, 0.0)),
-            wake: super::input::Wake::default(),
-            system_contacts: Vec::new(),
-            ping_since: None,
-            pinged: None,
-            ping_scheduled: false,
+            contacts: Contacts {
+                pointer_location: Point::from((0.0, 0.0)),
+                pointer_contact: false,
+                last_touch: Point::from((0.0, 0.0)),
+                system_contacts: Vec::new(),
+                wake: super::input::Wake::default(),
+            },
+            keys: Keys::default(),
+            liveness: Liveness::default(),
+            system: System {
+                touches: super::touches::Touches::new(),
+                controls: Default::default(),
+                status: Default::default(),
+                layers: None,
+            },
         }
     }
 
@@ -206,7 +234,7 @@ impl ClientData for ClientState {
 
 impl CompositorHandler for Composer {
     fn compositor_state(&mut self) -> &mut CompositorState {
-        &mut self.compositor_state
+        &mut self.protocols.compositor_state
     }
 
     fn client_compositor_state<'a>(&self, client: &'a Client) -> &'a CompositorClientState {
@@ -242,27 +270,27 @@ impl BufferHandler for Composer {
 
 impl ShmHandler for Composer {
     fn shm_state(&self) -> &ShmState {
-        &self.shm_state
+        &self.protocols.shm_state
     }
 }
 
 impl XdgShellHandler for Composer {
     fn xdg_shell_state(&mut self) -> &mut XdgShellState {
-        &mut self.xdg_shell_state
+        &mut self.protocols.xdg_shell_state
     }
 
     // The activity answered: it responds (input.rs).
     fn client_pong(&mut self, client: smithay::wayland::shell::xdg::ShellClient) {
-        if self.pinged.as_ref().is_none_or(|p| *p == client) {
-            self.ping_since = None;
-            self.pinged = None;
+        if self.liveness.pinged.as_ref().is_none_or(|p| *p == client) {
+            self.liveness.ping_since = None;
+            self.liveness.pinged = None;
         }
     }
 
     fn new_toplevel(&mut self, surface: ToplevelSurface) {
         // A new activity starts answered: a ping left by one that went away is not held against it.
-        self.ping_since = None;
-        self.pinged = None;
+        self.liveness.ping_since = None;
+        self.liveness.pinged = None;
         self.configure_full_screen(&surface);
         // The activity on screen takes the keys the buttons send it (input.rs).
         let wl = surface.wl_surface().clone();
@@ -286,9 +314,14 @@ impl XdgShellHandler for Composer {
     }
 
     fn toplevel_destroyed(&mut self, surface: ToplevelSurface) {
-        if self.pinged.as_ref().is_some_and(|p| *p == surface.client()) {
-            self.ping_since = None;
-            self.pinged = None;
+        if self
+            .liveness
+            .pinged
+            .as_ref()
+            .is_some_and(|p| *p == surface.client())
+        {
+            self.liveness.ping_since = None;
+            self.liveness.pinged = None;
         }
         let gone: Vec<Window> = self
             .space
@@ -327,7 +360,7 @@ impl SeatHandler for Composer {
     type TouchFocus = WlSurface;
 
     fn seat_state(&mut self) -> &mut SeatState<Composer> {
-        &mut self.seat_state
+        &mut self.protocols.seat_state
     }
 
     fn cursor_image(&mut self, _seat: &Seat<Self>, _image: CursorImageStatus) {}

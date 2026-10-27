@@ -23,7 +23,10 @@ pub fn init(composer: &mut Composer) -> Result<(), Error> {
     let (connector, crtc, mode) = pick_output(&gpu.drm, composer)?;
     let (output, scale) = make_output(composer, &connector, mode);
     let compositor = make_compositor(&mut gpu, &output, crtc, mode, &connector, &renderer)?;
-    composer.shm_state.update_formats(renderer.shm_formats());
+    composer
+        .protocols
+        .shm_state
+        .update_formats(renderer.shm_formats());
     let libinput = event_sources(composer, &session, &seat, gpu.notifier, notifier)?;
     composer.output = Some(output);
     composer.backend = Some(Backend {
@@ -289,7 +292,7 @@ fn system_layers(composer: &mut Composer, mode: Mode, scale: i32) {
         .as_ref()
         .map(|d| d.scale() / scale as f32)
         .unwrap_or(1.0);
-    composer.layers = super::super::layers::SystemLayers::new(
+    composer.system.layers = super::super::layers::SystemLayers::new(
         (mode.size().0 as u32, mode.size().1 as u32),
         scale as f32,
         main_y,

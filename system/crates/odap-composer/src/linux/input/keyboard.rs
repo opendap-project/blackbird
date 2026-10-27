@@ -35,15 +35,15 @@ pub(super) const MODIFIERS: &[u32] = &[29, 42, 54, 56, 97, 100, 125, 126, 58];
 pub(super) const NO_REPEAT: &[u32] = &[1, 28, 57, 96];
 
 pub(super) fn keyboard_repeat(composer: &mut Composer, code: u32, pressed: bool) {
-    composer.key_repeat_gen += 1;
+    composer.keys.key_repeat_gen += 1;
     if !pressed || MODIFIERS.contains(&code) || NO_REPEAT.contains(&code) {
         return;
     }
-    let generation = composer.key_repeat_gen;
+    let generation = composer.keys.key_repeat_gen;
     let _ = composer.handle.insert_source(
         calloop::timer::Timer::from_duration(KEY_REPEAT_DELAY),
         move |_, _, composer| {
-            if composer.key_repeat_gen != generation {
+            if composer.keys.key_repeat_gen != generation {
                 return calloop::timer::TimeoutAction::Drop;
             }
             let now = smithay::backend::input::InputTime::now();

@@ -149,7 +149,7 @@ pub(super) fn normalize(
             source: Source::Finger(event.slot()),
             slot: event.slot(),
             phase: Phase::Up,
-            at: composer.last_touch,
+            at: composer.contacts.last_touch,
             time: event.time(),
         },
         InputEvent::TouchFrame { .. } => Seen::Frame,
@@ -197,8 +197,8 @@ fn pointer_motion(
     event: &impl AbsolutePositionEvent<LibinputInputBackend>,
 ) -> Option<Seen> {
     let at = touch_location(composer, event)?;
-    composer.pointer_location = at;
-    Some(if composer.pointer_contact {
+    composer.contacts.pointer_location = at;
+    Some(if composer.contacts.pointer_contact {
         Seen::Contact {
             source: Source::Pointer,
             slot: pointer_slot(),
@@ -219,13 +219,13 @@ fn pointer_button(
     composer: &mut Composer,
     event: &impl PointerButtonEvent<LibinputInputBackend>,
 ) -> Option<Seen> {
-    let at = composer.pointer_location;
+    let at = composer.contacts.pointer_location;
     let phase = match event.state() {
-        ButtonState::Pressed if !composer.pointer_contact => Phase::Down,
-        ButtonState::Released if composer.pointer_contact => Phase::Up,
+        ButtonState::Pressed if !composer.contacts.pointer_contact => Phase::Down,
+        ButtonState::Released if composer.contacts.pointer_contact => Phase::Up,
         _ => return None,
     };
-    composer.pointer_contact = phase == Phase::Down;
+    composer.contacts.pointer_contact = phase == Phase::Down;
     Some(Seen::Contact {
         source: Source::Pointer,
         slot: pointer_slot(),

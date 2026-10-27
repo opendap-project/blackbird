@@ -13,19 +13,23 @@ pub(super) fn system_contact(
 ) -> bool {
     match contact {
         LayerContact::Down => {
-            let unit = composer.layers.as_ref().map_or(1.0, |l| l.unit());
-            let in_bar = composer.layers.as_ref().is_some_and(|l| l.status_shown())
+            let unit = composer.system.layers.as_ref().map_or(1.0, |l| l.unit());
+            let in_bar = composer
+                .system
+                .layers
+                .as_ref()
+                .is_some_and(|l| l.status_shown())
                 && (at.y as f32) < opendap_input::gesture::STATUS_BAR_PX * unit;
             if in_bar {
-                composer.system_contacts.push(slot);
+                composer.contacts.system_contacts.push(slot);
             }
             in_bar
         }
-        LayerContact::Moved => composer.system_contacts.contains(&slot),
+        LayerContact::Moved => composer.contacts.system_contacts.contains(&slot),
         LayerContact::Up | LayerContact::Cancel => {
-            let len = composer.system_contacts.len();
-            composer.system_contacts.retain(|s| *s != slot);
-            composer.system_contacts.len() != len
+            let len = composer.contacts.system_contacts.len();
+            composer.contacts.system_contacts.retain(|s| *s != slot);
+            composer.contacts.system_contacts.len() != len
         }
     }
 }
@@ -85,7 +89,7 @@ pub(super) fn system_contacts(composer: &mut Composer, seen: &Seen) -> Flow {
             slot, phase, at, ..
         } if system_contact(composer, slot, at, layer_contact(phase)) => Flow::Taken,
         Seen::Cancel => {
-            composer.system_contacts.clear();
+            composer.contacts.system_contacts.clear();
             Flow::Next
         }
         _ => Flow::Next,
@@ -223,8 +227,8 @@ pub(super) fn to_layers(
     at: Point<f64, Logical>,
     contact: LayerContact,
 ) -> bool {
-    composer.last_touch = at;
-    let Some(layers) = composer.layers.as_mut().filter(|l| l.takes_input()) else {
+    composer.contacts.last_touch = at;
+    let Some(layers) = composer.system.layers.as_mut().filter(|l| l.takes_input()) else {
         return false;
     };
     layers.contact(at, contact);

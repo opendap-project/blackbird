@@ -11,10 +11,12 @@ pub fn render_if_idle(composer: &mut Composer) {
         space,
         output,
         backend,
-        touches,
-        layers,
+        system,
         ..
     } = composer;
+    let super::super::state::System {
+        touches, layers, ..
+    } = system;
     let (Some(backend), Some(output)) = (backend.as_mut(), output.as_ref()) else {
         return;
     };
@@ -153,7 +155,7 @@ fn screenshot(
     };
     l.show_toast(message);
     let _ = handle.insert_source(Timer::from_duration(TOAST), |_, _, composer| {
-        if let Some(l) = composer.layers.as_mut() {
+        if let Some(l) = composer.system.layers.as_mut() {
             l.hide_toast();
         }
         if let Some(b) = composer.backend.as_mut() {

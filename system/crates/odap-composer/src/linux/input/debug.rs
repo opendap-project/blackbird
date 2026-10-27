@@ -17,7 +17,7 @@ pub(super) fn debug(composer: &mut Composer, at: Point<f64, Logical>, contact: L
                 opendap_input::gesture::LONG_MS,
             )),
             |_, _, composer| {
-                if let Some(layers) = composer.layers.as_mut() {
+                if let Some(layers) = composer.system.layers.as_mut() {
                     // Shown while the finger stays down; its timeout starts when it lifts.
                     layers.debug_long_press();
                     if let Some(b) = composer.backend.as_mut() {
@@ -29,7 +29,7 @@ pub(super) fn debug(composer: &mut Composer, at: Point<f64, Logical>, contact: L
             },
         );
     }
-    let Some(layers) = composer.layers.as_mut() else {
+    let Some(layers) = composer.system.layers.as_mut() else {
         return;
     };
     let changed = layers.refresh_debug();
@@ -57,7 +57,7 @@ pub(super) fn clear_later(composer: &mut Composer, seq: u64) {
         let _ = composer.handle.insert_source(
             calloop::timer::Timer::from_duration(GESTURE_SHOWN),
             move |_, _, composer| {
-                if let Some(l) = composer.layers.as_mut() {
+                if let Some(l) = composer.system.layers.as_mut() {
                     l.clear_gesture(seq);
                 }
                 if let Some(b) = composer.backend.as_mut() {
@@ -75,10 +75,10 @@ pub(super) fn indicate(
     composer: &mut Composer,
     change: impl FnOnce(&mut crate::linux::touches::Touches),
 ) {
-    if !composer.touches.enabled() {
+    if !composer.system.touches.enabled() {
         return;
     }
-    change(&mut composer.touches);
+    change(&mut composer.system.touches);
     if let Some(backend) = composer.backend.as_mut() {
         backend.schedule();
     }

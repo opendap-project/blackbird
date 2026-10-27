@@ -84,24 +84,24 @@ pub fn warning(before: Option<u8>, after: Option<u8>, charging: bool) -> Option<
 /// Reads the state again and shows it; warns when the battery crosses a threshold.
 pub fn refresh(composer: &mut Composer) {
     let status = now();
-    let before = composer.status.battery;
+    let before = composer.system.status.battery;
     let note = warning(before, status.battery, status.charging);
-    if status != composer.status {
-        composer.status = status.clone();
-        if let Some(layers) = composer.layers.as_mut() {
+    if status != composer.system.status {
+        composer.system.status = status.clone();
+        if let Some(layers) = composer.system.layers.as_mut() {
             layers.set_status(&status);
         }
     }
     if let Some(text) = note {
         info!(%text, "battery");
-        if let Some(layers) = composer.layers.as_mut() {
+        if let Some(layers) = composer.system.layers.as_mut() {
             layers.show_toast(&text);
         }
         let _ =
             composer
                 .handle
                 .insert_source(Timer::from_duration(WARNING_FOR), |_, _, composer| {
-                    if let Some(l) = composer.layers.as_mut() {
+                    if let Some(l) = composer.system.layers.as_mut() {
                         l.hide_toast();
                     }
                     redraw(composer);
@@ -156,7 +156,12 @@ fn watch_debug(composer: &mut Composer) {
         Generic::new(fd, Interest::READ, Mode::Level),
         |_, fd, composer| {
             opendap_platform::kernel::drain(&**fd);
-            if composer.layers.as_mut().is_some_and(|l| l.refresh_debug()) {
+            if composer
+                .system
+                .layers
+                .as_mut()
+                .is_some_and(|l| l.refresh_debug())
+            {
                 redraw(composer);
             }
             Ok(PostAction::Continue)

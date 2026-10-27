@@ -74,7 +74,7 @@ pub(super) fn forward(
         role,
         display_on,
         sound,
-        &mut composer.volume_presses,
+        &mut composer.keys.volume_presses,
         now_ms(),
     ) else {
         return;
@@ -96,10 +96,10 @@ pub(super) fn forward(
         let now = smithay::backend::input::InputTime::now();
         send_key(composer, key, KeyState::Pressed, now);
         send_key(composer, key, KeyState::Released, now);
-        composer.forwarded.insert(role, &[]);
+        composer.keys.forwarded.insert(role, &[]);
         return;
     }
-    composer.forwarded.insert(role, press.keys);
+    composer.keys.forwarded.insert(role, press.keys);
     if press.repeats {
         repeat_held(composer, role, press.meaning);
     }
@@ -116,13 +116,15 @@ fn repeat_held(
     meaning: opendap_input::semantic::Semantic,
 ) {
     use opendap_input::semantic::Semantic;
-    composer.repeat_gen += 1;
-    let generation = composer.repeat_gen;
+    composer.keys.repeat_gen += 1;
+    let generation = composer.keys.repeat_gen;
     let mut interval = REPEAT_FIRST;
     let _ = composer.handle.insert_source(
         calloop::timer::Timer::from_duration(REPEAT_DELAY),
         move |_, _, composer| {
-            if composer.repeat_gen != generation || !composer.forwarded.contains_key(&role) {
+            if composer.keys.repeat_gen != generation
+                || !composer.keys.forwarded.contains_key(&role)
+            {
                 return calloop::timer::TimeoutAction::Drop;
             }
             match meaning {
@@ -146,11 +148,11 @@ pub(super) fn release_forwarded(
     role: opendap_device::Role,
     time: smithay::backend::input::InputTime,
 ) {
-    let Some(keys) = composer.forwarded.remove(&role) else {
+    let Some(keys) = composer.keys.forwarded.remove(&role) else {
         return;
     };
-    composer.repeat_gen += 1;
-    crate::forward::release(role, &mut composer.volume_presses, now_ms());
+    composer.keys.repeat_gen += 1;
+    crate::forward::release(role, &mut composer.keys.volume_presses, now_ms());
     for &code in keys.iter().rev() {
         send_key(composer, code, KeyState::Released, time);
     }
@@ -160,22 +162,26 @@ pub(super) fn release_forwarded(
 /// activity holds is released, every repeat stops, and its touches are cancelled (input events
 /// §3.1: `pointercancel`; Wayland's `wl_touch.cancel`), so nothing that started acts.
 pub fn release_all_forwarded(composer: &mut Composer) {
-    let roles: Vec<_> = composer.forwarded.keys().copied().collect();
+    let roles: Vec<_> = composer.keys.forwarded.keys().copied().collect();
     for role in roles {
         release_forwarded(composer, role, smithay::backend::input::InputTime::now());
     }
-    composer.key_repeat_gen += 1;
+    composer.keys.key_repeat_gen += 1;
 }
 
 pub fn system_takeover(composer: &mut Composer) {
     release_all_forwarded(composer);
     // No double press spans the system's turn.
-    composer.volume_presses.iter_mut().for_each(|p| p.reset());
+    composer
+        .keys
+        .volume_presses
+        .iter_mut()
+        .for_each(|p| p.reset());
     if let Some(touch) = composer.seat.get_touch() {
         touch.cancel(composer);
     }
-    if let Some(layers) = composer.layers.as_mut() {
-        let _ = layers.debug_contact(composer.last_touch, LayerContact::Cancel);
+    if let Some(layers) = composer.system.layers.as_mut() {
+        let _ = layers.debug_contact(composer.contacts.last_touch, LayerContact::Cancel);
     }
 }
 

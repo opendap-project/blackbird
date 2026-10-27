@@ -12,6 +12,7 @@ pub(super) const UNRESPONSIVE: std::time::Duration = std::time::Duration::from_m
 /// meets the key first. Nothing is sent at rest: no keys, no pings.
 pub(super) fn activity_responds(composer: &Composer) -> bool {
     composer
+        .liveness
         .ping_since
         .is_none_or(|since| since.elapsed() < UNRESPONSIVE)
 }
@@ -21,15 +22,15 @@ pub(super) fn activity_responds(composer: &Composer) -> bool {
 /// the handler that hangs; 100 ms later, a responsive activity answers within milliseconds and a
 /// hung one does not. The timer exists only after input: nothing runs at rest.
 pub(super) fn ping_activity(composer: &mut Composer) {
-    if composer.ping_since.is_some() || composer.ping_scheduled {
+    if composer.liveness.ping_since.is_some() || composer.liveness.ping_scheduled {
         return;
     }
-    composer.ping_scheduled = true;
+    composer.liveness.ping_scheduled = true;
     let _ = composer.handle.insert_source(
         calloop::timer::Timer::from_duration(std::time::Duration::from_millis(100)),
         |_, _, composer| {
-            composer.ping_scheduled = false;
-            if composer.ping_since.is_none() {
+            composer.liveness.ping_scheduled = false;
+            if composer.liveness.ping_since.is_none() {
                 let client = composer
                     .space
                     .elements()
@@ -38,8 +39,8 @@ pub(super) fn ping_activity(composer: &mut Composer) {
                 if let Some(client) = client
                     && client.send_ping(SERIAL_COUNTER.next_serial()).is_ok()
                 {
-                    composer.ping_since = Some(std::time::Instant::now());
-                    composer.pinged = Some(client);
+                    composer.liveness.ping_since = Some(std::time::Instant::now());
+                    composer.liveness.pinged = Some(client);
                 }
             }
             calloop::timer::TimeoutAction::Drop

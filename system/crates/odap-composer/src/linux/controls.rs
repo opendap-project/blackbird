@@ -55,7 +55,7 @@ pub struct Controls {
 /// A control changed. Returns whether it was part of a system combination.
 pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
     // The debug UI mode lights the control's mark while it is down, whatever it does.
-    if let Some(layers) = composer.layers.as_mut() {
+    if let Some(layers) = composer.system.layers.as_mut() {
         layers.refresh_debug();
         if super::layers::debug_ui() {
             layers.control(role.as_str(), pressed);
@@ -66,11 +66,11 @@ pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
         }
     }
     if pressed {
-        composer.controls.down.insert(role);
+        composer.system.controls.down.insert(role);
     } else {
-        composer.controls.down.remove(&role);
+        composer.system.controls.down.remove(&role);
     }
-    let down = &composer.controls.down;
+    let down = &composer.system.controls.down;
     let combo = down.contains(&Role::Main) && down.contains(&Role::VolumeDown);
     match (pressed, role) {
         // `main` pressed, or `volume-down` joining it: a press starts, or becomes the combination.
@@ -81,6 +81,7 @@ pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
                 Kind::Main
             };
             if composer
+                .system
                 .controls
                 .press
                 .as_ref()
@@ -93,7 +94,7 @@ pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
         }
         // With the power menu up, Volume + and − move the focus and Action takes it (SYS-039).
         (true, Role::VolumeUp | Role::VolumeDown | Role::Action) if menu_open(composer) => {
-            if let Some(layers) = composer.layers.as_mut() {
+            if let Some(layers) = composer.system.layers.as_mut() {
                 match role {
                     Role::VolumeUp => layers.move_focus(-1),
                     Role::VolumeDown => layers.move_focus(1),
@@ -109,8 +110,10 @@ pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
         }
         (false, Role::VolumeUp | Role::Action) if menu_open(composer) => true,
         // A key of the press released: it ends.
-        (false, Role::Main) | (false, Role::VolumeDown) if composer.controls.press.is_some() => {
-            let press = composer.controls.press.take().expect("a press");
+        (false, Role::Main) | (false, Role::VolumeDown)
+            if composer.system.controls.press.is_some() =>
+        {
+            let press = composer.system.controls.press.take().expect("a press");
             if !press.held {
                 short(composer, press.kind);
             }
@@ -121,9 +124,9 @@ pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
 }
 
 fn start(composer: &mut Composer, kind: Kind) {
-    composer.controls.presses += 1;
-    let id = composer.controls.presses;
-    composer.controls.press = Some(Press {
+    composer.system.controls.presses += 1;
+    let id = composer.system.controls.presses;
+    composer.system.controls.press = Some(Press {
         id,
         kind,
         held: false,
@@ -135,7 +138,13 @@ fn start(composer: &mut Composer, kind: Kind) {
     let _ = composer.handle.insert_source(
         Timer::from_deadline(Instant::now() + after),
         move |_, _, composer| {
-            if let Some(press) = composer.controls.press.as_mut().filter(|p| p.id == id) {
+            if let Some(press) = composer
+                .system
+                .controls
+                .press
+                .as_mut()
+                .filter(|p| p.id == id)
+            {
                 press.held = true;
                 info!(combination = name(press.kind), "power menu");
                 open_power_menu(composer);
@@ -146,7 +155,11 @@ fn start(composer: &mut Composer, kind: Kind) {
 }
 
 fn short(composer: &mut Composer, kind: Kind) {
-    let menu = composer.layers.as_ref().is_some_and(|l| l.power_open());
+    let menu = composer
+        .system
+        .layers
+        .as_ref()
+        .is_some_and(|l| l.power_open());
     match kind {
         // The second press of `main` confirms: power off.
         Kind::Main if menu => {
@@ -192,7 +205,7 @@ fn open_power_menu(composer: &mut Composer) {
     }
     // Opened with the display off: the activity gets its keyboard back for when the menu closes.
     super::input::activity_keyboard(composer, true);
-    if let Some(layers) = composer.layers.as_mut() {
+    if let Some(layers) = composer.system.layers.as_mut() {
         layers.open_power(can_recovery);
     }
     super::backend::render_if_idle(composer);
@@ -200,7 +213,7 @@ fn open_power_menu(composer: &mut Composer) {
 
 /// What the system layers asked for (layers.rs), after their input.
 pub fn layer_requests(composer: &mut Composer) {
-    let Some(layers) = composer.layers.as_mut() else {
+    let Some(layers) = composer.system.layers.as_mut() else {
         return;
     };
     for request in layers.take_requests() {
@@ -219,7 +232,11 @@ pub fn layer_requests(composer: &mut Composer) {
 }
 
 fn menu_open(composer: &Composer) -> bool {
-    composer.layers.as_ref().is_some_and(|l| l.power_open())
+    composer
+        .system
+        .layers
+        .as_ref()
+        .is_some_and(|l| l.power_open())
 }
 
 /// The display off or on again, and the activity's keyboard with it (composer spec §2).
