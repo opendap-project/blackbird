@@ -75,13 +75,13 @@ Requirements for Blackbird OS system software. Most of these record the maintain
 | SYS-069 | System views (the power menu, restart and boot-mode choices) shall stand outside the OS Shell's chrome, preceding it: full screen, without the status bar or any other OS Shell layer. | must | Confirmed |
 | SYS-070 | Blackbird OS shall have a debug UI mode, off by default and turned on by a flag, that draws over the real interface at run time its blueprint references: the composer's regions, margins and edge zones, grids, the physical controls where the description places them (showing when each is pressed), touches and recognised gestures (as toasts), and the layers and elements of the UI. | must | Draft |
 | SYS-071 | Blackbird OS shall include developer activities that exercise the UI primitives (gestures, sliders and drag, transitions, morph, focus traversal, multitouch, input primitives), separate from the debug UI mode. | must | Draft |
-| SYS-072 | While an activity leaves the composer's check after a key unanswered, further keys to it shall be dropped, never queued, so nothing acts seconds later. | must | Draft |
+| SYS-072 | While an activity leaves the composer's check after a key unanswered, further keys to it shall be dropped, never queued, so nothing acts seconds later. | must | Confirmed |
 | SYS-073 | A held button's focus step shall repeat with increasing speed and stop where the button is released, with no inertia. | must | Confirmed |
 | SYS-074 | Releasing a button shall leave the focus where it is, with no further step. | must | Confirmed |
 | SYS-075 | In the debug UI mode a recognised gesture shall stay shown while its contact lasts and briefly after it ends, as feedback for the eye rather than a message to read, and a newer gesture shall replace it at once. | must | Confirmed |
-| SYS-076 | While discharging, the system shall show the battery as low at 15 % or less and warn once at 15 % and once at 5 %. | must | Draft |
+| SYS-076 | While discharging, the system shall show the battery as low at 15 % or less and warn once at 15 % and once at 5 %. | must | Confirmed |
 | SYS-077 | Every level of the interface (the screen, an activity, a container, an element) shall have its own box, coordinates and regions, and recognise gestures only within its own box. | must | Confirmed |
-| SYS-078 | Button navigation shall have levels: the focus moves among the stops of the current level, Action engages a stop to work inside it one level down, and leaving returns to the level above. | must | Draft |
+| SYS-078 | Button navigation shall have levels: the focus moves among the stops of the current level, Action engages a stop to work inside it one level down, and leaving returns to the level above. | must | Confirmed |
 | SYS-079 | Every coordinate shall be relative to a frame placed in its parent by an offset, a scale and a direction; no position is absolute, and a position always names its frame. | must | Confirmed |
 | SYS-080 | A scroll container shall be two frames, its viewport and its content, so the same contact has a position in each. | must | Confirmed |
 
@@ -95,7 +95,7 @@ Requirements for Blackbird OS system software. Most of these record the maintain
 
 ## Context
 
-- SYS-072 to SYS-080 (2026-10-27): recorded from the composer's and the input specification's decisions. SYS-073, SYS-074, SYS-075, SYS-077, SYS-079 and SYS-080 are the maintainers' (2026-10-23). SYS-072 and SYS-078 (2026-10-24) and SYS-076 (2026-10-24; T1-044 states no thresholds, and these are Android's defaults and the status LED's) await the maintainers' confirmation. The values (the 100 ms and 500 ms of SYS-072, the repeat curve of SYS-073, the 800 ms of SYS-075) are in the [composer specification](../specs/composer-and-ui-runtime.md) and the [input events specification](../specs/input-events.md), and adjustable where SYS-066 asks.
+- SYS-072 to SYS-080 (2026-10-27): recorded from the composer's and the input specification's decisions. SYS-073, SYS-074, SYS-075, SYS-077, SYS-079 and SYS-080 are the maintainers' (2026-10-23). SYS-072, SYS-076 and SYS-078 were confirmed by the maintainers on 2026-10-27 (SYS-076: T1-044 states no thresholds; these are Android's defaults and the status LED's). The values (the 100 ms and 500 ms of SYS-072, the repeat curve of SYS-073, the 800 ms of SYS-075) are in the [composer specification](../specs/composer-and-ui-runtime.md) and the [input events specification](../specs/input-events.md), and adjustable where SYS-066 asks.
 - SYS-071 (maintainers, 2026-10-23): until the activity launcher exists, a flag of the composer starts the activity in place of the product. SYS-070: the components draw themselves as blueprints and the composer draws its references above (blackbird-ui ADR 0002).
 - SYS-069 to SYS-071 (maintainers, 2026-10-23): the blueprint test screen becomes the real OS's debug UI mode, drawn over the running interface when its flag is on; the tests it carried become some of the first developer activities, included in the OS but not part of the debug UI mode; system views such as the power menu precede the OS Shell, so they carry no status bar.
 
