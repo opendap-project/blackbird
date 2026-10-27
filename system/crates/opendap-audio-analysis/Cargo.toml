@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "Audio measurements of OpenDAP: PCM decoding (exact and to float), level meters (peak with hold, 300 ms RMS, clips, DC), windowed FFT spectrum and display bands, sine analysis (THD, THD+N, SNR by a fitted-sine notch), bit-exact capture comparison and RIFF WAVE read and write; pure, bounded memory, platform-agnostic"
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+license = "MPL-2.0"
 publish = false
 
 [dependencies]

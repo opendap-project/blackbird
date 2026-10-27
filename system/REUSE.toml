@@ -23,3 +23,10 @@ path = "docs/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The OpenDAP Project"
 SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+# SDK crates: libraries others build on (device model, platform contract, UI primitives, audio measurements)
+[[annotations]]
+path = ["crates/opendap-device/**", "crates/opendap-input/**", "crates/opendap-layout/**", "crates/opendap-motion/**", "crates/opendap-forms/**", "crates/opendap-media/**", "crates/opendap-audio-analysis/**", "crates/opendap-platform/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 The OpenDAP Project"
+SPDX-License-Identifier = "MPL-2.0"

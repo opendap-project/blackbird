@@ -49,7 +49,6 @@ This repository follows the [REUSE](https://reuse.software) layout: license text
 - Markdown files: **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`)
 - `schemas/`: **Mozilla Public License 2.0** (`MPL-2.0`)
 - `docs/`: **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`)
-
-SDK crates, meant for third-party capabilities, will be licensed **Mozilla Public License 2.0** (`MPL-2.0`) when they are created.
+- SDK crates, the libraries others build on: **Mozilla Public License 2.0** (`MPL-2.0`): `opendap-device` (device model), `opendap-platform` (platform contract), `opendap-input`, `opendap-layout`, `opendap-motion`, `opendap-forms`, `opendap-media` (UI primitives) and `opendap-audio-analysis` (audio measurements). The `odap-*` programs, `opendap-splash` and `opendap-workspace` stay `GPL-3.0-or-later`.
 
 Copyright © 2026 The OpenDAP Project.

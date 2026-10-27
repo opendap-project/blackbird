@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "Fields and forms of Blackbird OS (input events spec §3.8): text editing, field kinds and values, two-way binding without loops, validation and forms; platform-agnostic"
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+license = "MPL-2.0"
 publish = false
 
 [features]

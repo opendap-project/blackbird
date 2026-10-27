@@ -4,7 +4,7 @@ version = "0.0.1"
 description = "Domain model of the hardware a Blackbird OS device describes: display, controls and their roles"
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+license = "MPL-2.0"
 publish = false
 
 [dependencies]
