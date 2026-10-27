@@ -2,6 +2,7 @@
 
 use std::{cell::Cell, rc::Rc, time::Duration};
 
+use slint::platform::{Key, WindowEvent};
 use slint::{ComponentHandle, SharedString, Timer};
 
 use crate::Testbed;
@@ -32,20 +33,32 @@ pub(crate) fn wire(ui: &Testbed) {
     });
 }
 
-/// Sends the key opposite to the one that reached the screen's `end`.
+/// Sends the key opposite to the one that reached the screen's `end`. Past the last element that
+/// is Shift+Tab, which goes back whatever Shift is doing. Before the first it is a plain Tab, which
+/// Shift would turn backward: Volume + and Shift+Tab come with Shift down, so Shift is let go for
+/// that Tab and put back down after, when it is still down (Blackbird UI `FocusNav.shift`), or a
+/// Volume + still held would step forward from then on.
 fn bounce(ui: &Testbed, end: bool) {
-    // Volume + arrives as Shift+Tab: Shift may still be down, which would turn this Tab
-    // backward again.
-    let shift: SharedString = slint::platform::Key::Shift.into();
-    ui.window()
-        .dispatch_event(slint::platform::WindowEvent::KeyReleased { text: shift });
-    let text: SharedString = if end {
-        slint::platform::Key::Backtab.into()
-    } else {
-        slint::platform::Key::Tab.into()
+    let window = ui.window();
+    let key = |text: SharedString, pressed: bool| {
+        window.dispatch_event(if pressed {
+            WindowEvent::KeyPressed { text }
+        } else {
+            WindowEvent::KeyReleased { text }
+        })
     };
-    ui.window()
-        .dispatch_event(slint::platform::WindowEvent::KeyPressed { text: text.clone() });
-    ui.window()
-        .dispatch_event(slint::platform::WindowEvent::KeyReleased { text });
+    let tap = |k: Key| {
+        key(k.into(), true);
+        key(k.into(), false);
+    };
+    if end {
+        tap(Key::Backtab);
+        return;
+    }
+    let shift = ui.global::<crate::FocusNav>().get_shift();
+    key(Key::Shift.into(), false);
+    tap(Key::Tab);
+    if shift {
+        key(Key::Shift.into(), true);
+    }
 }

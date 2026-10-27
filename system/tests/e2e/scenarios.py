@@ -696,31 +696,39 @@ def repeat_direction(d):
     """ctl-repeat-direction: held, each volume button keeps moving the focus its own way and stops
     at its end (T1 controls spec §1.3, input events §3.7), in the UI primitives activity's list:
     Volume + held past the first line stays there, Volume − held runs to the last line and stays,
-    and Volume + held from there moves up. Where the ring is on the display says which line has
-    the focus only at the list's ends; between them the view scrolls with it."""
+    and Volume + held from there moves up; an attached keyboard's Shift+Tab held stays at the
+    first line too. Which line has the focus is told by what the ring holds (where the view
+    scrolls the first line depends on where it was before)."""
     d.keyboard("esc")
     d.keyboard("esc")
     time.sleep(0.5)
     d.press("volume-up")  # shows the focus, on the list's first line
-    first = d.ring("dir-first")
+    first = d.focused("dir-first")
     if first is None:
         return ["the focus did not show on the list"]
     bad = []
     d.press("volume-down", 4)
     d.hold("volume-up", 5.0)
-    top = d.ring("dir-top", settle=0.6)
-    if top != first:
-        bad.append(f"Volume + held past the first line did not stay there: {first} -> {top}")
+    if not png.same(d.focused("dir-top", settle=0.6), first):
+        bad.append("Volume + held past the first line did not stay there (dir-top)")
     d.hold("volume-down", 8.0)
-    last = d.ring("dir-last", settle=0.6)
+    last = d.focused("dir-last", settle=0.6)
     d.hold("volume-down", 2.0)
-    still = d.ring("dir-last-still", settle=0.6)
-    if last is None or still != last:
-        bad.append(f"Volume − held past the last line did not stay there: {last} -> {still}")
+    if last is None or not png.same(d.focused("dir-last-still", settle=0.6), last):
+        bad.append("Volume − held past the last line did not stay there (dir-last-still)")
     d.hold("volume-up", 1.0)
-    up = d.ring("dir-up", settle=0.6)
-    if up is None or last is None or up[1] >= last[1]:
-        bad.append(f"Volume + held from the last line did not move up: {last} -> {up}")
+    up = d.focused("dir-up", settle=0.6)
+    if up is None or png.same(up, last):
+        bad.append("Volume + held from the last line did not move up (dir-up)")
+    # An attached keyboard's Shift+Tab, held past the first line, stays there too: the screen's
+    # end stop puts Shift back down after its Tab (Blackbird UI FocusNav.shift).
+    d.hold("volume-up", 5.0)
+    d.press("volume-down", 4)
+    d.q.key("shift", True)
+    d.hold_key("tab", 5.0)
+    d.q.key("shift", False)
+    if not png.same(d.focused("dir-kb-top", settle=0.6), first):
+        bad.append("Shift+Tab held past the first line did not stay there (dir-kb-top)")
     return bad
 
 ALL = [

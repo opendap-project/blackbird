@@ -55,6 +55,11 @@ class Device:
         time.sleep(seconds)
         self.q.key(self.controls[role], False)
 
+    def hold_key(self, qcode, seconds):
+        self.q.key(qcode, True)
+        time.sleep(seconds)
+        self.q.key(qcode, False)
+
     def keyboard(self, qcode, gap=0.3):
         self.q.key(qcode, True)
         self.q.key(qcode, False)
@@ -91,6 +96,13 @@ class Device:
     def ring(self, name, settle=0.45):
         """Where the focus ring is on the display, (x0, y0, x1, y1), or None when it is hidden."""
         return png.bounds(self.capture(name, settle), RING, tolerance=(14, 22, 26))
+
+    def focused(self, name, settle=0.45):
+        """The element the focus ring is on, as its pixels (png.inside), or None when it is hidden:
+        compared with png.same, it says whether the focus is on the same element."""
+        img = self.capture(name, settle)
+        box = png.bounds(img, RING, tolerance=(14, 22, 26))
+        return png.inside(img, box) if box else None
 
     def jump(self, to):
         """The debug jump: the long list's focus straight to `start`, `end` or an index (the UI

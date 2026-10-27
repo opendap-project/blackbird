@@ -84,3 +84,24 @@ def share(img, colour, tolerance=(10, 10, 10)):
             if all(abs(row[i + k] - colour[k]) <= tolerance[k] for k in range(3)):
                 n += 1
     return n / (img.width * img.height)
+
+
+def inside(img, box, inset=4):
+    """The pixels within `box` (x0, y0, x1, y1), `inset` in from its edges: what a focus ring holds,
+    to tell which element it is on wherever the view has scrolled it."""
+    x0, y0, x1, y1 = box
+    out = bytearray()
+    for y in range(y0 + inset, y1 - inset + 1):
+        row = img.rows[y]
+        for x in range(x0 + inset, x1 - inset + 1):
+            i = x * img.channels
+            out += row[i:i + 3]
+    return bytes(out)
+
+
+def same(a, b, tolerance=2.0):
+    """Whether two pixel runs from `inside` show the same thing: same size, and a mean difference
+    per channel within `tolerance`."""
+    if len(a) != len(b) or not a:
+        return False
+    return sum(abs(p - q) for p, q in zip(a, b)) / len(a) <= tolerance
