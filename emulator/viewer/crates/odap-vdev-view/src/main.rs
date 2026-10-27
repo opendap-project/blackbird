@@ -399,6 +399,12 @@ fn show(ui: &View, st: &device::State) {
         Switch::Detaching => 3,
     });
     ui.set_debug_reboot(st.debug_reboot);
+    show_status(ui, st);
+}
+
+/// The line under the name (the device's state only) and the line at the bottom (what is in
+/// flight, and the notes).
+fn show_status(ui: &View, st: &device::State) {
     let phase = match st.phase {
         Phase::Off => "Off",
         Phase::Starting => "Starting…",
@@ -419,8 +425,6 @@ fn show(ui: &View, st: &device::State) {
     if st.debug_ui.busy() {
         busy.push("blueprint mode");
     }
-    // The line under the name is the device's state only; what is in flight and the notes go to
-    // the line at the bottom.
     ui.set_status(phase.into());
     let mut note = String::new();
     if !busy.is_empty() {

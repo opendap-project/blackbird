@@ -273,210 +273,70 @@ fn draw_key(case: &Case, key: &CaseKey, px_mm: f32, scale: f32, ox: f32, oy: f32
 
 /// Draws the front at `px_mm` logical pixels per mm, `scale` pixels per logical pixel.
 pub fn draw(case: &Case, front: &Front, panel: &Panel, px_mm: f32, scale: f32) -> Drawn {
-    let margin = case
-        .keys
-        .iter()
-        .map(|k| k.protrusion_mm + k.rib_height_mm)
-        .fold(0.0, f32::max)
-        + 0.6;
-    let (cw, ch) = (case.width_mm + 2.0 * margin, case.height_mm);
-    let k = px_mm * scale; // pixels per mm
-    let (width, height) = ((cw * k).ceil() as u32, (ch * k).ceil() as u32);
-    let (ox, oy) = (cw / 2.0, ch / 2.0); // the device centre, in mm from the picture's top left
-    let body = hex(&case.color);
-    let surface = hex(&front.color);
-    let glossy = front.surface == "glass";
-    let (gw, gh, gr) = (
-        case.width_mm - 2.0 * case.lip_mm,
-        case.height_mm - 2.0 * case.lip_mm,
-        case.radius_mm - case.lip_mm,
-    );
-    let (dw, dh) = (panel.width_mm, panel.height_mm);
-    let display = front
-        .parts
-        .iter()
-        .find(|p| p.kind == "display")
-        .cloned()
-        .unwrap_or_default();
-    let (dx0, dy0) = (display.x_mm - dw / 2.0, display.y_mm - dh / 2.0);
-    // The key light comes from the upper left, as in the concept's studio.
-    let light = (-0.45f32, -0.89f32);
-    let mut rgba = vec![0u8; (width * height * 4) as usize];
-
-    for py in 0..height {
-        for px in 0..width {
-            let (mx, my) = ((px as f32 + 0.5) / k - ox, oy - (py as f32 + 0.5) / k); // device mm, y up
-            let mut c = [0.0f32; 3];
-            let mut alpha = 0.0f32;
-            let aa = |d: f32| (d * k + 0.5).clamp(0.0, 1.0);
-
-            // The body: one piece, its bevel lit from the upper left, the grip texture over it.
-            let d = squircle(
-                mx,
-                my,
-                case.width_mm,
-                case.height_mm,
-                case.radius_mm,
-                case.squircle_n,
-            );
-            let cover = aa(d);
-            if cover > 0.0 {
-                let vertical = 1.10 - 0.20 * ((oy - my) / case.height_mm);
-                let mut shade = vertical;
-                if d < case.bevel_mm {
-                    let e = 0.02;
-                    let gx = squircle(
-                        mx + e,
-                        my,
-                        case.width_mm,
-                        case.height_mm,
-                        case.radius_mm,
-                        case.squircle_n,
-                    ) - d;
-                    let gy = squircle(
-                        mx,
-                        my + e,
-                        case.width_mm,
-                        case.height_mm,
-                        case.radius_mm,
-                        case.squircle_n,
-                    ) - d;
-                    let len = (gx * gx + gy * gy).sqrt().max(1e-6);
-                    // Outward normal in picture coordinates (y down).
-                    let (nx, ny) = (-gx / len, gy / len);
-                    let lit = -(nx * light.0 + ny * light.1);
-                    shade *= 1.0 + 0.55 * (-lit) * (1.0 - d / case.bevel_mm);
-                }
-                if case.texture == "grip" {
-                    shade *= 1.0
-                        + 0.045
-                            * grain(
-                                px / (scale.max(1.0) as u32).max(1),
-                                py / (scale.max(1.0) as u32).max(1),
-                            );
-                }
-                let mut col = [body[0] * shade, body[1] * shade, body[2] * shade];
-
-                // The faceplate in the case's opening: its surface (cover glass: glossy, with a
-                // faint reflection and a fine edge), then its parts.
-                let g = squircle(mx, my, gw, gh, gr, case.squircle_n);
-                let gc = aa(g);
-                if gc > 0.0 {
-                    let mut gcol = surface;
-                    if glossy {
-                        let diag = (((mx / gw) - (my / gh)) * 0.5 + 0.5).clamp(0.0, 1.0);
-                        let refl = 0.035 * (1.0 - diag);
-                        let edge = if g < 0.18 {
-                            0.10 * (1.0 - g / 0.18) * if my > 0.0 { 1.0 } else { 0.35 }
-                        } else {
-                            0.0
-                        };
-                        gcol = [
-                            gcol[0] + refl + edge,
-                            gcol[1] + refl + edge,
-                            gcol[2] + refl + edge,
-                        ];
-                    }
-                    for part in &front.parts {
-                        let (cover, colour) = match part.kind.as_str() {
-                            // The display's active area: the live picture covers it.
-                            "display" => {
-                                let d = if panel.round {
-                                    dw.min(dh) / 2.0
-                                        - ((mx - part.x_mm).powi(2) + (my - part.y_mm).powi(2))
-                                            .sqrt()
-                                } else {
-                                    rounded(mx, my, dx0, dy0, dx0 + dw, dy0 + dh, 0.2)
-                                };
-                                (aa(d), [0.0; 3])
-                            }
-                            // A face button: round, or a rounded rectangle, lit from above.
-                            "button" => {
-                                let d = if part.d_mm > 0.0 {
-                                    part.d_mm / 2.0
-                                        - ((mx - part.x_mm).powi(2) + (my - part.y_mm).powi(2))
-                                            .sqrt()
-                                } else {
-                                    let (hw, hh) = (part.w_mm / 2.0, part.h_mm / 2.0);
-                                    rounded(
-                                        mx,
-                                        my,
-                                        part.x_mm - hw,
-                                        part.y_mm - hh,
-                                        part.x_mm + hw,
-                                        part.y_mm + hh,
-                                        hw.min(hh) * 0.4,
-                                    )
-                                };
-                                let c = hex(if part.color.is_empty() {
-                                    "#b4b9bf"
-                                } else {
-                                    &part.color
-                                });
-                                let lit = 1.0
-                                    + 0.12 * ((my - part.y_mm) / part.d_mm.max(part.h_mm).max(1.0));
-                                (aa(d), [c[0] * lit, c[1] * lit, c[2] * lit])
-                            }
-                            // A dial or wheel: a ring around a centre.
-                            "dial" => {
-                                let r =
-                                    ((mx - part.x_mm).powi(2) + (my - part.y_mm).powi(2)).sqrt();
-                                let d = (part.d_mm / 2.0 - r).min(r - part.d_mm * 0.18);
-                                let c = hex(if part.color.is_empty() {
-                                    "#b4b9bf"
-                                } else {
-                                    &part.color
-                                });
-                                (aa(d), c)
-                            }
-                            // Sensors, the status LED's window, microphones: small round openings.
-                            _ => {
-                                let r = part.d_mm / 2.0;
-                                let ds = r
-                                    - ((mx - part.x_mm).powi(2) + (my - part.y_mm).powi(2)).sqrt();
-                                let c = hex(if part.color.is_empty() {
-                                    "#050505"
-                                } else {
-                                    &part.color
-                                });
-                                let rim = if ds < 0.12 { 0.06 } else { 0.0 };
-                                (aa(ds), [c[0] + rim, c[1] + rim, c[2] + rim])
-                            }
-                        };
-                        if cover > 0.0 {
-                            for i in 0..3 {
-                                gcol[i] = gcol[i] * (1.0 - cover) + colour[i] * cover;
-                            }
-                        }
-                    }
-                    for i in 0..3 {
-                        col[i] = col[i] * (1.0 - gc) + gcol[i] * gc;
-                    }
-                }
-                for i in 0..3 {
-                    c[i] = c[i] * (1.0 - cover) + col[i] * cover;
-                }
-                alpha = alpha.max(cover);
-            }
-
-            let o = ((py * width + px) * 4) as usize;
+    let s = Scene::new(case, front, panel, px_mm, scale);
+    let mut rgba = vec![0u8; (s.width * s.height * 4) as usize];
+    for py in 0..s.height {
+        for px in 0..s.width {
+            let (c, alpha) = s.pixel(px, py);
+            let o = ((py * s.width + px) * 4) as usize;
             for i in 0..3 {
                 rgba[o + i] = (c[i].clamp(0.0, 1.0) * 255.0).round() as u8;
             }
             rgba[o + 3] = (alpha * 255.0).round() as u8;
         }
     }
-    // Premultiplied for display.
+    premultiply(&mut rgba);
+    let to_logical =
+        |x_mm: f32, y_mm: f32| ((x_mm + s.centre.0) * px_mm, (s.centre.1 - y_mm) * px_mm);
+    let (sx, sy) = to_logical(s.screen.x0, s.screen.y0 + s.screen.h);
+    let led = front.parts.iter().find(|p| p.kind == "led");
+    let (lx, ly, ld) = led
+        .map(|p| {
+            let (x, y) = to_logical(p.x_mm, p.y_mm);
+            (x, y, p.d_mm * px_mm)
+        })
+        .unwrap_or_default();
+    let sprites = case
+        .keys
+        .iter()
+        .map(|key| draw_key(case, key, px_mm, scale, s.centre.0, s.centre.1))
+        .collect();
+    Drawn {
+        rgba,
+        width: s.width,
+        height: s.height,
+        size: (s.size.0 * px_mm, s.size.1 * px_mm),
+        screen: Rect {
+            x: sx,
+            y: sy,
+            w: s.screen.w * px_mm,
+            h: s.screen.h * px_mm,
+        },
+        keys: key_rects(case, front, &to_logical, px_mm),
+        sprites,
+        led: (lx, ly, ld),
+    }
+}
+
+/// Premultiplied for display.
+fn premultiply(rgba: &mut [u8]) {
     for p in rgba.as_chunks_mut::<4>().0 {
         let a = p[3] as u32;
         for c in p.iter_mut().take(3) {
             *c = ((*c as u32 * a + 127) / 255) as u8;
         }
     }
+}
 
-    let to_logical = |x_mm: f32, y_mm: f32| ((x_mm + ox) * px_mm, (oy - y_mm) * px_mm);
-    let (sx, sy) = to_logical(dx0, dy0 + dh);
-    let keys: Vec<(String, Rect)> = case
+/// Where each control is pressed, in logical pixels: the case's keys on its sides, and the
+/// faceplate's own controls where they are.
+fn key_rects(
+    case: &Case,
+    front: &Front,
+    to_logical: &dyn Fn(f32, f32) -> (f32, f32),
+    px_mm: f32,
+) -> Vec<(String, Rect)> {
+    let mut keys: Vec<(String, Rect)> = case
         .keys
         .iter()
         .map(|key| {
@@ -490,19 +350,15 @@ pub fn draw(case: &Case, front: &Front, panel: &Panel, px_mm: f32, scale: f32) -
             };
             let len = key.length_mm + 2.0 * key.bevel_mm;
             let (lx, ly) = to_logical(x0, key.y_mm + len / 2.0);
-            (
-                key.role.clone(),
-                Rect {
-                    x: lx,
-                    y: ly,
-                    w: (x1 - x0) * px_mm,
-                    h: len * px_mm,
-                },
-            )
+            let rect = Rect {
+                x: lx,
+                y: ly,
+                w: (x1 - x0) * px_mm,
+                h: len * px_mm,
+            };
+            (key.role.clone(), rect)
         })
         .collect();
-    // The faceplate's own controls are pressed where they are, like the case's keys.
-    let mut keys = keys;
     for part in front.parts.iter().filter(|p| !p.role.is_empty()) {
         let (w, h) = if part.d_mm > 0.0 {
             (part.d_mm, part.d_mm)
@@ -510,42 +366,237 @@ pub fn draw(case: &Case, front: &Front, panel: &Panel, px_mm: f32, scale: f32) -
             (part.w_mm, part.h_mm)
         };
         let (lx, ly) = to_logical(part.x_mm - w / 2.0, part.y_mm + h / 2.0);
-        keys.push((
-            part.role.clone(),
-            Rect {
-                x: lx,
-                y: ly,
-                w: w * px_mm,
-                h: h * px_mm,
-            },
-        ));
+        let rect = Rect {
+            x: lx,
+            y: ly,
+            w: w * px_mm,
+            h: h * px_mm,
+        };
+        keys.push((part.role.clone(), rect));
     }
-    let led = front.parts.iter().find(|p| p.kind == "led");
-    let (lx, ly, ld) = led
-        .map(|p| {
-            let (x, y) = to_logical(p.x_mm, p.y_mm);
-            (x, y, p.d_mm * px_mm)
-        })
-        .unwrap_or_default();
-    let sprites = case
-        .keys
-        .iter()
-        .map(|key| draw_key(case, key, px_mm, scale, ox, oy))
-        .collect();
-    Drawn {
-        rgba,
-        width,
-        height,
-        size: (cw * px_mm, ch * px_mm),
-        screen: Rect {
-            x: sx,
-            y: sy,
-            w: dw * px_mm,
-            h: dh * px_mm,
-        },
-        keys,
-        sprites,
-        led: (lx, ly, ld),
+    keys
+}
+
+/// What every pixel of the front needs, worked out once.
+struct Scene<'a> {
+    case: &'a Case,
+    front: &'a Front,
+    round: bool,
+    scale: f32,
+    /// Pixels per millimetre.
+    k: f32,
+    width: u32,
+    height: u32,
+    /// The picture in mm, and the device centre in mm from its top left.
+    size: (f32, f32),
+    centre: (f32, f32),
+    body: [f32; 3],
+    surface: [f32; 3],
+    glossy: bool,
+    /// The case's opening: width, height and corner radius.
+    glass: (f32, f32, f32),
+    /// The display's active area, in mm.
+    screen: Area,
+}
+
+/// A rectangle in mm: its size and lower-left corner.
+struct Area {
+    w: f32,
+    h: f32,
+    x0: f32,
+    y0: f32,
+}
+
+impl<'a> Scene<'a> {
+    fn new(case: &'a Case, front: &'a Front, panel: &Panel, px_mm: f32, scale: f32) -> Self {
+        let margin = case
+            .keys
+            .iter()
+            .map(|k| k.protrusion_mm + k.rib_height_mm)
+            .fold(0.0, f32::max)
+            + 0.6;
+        let (cw, ch) = (case.width_mm + 2.0 * margin, case.height_mm);
+        let k = px_mm * scale;
+        let display = front
+            .parts
+            .iter()
+            .find(|p| p.kind == "display")
+            .cloned()
+            .unwrap_or_default();
+        let (dw, dh) = (panel.width_mm, panel.height_mm);
+        Scene {
+            case,
+            front,
+            round: panel.round,
+            scale,
+            k,
+            width: (cw * k).ceil() as u32,
+            height: (ch * k).ceil() as u32,
+            size: (cw, ch),
+            centre: (cw / 2.0, ch / 2.0),
+            body: hex(&case.color),
+            surface: hex(&front.color),
+            glossy: front.surface == "glass",
+            glass: (
+                case.width_mm - 2.0 * case.lip_mm,
+                case.height_mm - 2.0 * case.lip_mm,
+                case.radius_mm - case.lip_mm,
+            ),
+            screen: Area {
+                w: dw,
+                h: dh,
+                x0: display.x_mm - dw / 2.0,
+                y0: display.y_mm - dh / 2.0,
+            },
+        }
+    }
+
+    fn aa(&self, d: f32) -> f32 {
+        (d * self.k + 0.5).clamp(0.0, 1.0)
+    }
+
+    fn body_distance(&self, x: f32, y: f32) -> f32 {
+        let c = self.case;
+        squircle(x, y, c.width_mm, c.height_mm, c.radius_mm, c.squircle_n)
+    }
+
+    /// One pixel of the front: its colour and coverage.
+    fn pixel(&self, px: u32, py: u32) -> ([f32; 3], f32) {
+        let (mx, my) = (
+            (px as f32 + 0.5) / self.k - self.centre.0,
+            self.centre.1 - (py as f32 + 0.5) / self.k,
+        ); // device mm, y up
+        let mut c = [0.0f32; 3];
+        let mut alpha = 0.0f32;
+        // The body: one piece, its bevel lit from the upper left, the grip texture over it.
+        let d = self.body_distance(mx, my);
+        let cover = self.aa(d);
+        if cover > 0.0 {
+            let shade = self.body_shade(mx, my, d, px, py);
+            let mut col = [
+                self.body[0] * shade,
+                self.body[1] * shade,
+                self.body[2] * shade,
+            ];
+            // The faceplate in the case's opening: its surface, then its parts.
+            let (gw, gh, gr) = self.glass;
+            let g = squircle(mx, my, gw, gh, gr, self.case.squircle_n);
+            let gc = self.aa(g);
+            if gc > 0.0 {
+                let gcol = self.faceplate(mx, my, g);
+                for i in 0..3 {
+                    col[i] = col[i] * (1.0 - gc) + gcol[i] * gc;
+                }
+            }
+            for i in 0..3 {
+                c[i] = c[i] * (1.0 - cover) + col[i] * cover;
+            }
+            alpha = alpha.max(cover);
+        }
+        (c, alpha)
+    }
+
+    /// The body's light: a gentle vertical falloff, the bevel lit from the upper left (as in
+    /// the concept's studio), and the grip texture.
+    fn body_shade(&self, mx: f32, my: f32, d: f32, px: u32, py: u32) -> f32 {
+        let case = self.case;
+        let light = (-0.45f32, -0.89f32);
+        let vertical = 1.10 - 0.20 * ((self.centre.1 - my) / case.height_mm);
+        let mut shade = vertical;
+        if d < case.bevel_mm {
+            let e = 0.02;
+            let gx = self.body_distance(mx + e, my) - d;
+            let gy = self.body_distance(mx, my + e) - d;
+            let len = (gx * gx + gy * gy).sqrt().max(1e-6);
+            // Outward normal in picture coordinates (y down).
+            let (nx, ny) = (-gx / len, gy / len);
+            let lit = -(nx * light.0 + ny * light.1);
+            shade *= 1.0 + 0.55 * (-lit) * (1.0 - d / case.bevel_mm);
+        }
+        if case.texture == "grip" {
+            let step = (self.scale.max(1.0) as u32).max(1);
+            shade *= 1.0 + 0.045 * grain(px / step, py / step);
+        }
+        shade
+    }
+
+    /// The faceplate's surface at a point `g` mm inside the opening (cover glass: glossy, with a
+    /// faint reflection and a fine edge), with its parts over it.
+    fn faceplate(&self, mx: f32, my: f32, g: f32) -> [f32; 3] {
+        let mut gcol = self.surface;
+        if self.glossy {
+            let (gw, gh, _) = self.glass;
+            let diag = (((mx / gw) - (my / gh)) * 0.5 + 0.5).clamp(0.0, 1.0);
+            let refl = 0.035 * (1.0 - diag);
+            let edge = if g < 0.18 {
+                0.10 * (1.0 - g / 0.18) * if my > 0.0 { 1.0 } else { 0.35 }
+            } else {
+                0.0
+            };
+            gcol = [
+                gcol[0] + refl + edge,
+                gcol[1] + refl + edge,
+                gcol[2] + refl + edge,
+            ];
+        }
+        for part in &self.front.parts {
+            let (cover, colour) = self.part(part, mx, my);
+            if cover > 0.0 {
+                for i in 0..3 {
+                    gcol[i] = gcol[i] * (1.0 - cover) + colour[i] * cover;
+                }
+            }
+        }
+        gcol
+    }
+
+    /// A part of the faceplate at a point: how much it covers, and its colour.
+    fn part(&self, part: &Part, mx: f32, my: f32) -> (f32, [f32; 3]) {
+        let colour = |default: &str| {
+            hex(if part.color.is_empty() {
+                default
+            } else {
+                &part.color
+            })
+        };
+        let r = ((mx - part.x_mm).powi(2) + (my - part.y_mm).powi(2)).sqrt();
+        match part.kind.as_str() {
+            // The display's active area: the live picture covers it.
+            "display" => {
+                let d = if self.round {
+                    self.screen.w.min(self.screen.h) / 2.0 - r
+                } else {
+                    let (x0, y0) = (self.screen.x0, self.screen.y0);
+                    rounded(mx, my, x0, y0, x0 + self.screen.w, y0 + self.screen.h, 0.2)
+                };
+                (self.aa(d), [0.0; 3])
+            }
+            // A face button: round, or a rounded rectangle, lit from above.
+            "button" => {
+                let d = if part.d_mm > 0.0 {
+                    part.d_mm / 2.0 - r
+                } else {
+                    let (hw, hh) = (part.w_mm / 2.0, part.h_mm / 2.0);
+                    let (x, y) = (part.x_mm, part.y_mm);
+                    rounded(mx, my, x - hw, y - hh, x + hw, y + hh, hw.min(hh) * 0.4)
+                };
+                let c = colour("#b4b9bf");
+                let lit = 1.0 + 0.12 * ((my - part.y_mm) / part.d_mm.max(part.h_mm).max(1.0));
+                (self.aa(d), [c[0] * lit, c[1] * lit, c[2] * lit])
+            }
+            // A dial or wheel: a ring around a centre.
+            "dial" => {
+                let d = (part.d_mm / 2.0 - r).min(r - part.d_mm * 0.18);
+                (self.aa(d), colour("#b4b9bf"))
+            }
+            // Sensors, the status LED's window, microphones: small round openings.
+            _ => {
+                let ds = part.d_mm / 2.0 - r;
+                let c = colour("#050505");
+                let rim = if ds < 0.12 { 0.06 } else { 0.0 };
+                (self.aa(ds), [c[0] + rim, c[1] + rim, c[2] + rim])
+            }
+        }
     }
 }
 

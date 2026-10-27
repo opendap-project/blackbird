@@ -333,25 +333,7 @@ impl Run {
 
     fn job(&mut self, job: Job, publish: &impl Fn(State)) {
         match job {
-            Job::Attach(a, on) => {
-                let i = index(a);
-                // Debounce: a switch in flight, or already where it is asked to go, takes nothing.
-                let Some(kind) = self.state.switches[i].request(on) else {
-                    return;
-                };
-                self.attach_deadline[i] = Some(Instant::now() + ATTACH_WAIT);
-                publish(self.state.clone());
-                match hardware::change(&self.vm, self.target.clone(), kind.of(a), false) {
-                    Ok(Outcome::Done(done)) => self.state.switches[i].observe(done.state.has(a)),
-                    Ok(Outcome::Plan(_)) => {}
-                    Err(e) => {
-                        // Nothing changed: the hardware still is as it was before the request.
-                        self.state.switches[i].failed(!on);
-                        self.attach_deadline[i] = None;
-                        self.note(e.message);
-                    }
-                }
-            }
+            Job::Attach(a, on) => self.attach(a, on, publish),
             Job::Battery(percent) => {
                 self.state.battery_busy = true;
                 let change = HardwareChange::Battery { percent };
@@ -368,71 +350,99 @@ impl Run {
             }
             Job::Led(rgb) => self.state.status_led = Some(rgb),
             Job::Mic(live) => self.state.mic_live = live,
-            Job::SavePng(path) => {
-                if self.state.saving {
-                    return;
-                }
-                self.state.saving = true;
-                publish(self.state.clone());
-                let p = path.display().to_string();
-                let note =
-                    match opendap_core::screen::capture(&self.vm, self.target.clone(), &p, false) {
-                        Ok(_) => format!(
-                            "Saved {}",
-                            path.file_name()
-                                .map(|n| n.to_string_lossy().into_owned())
-                                .unwrap_or(p)
-                        ),
-                        Err(e) => e.message,
-                    };
-                self.note(note);
-                self.state.saving = false;
+            Job::SavePng(path) => self.save_png(&path, publish),
+            Job::DebugUi(on) => self.switch_debug_ui(on, publish),
+            Job::Power(action) => self.power(action, publish),
+        }
+    }
+
+    /// An attachment plugged or pulled, once per request.
+    fn attach(&mut self, a: Attachment, on: bool, publish: &impl Fn(State)) {
+        let i = index(a);
+        // Debounce: a switch in flight, or already where it is asked to go, takes nothing.
+        let Some(kind) = self.state.switches[i].request(on) else {
+            return;
+        };
+        self.attach_deadline[i] = Some(Instant::now() + ATTACH_WAIT);
+        publish(self.state.clone());
+        match hardware::change(&self.vm, self.target.clone(), kind.of(a), false) {
+            Ok(Outcome::Done(done)) => self.state.switches[i].observe(done.state.has(a)),
+            Ok(Outcome::Plan(_)) => {}
+            Err(e) => {
+                // Nothing changed: the hardware still is as it was before the request.
+                self.state.switches[i].failed(!on);
+                self.attach_deadline[i] = None;
+                self.note(e.message);
             }
-            Job::DebugUi(on) => {
-                if self.state.debug_ui.request(on).is_none() {
-                    return;
-                }
-                publish(self.state.clone());
-                match self.debug_ui(Some(on)) {
-                    Some(now) => self.state.debug_ui.observe(now),
-                    None => {
-                        self.state.debug_ui.failed(!on);
-                        self.note("the debug UI mode did not change");
-                    }
-                }
+        }
+    }
+
+    /// The display as the host sees it, saved to `path`; one at a time.
+    fn save_png(&mut self, path: &std::path::Path, publish: &impl Fn(State)) {
+        if self.state.saving {
+            return;
+        }
+        self.state.saving = true;
+        publish(self.state.clone());
+        let p = path.display().to_string();
+        let note = match opendap_core::screen::capture(&self.vm, self.target.clone(), &p, false) {
+            Ok(_) => format!(
+                "Saved {}",
+                path.file_name()
+                    .map(|n| n.to_string_lossy().into_owned())
+                    .unwrap_or(p)
+            ),
+            Err(e) => e.message,
+        };
+        self.note(note);
+        self.state.saving = false;
+    }
+
+    /// The debug UI mode turned on or off, once per request.
+    fn switch_debug_ui(&mut self, on: bool, publish: &impl Fn(State)) {
+        if self.state.debug_ui.request(on).is_none() {
+            return;
+        }
+        publish(self.state.clone());
+        match self.debug_ui(Some(on)) {
+            Some(now) => self.state.debug_ui.observe(now),
+            None => {
+                self.state.debug_ui.failed(!on);
+                self.note("the debug UI mode did not change");
             }
-            Job::Power(action) => {
-                // Only a ready device takes one, and only once.
-                if !self.state.phase.request(action) {
-                    return;
-                }
-                self.state.note.clear();
-                self.state.debug_reboot = action
-                    == PowerAction::Reboot {
-                        mode: opendap_model::BootMode::Debug,
-                    };
-                self.power_deadline = Some(
-                    Instant::now()
-                        + if action == PowerAction::Poweroff {
-                            STOP_WAIT
-                        } else {
-                            REBOOT_WAIT
-                        },
-                );
-                publish(self.state.clone());
-                let done =
-                    power::power(&Checkout(self.vd_dir.clone()), None, action, false, |vm| {
-                        SshExec::new(move || vm.ssh_command(), SSH_LAUNCHER)
-                    });
-                if let Err(e) = done {
-                    self.note(e.message);
-                    self.power_deadline = None;
-                    let st = self.vm.state();
-                    self.state
-                        .phase
-                        .abandon(st != VmState::Stopped, st == VmState::Running);
-                }
-            }
+        }
+    }
+
+    /// A reboot or power-off: only a ready device takes one, and only once.
+    fn power(&mut self, action: PowerAction, publish: &impl Fn(State)) {
+        // Only a ready device takes one, and only once.
+        if !self.state.phase.request(action) {
+            return;
+        }
+        self.state.note.clear();
+        self.state.debug_reboot = action
+            == PowerAction::Reboot {
+                mode: opendap_model::BootMode::Debug,
+            };
+        self.power_deadline = Some(
+            Instant::now()
+                + if action == PowerAction::Poweroff {
+                    STOP_WAIT
+                } else {
+                    REBOOT_WAIT
+                },
+        );
+        publish(self.state.clone());
+        let done = power::power(&Checkout(self.vd_dir.clone()), None, action, false, |vm| {
+            SshExec::new(move || vm.ssh_command(), SSH_LAUNCHER)
+        });
+        if let Err(e) = done {
+            self.note(e.message);
+            self.power_deadline = None;
+            let st = self.vm.state();
+            self.state
+                .phase
+                .abandon(st != VmState::Stopped, st == VmState::Running);
         }
     }
 }
