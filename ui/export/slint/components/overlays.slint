@@ -40,6 +40,7 @@ export component Overlay inherits PopupWindow {
         capture-key-pressed(e) => {
             if e.text == Key.Tab || e.text == Key.Backtab {
                 FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+                FocusNav.shift = e.modifiers.shift;
             }
             reject
         }
@@ -128,6 +129,7 @@ export component Modal inherits PopupWindow {
         capture-key-pressed(e) => {
             if e.text == Key.Tab || e.text == Key.Backtab {
                 FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+                FocusNav.shift = e.modifiers.shift;
             }
             reject
         }

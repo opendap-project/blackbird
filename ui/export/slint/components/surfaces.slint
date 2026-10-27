@@ -41,6 +41,7 @@ export component Screen inherits Rectangle {
         capture-key-pressed(e) => {
             if e.text == Key.Tab || e.text == Key.Backtab {
                 FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+                FocusNav.shift = e.modifiers.shift;
             }
             reject
         }

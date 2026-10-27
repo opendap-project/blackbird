@@ -31,9 +31,12 @@ export global FocusReveal {
 // The direction the focus last moved in by the keys: Tab (Volume −) forward, Shift+Tab
 // (Volume +) backward. A control entered backward starts at its end (a range's high knob, a
 // list's last item); taken from the key, never guessed from positions (`Screen` and `Modal`
-// record it before the key reaches anything).
+// record it before the key reaches anything). `shift`: whether Shift was down with that key, and
+// still is: an end stop that sends the focus back with a plain Tab lets Shift go first, and puts
+// it back down after (the runtime reads it), or a held Shift+Tab would then go forward.
 export global FocusNav {
     in-out property <bool> backward;
+    in-out property <bool> shift;
 }
 
 // The one focus target every control is built on (system ADR 0014: one behaviour, one
@@ -123,6 +126,11 @@ export component EndStop inherits FocusScope {
     height: 0;
     focus-on-click: false;
     focus-gained(reason) => { if reason == FocusReason.tab-navigation { root.reached(root.end); } }
+    // Shift let go while the focus waits here for the runtime to send it back.
+    key-released(e) => {
+        if e.text == Key.Shift || e.text == Key.ShiftR { FocusNav.shift = false; }
+        reject
+    }
 }
 
 // A touch area that follows the gesture rules (system input events §3.2), for every component
