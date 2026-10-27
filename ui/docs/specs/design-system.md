@@ -36,7 +36,7 @@ The design system is a set of topic specs. Section numbers are those of the whol
 | 16 | Product renders | [Principles and identity](design-system/principles.md#16-product-renders) |
 | 17 | Performance | [Performance and platform](design-system/platform.md#17-performance) |
 | 18 | Alignment with OpenDAP requirements: rendering, displays, fluidity, the status LED, languages, themes | [Performance and platform](design-system/platform.md#18-alignment-with-opendap-requirements) |
-| 19 | Review checklist | [Design review checklist](../guides/developers/design-review-checklist.md) |
+| 19 | Review checklist | [Design review checklist](../guides/developers/review-checklist.md) |
 | 20 | Decisions and open questions | [Below](#20-decisions-and-open-questions) |
 
 ## 20. Decisions and open questions
