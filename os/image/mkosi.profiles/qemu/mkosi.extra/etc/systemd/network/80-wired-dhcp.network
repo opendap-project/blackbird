@@ -1,0 +1,7 @@
+# DHCP and mDNS on any wired NIC that no board support package configures more precisely.
+[Match]
+Type=ether
+
+[Network]
+DHCP=yes
+MulticastDNS=yes

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Register modules added by the build scripts (test_power.ko).
+set -eu
+for dir in /usr/lib/modules/*; do depmod -a "${dir##*/}"; done
