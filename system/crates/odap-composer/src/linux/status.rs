@@ -18,7 +18,7 @@ use super::state::Composer;
 use crate::status_bar::LOW_PERCENT;
 
 /// The critically low battery, in percent: the status LED's second threshold, Android's default
-/// (decided 2026-10-24).
+/// (SYS-076).
 const CRITICAL_PERCENT: u8 = 5;
 /// How long a battery warning shows.
 const WARNING_FOR: Duration = Duration::from_secs(4);

@@ -88,7 +88,7 @@ A drag's position is already constrained to its axis and bounds; the raw positio
 
 ### 3.2.1 Levels and ownership
 
-The same contact means different things at different levels, and every level has its own box, its own coordinates and its own regions (maintainers, 2026-10-23). A swipe that starts at the screen's edge is the system's back; the same swipe in the middle of a card is the card's. Each level recognizes only within its own box, and its regions are its own: the screen's edges are not the activity's, and an element's edges are not the screen's.
+The same contact means different things at different levels, and every level has its own box, its own coordinates and its own regions (SYS-077). A swipe that starts at the screen's edge is the system's back; the same swipe in the middle of a card is the card's. Each level recognizes only within its own box, and its regions are its own: the screen's edges are not the activity's, and an element's edges are not the screen's.
 
 | Level | Box | Recognizes (examples) | Its regions |
 |---|---|---|---|
@@ -154,7 +154,7 @@ Sensors (ambient light, battery, temperature) are states with change notificatio
 
 ### 3.7 Navigation without touch
 
-The buttons give one axis: Volume moves, Action takes. One axis cannot walk a long page of nested content item by item, so navigation has **levels**, as a slider already has (design system §8.4): the focus moves among the stops of the current level; Action **engages** a stop to work inside it, one level down; leaving goes back up. Decided 2026-10-24, extending the slider's lock to every composite (tvOS focus sections, Android TV rows, ARIA composites with one tab stop, the Apple Watch's crown on a focused control).
+The buttons give one axis: Volume moves, Action takes. One axis cannot walk a long page of nested content item by item, so navigation has **levels**, as a slider already has (design system §8.4): the focus moves among the stops of the current level; Action **engages** a stop to work inside it, one level down; leaving goes back up. SYS-078, extending the slider's lock to every composite (tvOS focus sections, Android TV rows, ARIA composites with one tab stop, the Apple Watch's crown on a focused control).
 
 **Roles.** Every node is one of these to navigation (`opendap-input::nav`):
 
@@ -294,7 +294,7 @@ Then by type:
 
 ### 6.1 Coordinate spaces
 
-**Every coordinate is relative** (maintainers, 2026-10-23): there is no absolute position, only frames, each placed in its parent by an offset, a scale and a direction. Even the screen is one frame among them, the outermost that software sees: below it are the touch digitizer's raw axes (0 to 32767 on the virtual board), mapped to the display by calibration and rotation. A position always says which frame it is in, and converting between two frames walks the tree through their common ancestor (iOS's `UICoordinateSpace`, Compose's `LayoutCoordinates`, Flutter's `PointerEvent.transform`); `opendap-input`'s `Frame` and `FramePath` implement it.
+**Every coordinate is relative** (SYS-079): there is no absolute position, only frames, each placed in its parent by an offset, a scale and a direction. Even the screen is one frame among them, the outermost that software sees: below it are the touch digitizer's raw axes (0 to 32767 on the virtual board), mapped to the display by calibration and rotation. A position always says which frame it is in, and converting between two frames walks the tree through their common ancestor (iOS's `UICoordinateSpace`, Compose's `LayoutCoordinates`, Flutter's `PointerEvent.transform`); `opendap-input`'s `Frame` and `FramePath` implement it.
 
 ```text
 digitizer (raw axes) → display (calibration, rotation) → screen → content-area → surface
@@ -342,7 +342,7 @@ And on demand, in the space the caller names (iOS's `location(in:)`, Compose's `
 
 ### 6.2 Scrolling: the viewport and the content
 
-A scroll container is two frames, and with scrolling the difference matters most (maintainers, 2026-10-23): its **viewport** (its box, which stays with the screen) and its **content** (placed at minus the scroll offset, which moves under the viewport, vertically, horizontally or both). The same contact has a position in each, and they drift apart by exactly the scroll that happens during it.
+A scroll container is two frames, and with scrolling the difference matters most (SYS-080): its **viewport** (its box, which stays with the screen) and its **content** (placed at minus the scroll offset, which moves under the viewport, vertically, horizontally or both). The same contact has a position in each, and they drift apart by exactly the scroll that happens during it.
 
 | Use | Frame | Why |
 |---|---|---|

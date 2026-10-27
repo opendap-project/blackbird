@@ -87,7 +87,7 @@ const BLUE: [u8; 3] = [0, 0, 255];
 const WHITE: [u8; 3] = [255, 255, 255];
 
 /// Battery thresholds, in percent: Android's defaults, low at 15 % and critical at 5 % (controls
-/// spec §2.2; decided 2026-10-24).
+/// spec §2.2; SYS-076).
 pub const LOW_PERCENT: u8 = 15;
 pub const CRITICAL_PERCENT: u8 = 5;
 

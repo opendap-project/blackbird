@@ -59,8 +59,8 @@ const UNRESPONSIVE: std::time::Duration = std::time::Duration::from_millis(500);
 
 /// Whether the activity responds: a ping (xdg_wm_base) sent after a key it was given and left
 /// unanswered past `UNRESPONSIVE` means it is busy with that key (a hang), and the next key is
-/// dropped rather than queued, so nothing acts seconds later by surprise (decided
-/// 2026-10-24). The ping goes after the key, so the activity
+/// dropped rather than queued, so nothing acts seconds later by surprise
+/// (SYS-072). The ping goes after the key, so the activity
 /// meets the key first. Nothing is sent at rest: no keys, no pings.
 fn activity_responds(composer: &Composer) -> bool {
     composer
@@ -593,7 +593,7 @@ const KEY_ENTER: u32 = 28;
 const KEY_LEFTSHIFT: u32 = 42;
 
 /// A held focus step's repeat accelerates exponentially and stops where it is released, with no
-/// inertia (maintainers, 2026-10-23): after Android's
+/// inertia (SYS-073): after Android's
 /// key-repeat delay, the first step comes after REPEAT_FIRST, and each next interval is
 /// REPEAT_FACTOR of the last, down to REPEAT_FASTEST. Precise at first, fast through long lists.
 /// SYS-066 asks for these to be adjustable.
@@ -748,7 +748,7 @@ fn forward(
 }
 
 /// A role released: the keys its press sent are released, in reverse, and its repeat stops.
-/// The focus stays where it is, with no step after (maintainers, 2026-10-23).
+/// The focus stays where it is, with no step after (SYS-074).
 fn release_forwarded(
     composer: &mut Composer,
     role: opendap_device::Role,
@@ -863,7 +863,7 @@ fn keyboard_repeat(composer: &mut Composer, code: u32, pressed: bool) {
 }
 
 /// How long the debug UI mode shows a gesture after its contact ends: feedback for the eye, not a
-/// message to read (maintainers, 2026-10-23). It stays while the contact lasts, and a newer
+/// message to read (SYS-075). It stays while the contact lasts, and a newer
 /// gesture replaces it at once.
 const GESTURE_SHOWN: std::time::Duration = std::time::Duration::from_millis(800);
 
