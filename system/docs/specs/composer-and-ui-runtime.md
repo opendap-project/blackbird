@@ -39,6 +39,19 @@
 | Lifecycle hints | `odap-activity-v1`: activate, background and suspended, plus gestures and element rectangles, to hosts and to the orchestrator |
 | Display power | Screen off and on, DPMS, idle, lock; the screen-off playback path |
 
+**Where the input pipeline lives.** The decisions are platform-agnostic and tested on any host; the composer's Linux side only applies them (the Rust crate architecture: core and adapters):
+
+- `src/forward.rs`: which keys a control's press sends the activity, whether it repeats, and the volume buttons' double press (input events §3.3, §3.4);
+- `src/status_bar.rs`: what the status bar shows and says;
+- `linux/input/`: the adapter. Its parts:
+  - `mod.rs`: libinput's events normalised and run through the stages in order;
+  - `stages.rs`: the stages (display off, observe, layers, system contacts, system combinations, not responding, activity);
+  - `forward.rs`: the keys held and repeated;
+  - `liveness.rs`: the activity's pings;
+  - `wake.rs`: the display-off double tap;
+  - `keyboard.rs`: keys and an attached keyboard's repeat;
+  - `debug.rs`: the debug UI mode and the touch indicator.
+
 **Protocols.** The core, plus:
 
 - `xdg-shell` with `suspended`;

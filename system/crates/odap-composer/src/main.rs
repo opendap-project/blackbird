@@ -19,6 +19,8 @@
 mod linux;
 // Used by the Linux composer; built on other hosts only for its tests.
 #[cfg(any(target_os = "linux", test))]
+mod forward;
+#[cfg(any(target_os = "linux", test))]
 mod power;
 #[cfg(any(target_os = "linux", test))]
 mod status_bar;
