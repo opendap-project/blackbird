@@ -1059,7 +1059,7 @@
         "en": "Charging"
       },
       "style": "outline",
-      "source": "tabler:outline/battery-charging@3.49.0"
+      "source": "tabler:outline/bolt@3.49.0"
     }
   ]
 }
