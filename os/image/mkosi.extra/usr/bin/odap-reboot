@@ -58,20 +58,20 @@ case "$mode" in
   --serve) serve ;;
   --list) list ;;
   -h|--help) sed -n '2,16s/^# \{0,1\}//p' "$0" ;;
-  -*) fail input.invalid "unknown flag $mode" "the usage is in odap-reboot --help" "odap-reboot --help" 2 ;;
+  -*) fail "input.invalid" "unknown flag $mode" "the usage is in odap-reboot --help" "odap-reboot --help" 2 ;;
   normal) exec systemctl reboot ;;
   debug)
     id="$(debug_entry)"
-    [ -n "$id" ] || fail mode.no_debug_entry "this image has no debug boot entry" \
+    [ -n "$id" ] || fail "mode.no_debug_entry" "this image has no debug boot entry" \
       "modes here: $(list | tr '\n' ' ')" "odap-reboot --list" 2
-    bootctl set-oneshot "$id" || fail boot.select_failed "cannot select the debug boot entry $id" \
+    bootctl set-oneshot "$id" || fail "boot.select_failed" "cannot select the debug boot entry $id" \
       "bootctl needs a writable EFI variable store" "bootctl status"
     exec systemctl reboot ;;
   *)
-    case "$mode" in */*|.*) fail mode.unknown "unknown mode $mode" "a mode is a plain name" "odap-reboot --list" 2 ;; esac
-    [ -x "$modes_dir/$mode" ] || fail mode.unknown "no mode $mode on this device" \
+    case "$mode" in */*|.*) fail "mode.unknown" "unknown mode $mode" "a mode is a plain name" "odap-reboot --list" 2 ;; esac
+    [ -x "$modes_dir/$mode" ] || fail "mode.unknown" "no mode $mode on this device" \
       "modes here: $(list | tr '\n' ' ')" "odap-reboot --list" 2
-    "$modes_dir/$mode" || fail boot.prepare_failed "cannot prepare the $mode boot" \
+    "$modes_dir/$mode" || fail "boot.prepare_failed" "cannot prepare the $mode boot" \
       "the board support package's $modes_dir/$mode failed" "journalctl -b -t odap-reboot"
     exec systemctl reboot ;;
 esac
