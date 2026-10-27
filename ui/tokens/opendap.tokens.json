@@ -71,7 +71,7 @@
           ],
           "hex": "#3A4148"
         },
-        "$description": "Separators (core palette; the semantic border uses #343A40, open question)"
+        "$description": "Separators (borders use semantic.border.base, #343A40)"
       },
       "500": {
         "$value": {
@@ -262,7 +262,7 @@
           ],
           "hex": "#A995FF"
         },
-        "$description": "Processing or computational activity. No status LED counterpart (open question)"
+        "$description": "Processing or computational activity: computational visualisations (DSP or analysis views), never system state. No status LED counterpart"
       }
     },
     "border": {

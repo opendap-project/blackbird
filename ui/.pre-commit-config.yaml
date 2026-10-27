@@ -30,7 +30,13 @@ repos:
         entry: python3 tokens/generate.py --check
         language: system
         pass_filenames: false
-        files: ^(tokens/|export/(slint|css)/)
+        files: ^(tokens/|export/(slint|css)/|docs/reference/tokens\.md$)
+      - id: tokens-tests
+        name: token reference (tokens/test_generate.py)
+        entry: python3 -m unittest tokens/test_generate.py
+        language: system
+        pass_filenames: false
+        files: ^tokens/
       - id: icons-current
         name: icons generated (icons/icons.py --check)
         entry: python3 icons/icons.py --check
