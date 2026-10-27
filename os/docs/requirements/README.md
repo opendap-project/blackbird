@@ -50,7 +50,7 @@ Requirements for the Blackbird OS distribution.
   - kernel modules no OpenDAP device, HAT or peripheral can use: datacenter fabrics and adapters, cluster file systems, hypervisor guests, datacenter network cards, PC graphics cards. About 19 MB of 80 MB; every other module stays.
   - On the virtual board only (its support package): other boards' devicetrees, and an initrd limited to mkosi-initrd's default set plus the board's drivers.
 
-  Measured on the virtual T1, before and after these removals (image sizes and time to the splash screen): [`results/virtual-t1/os-021-image-size.json`](../../results/virtual-t1/os-021-image-size.json). LLVM with z3 (about 145 MB) is the largest part left. It stays until an OpenDAP build of Mesa without LLVM exists (OS-023, see Image size below), because Debian's Mesa needs it, and the virtual board renders with llvmpipe.
+  Measured on the virtual T1 on 2026-10-23, after these removals (before them in brackets): root file system 483 MB used (675 MB), ESP 87 MB used (209 MB), unified kernel image 87 MB (162 MB), image compressed with zstd 241 MB (379 MB), splash screen 1.97 s after power-on (about 3.7 s), faster because the initrd is smaller. LLVM with z3 (about 145 MB) is the largest part left. It stays until an OpenDAP build of Mesa without LLVM exists (OS-023, see Image size below), because Debian's Mesa needs it, and the virtual board renders with llvmpipe.
 
 - OS-004: tuning lives in board support packages, not in the OS (SYS-067, system ADR 0013); the T1 is the reference board.
 - OS-030, OS-031: user-facing forms in the [conventions spec](https://github.com/opendap-project/system/blob/main/docs/specs/user-facing-conventions.md) §7.
