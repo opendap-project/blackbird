@@ -58,7 +58,7 @@ pub fn control(composer: &mut Composer, role: Role, pressed: bool) -> bool {
     if let Some(layers) = composer.layers.as_mut() {
         layers.refresh_debug();
         if super::layers::debug_ui() {
-            layers.control(&super::backend::kebab(&format!("{role:?}")), pressed);
+            layers.control(role.as_str(), pressed);
             if let Some(backend) = composer.backend.as_mut() {
                 backend.schedule();
             }

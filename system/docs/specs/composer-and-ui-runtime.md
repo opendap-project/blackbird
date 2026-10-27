@@ -39,8 +39,9 @@
 | Lifecycle hints | `odap-activity-v1`: activate, background and suspended, plus gestures and element rectangles, to hosts and to the orchestrator |
 | Display power | Screen off and on, DPMS, idle, lock; the screen-off playback path |
 
-**Where the input pipeline lives.** The decisions are platform-agnostic and tested on any host; the composer's Linux side only applies them (the Rust crate architecture: core and adapters):
+**Where the decisions live.** The composer's decisions are platform-agnostic and tested on any host; its Linux side only applies them (the Rust crate architecture: core and adapters):
 
+- `src/display_policy.rs`: which mode to drive and the panel's physical size, and when a frame is drawn, the last one kept, drawing goes on or a one-shot wake is armed (§5);
 - `src/forward.rs`: which keys a control's press sends the activity, whether it repeats, and the volume buttons' double press (input events §3.3, §3.4);
 - `src/status_bar.rs`: what the status bar shows and says;
 - `linux/input/`: the adapter. Its parts:
@@ -51,6 +52,7 @@
   - `wake.rs`: the display-off double tap;
   - `keyboard.rs`: keys and an attached keyboard's repeat;
   - `debug.rs`: the debug UI mode and the touch indicator.
+- `linux/backend/`: the display. `init.rs` brings it up in steps (the GPU and its renderer, the output and its mode, the DRM compositor, the event sources, the system layers); `render.rs` draws a frame in steps (the clients, the layers above them, a screenshot, the wakes, the frame queued).
 
 **Protocols.** The core, plus:
 
