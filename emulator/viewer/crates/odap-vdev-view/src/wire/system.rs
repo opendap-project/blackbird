@@ -109,6 +109,9 @@ fn watch_load(
     ui.on_sys_watch(move |on| {
         if !on {
             watch.borrow_mut().take();
+            if let Some(ui) = weak.upgrade() {
+                probes_update(&ui, |v| v.battery_power = None);
+            }
             return;
         }
         let (weak, last, history) = (weak.clone(), last.clone(), history.clone());
@@ -132,8 +135,8 @@ fn watch_load(
                 ui.set_sys_uptime(l.uptime.into());
                 if let Some(p) = &frame.power {
                     let e = instruments::energy(p);
-                    let summary = format!("{}, {}", e.level, e.power);
-                    probes_update(&ui, |v| v.battery = summary);
+                    let power = e.power.clone();
+                    probes_update(&ui, |v| v.battery_power = Some(power));
                     ui.set_energy_known(true);
                     ui.set_energy_level(e.level.into());
                     ui.set_energy_power(e.power.into());

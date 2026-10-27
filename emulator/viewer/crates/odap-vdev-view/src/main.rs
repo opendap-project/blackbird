@@ -65,7 +65,10 @@ struct ProbeValues {
     lux: Option<u32>,
     out: String,
     input: String,
-    battery: String,
+    // The battery's charge from the worker, which always reads it; the power it draws only
+    // while the device's load is read (the Instruments page's system group), never a stale one.
+    battery_level: Option<u8>,
+    battery_power: Option<String>,
 }
 
 thread_local! {
@@ -92,7 +95,11 @@ fn probes_update(ui: &View, change: impl FnOnce(&mut ProbeValues)) {
                         }
                     }),
                     "board:als" => p.lux.map_or("–".into(), |l| format!("{l} lx")),
-                    "power_supply:battery" => p.battery.clone(),
+                    "power_supply:battery" => match (p.battery_level, &p.battery_power) {
+                        (Some(l), Some(w)) => format!("{l} %, {w}"),
+                        (Some(l), None) => format!("{l} %"),
+                        (None, _) => String::new(),
+                    },
                     _ => "not read by the simulator".into(),
                 };
                 ProbeRow {
@@ -372,6 +379,7 @@ fn show(ui: &View, st: &device::State) {
     });
     ui.set_light_known(st.light.is_some());
     probes_update(ui, |p| {
+        p.battery_level = st.battery;
         p.led = st.status_led;
         p.lux = st.light;
     });

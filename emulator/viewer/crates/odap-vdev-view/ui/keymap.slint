@@ -29,9 +29,10 @@ export component KeymapDialog inherits Rectangle {
                 Text { text: "Keyboard"; color: Palette.text; font-size: 14px; font-weight: 600; vertical-alignment: center; horizontal-stretch: 1; }
                 HeaderButton { icon: @image-url("icons/x.svg"); label: "Close"; clicked => { root.close(); } }
             }
+            // The two groups share the width (alignment: start gave each its preferred width,
+            // which a Section does not have: the dialog showed empty).
             HorizontalLayout {
                 spacing: 24px;
-                alignment: start;
                 Section {
                     title: "DEVICE · held as long as the key";
                     horizontal-stretch: 1;
