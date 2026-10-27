@@ -87,8 +87,10 @@ def main():
         w.setnchannels(2), w.setsampwidth(2), w.setframerate(48000)
         for _ in range(seconds):
             w.writeframes(os.urandom(48000 * 4))
+    # The guest's files go to /var/tmp, on its disk: /tmp is tmpfs, so a recording there grows the
+    # guest's memory at the recording's rate and reads as a leak.
     with open(ref, "rb") as f:
-        if ssh("cat > /tmp/soak-reference.wav", stdin=f).returncode:
+        if ssh("cat > /var/tmp/soak-reference.wav", stdin=f).returncode:
             sys.exit("sound-soak: could not copy the reference to the device")
 
     samples, stop = [], threading.Event()
@@ -110,22 +112,22 @@ def main():
     sampler = threading.Thread(target=sample, daemon=True)
     sampler.start()
     # The input, recorded by the guest at the same time as the output plays.
-    rec_in = subprocess.Popen([str(VDEV), "ssh", "--", f"arecord -q -D hw:0,0 -f S16_LE -r 48000 -c 2 -d {seconds} /tmp/soak-input.wav; echo xruns: $?"],
+    rec_in = subprocess.Popen([str(VDEV), "ssh", "--", f"arecord -q -D hw:0,0 -f S16_LE -r 48000 -c 2 -d {seconds} /var/tmp/soak-input.wav; echo xruns: $?"],
                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     given = a.out / "given.wav"
     rec_given = subprocess.Popen([str(AUDIO), "record", "--qmp", qmp, "--direction", "in", "--seconds", str(seconds - 2), "--wait", "30", "--out", str(given)],
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     capture = a.out / "output.wav"
     rec_out = subprocess.run([str(AUDIO), "record", "--qmp", qmp, "--seconds", str(seconds + 1), "--wait", "30",
-                              "--run", f"{VDEV} ssh -- aplay -q -D hw:0,0 /tmp/soak-reference.wav", "--out", str(capture)],
+                              "--run", f"{VDEV} ssh -- aplay -q -D hw:0,0 /var/tmp/soak-reference.wav", "--out", str(capture)],
                              capture_output=True, text=True)
     in_log = rec_in.communicate()[0]
     given_log = rec_given.communicate()[0]
     stop.set()
     sampler.join()
     with open(a.out / "input.wav", "wb") as f:
-        f.write(ssh("cat /tmp/soak-input.wav").stdout)
-    ssh("rm -f /tmp/soak-reference.wav /tmp/soak-input.wav")
+        f.write(ssh("cat /var/tmp/soak-input.wav").stdout)
+    ssh("rm -f /var/tmp/soak-reference.wav /var/tmp/soak-input.wav")
 
     bad = []
     cmp = json.loads(subprocess.run([str(AUDIO), "compare", str(ref), str(capture), "--json"], capture_output=True, text=True).stdout or "{}")

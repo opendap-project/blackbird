@@ -3239,6 +3239,7 @@ name = "odap-vdev-view"
 version = "0.1.0"
 dependencies = [
  "cpal",
+ "libc",
  "opendap-audio-analysis",
  "opendap-core",
  "opendap-model",

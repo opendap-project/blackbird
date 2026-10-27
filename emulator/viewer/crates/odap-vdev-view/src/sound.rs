@@ -560,6 +560,9 @@ struct Shared {
     cmd: Mutex<mpsc::Sender<Cmd>>,
     feed: mpsc::SyncSender<Feed>,
     on_reading: OnReading,
+    // Whether the input goes through QEMU's mixing engine, which doubles a mono capture (stock
+    // QEMU 11.1); false with the patched QEMU that runs the input without it (ADR 0003).
+    mono_doubled: bool,
 }
 
 /// ODAP_VIEW_TRACE: every stream event, and the input's reads once a second, on stderr
@@ -686,6 +689,25 @@ impl Shared {
 
 struct OutListener(Arc<Shared>);
 
+/// QEMU waits for the window's answer to every input read (ADR 0003), so the thread that answers
+/// runs at the highest QoS: at a lower one, a loaded host left it seconds without the CPU, QEMU
+/// stalled and the guest's playback and capture failed. Once per thread.
+fn urgent_thread() {
+    thread_local!(static DONE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) });
+    DONE.with(|done| {
+        if !done.replace(true) {
+            #[cfg(target_os = "macos")]
+            // SAFETY: sets the calling thread's own QoS class; no pointers are involved.
+            unsafe {
+                libc::pthread_set_qos_class_self_np(
+                    libc::qos_class_t::QOS_CLASS_USER_INTERACTIVE,
+                    0,
+                );
+            }
+        }
+    });
+}
+
 impl Sink for OutListener {
     fn init(&self, stream: u64, f: audio::Format) {
         trace(format_args!("out {stream:x} init {f:?}"));
@@ -718,6 +740,7 @@ impl Sink for OutListener {
     }
 
     fn write(&self, _stream: u64, data: &[u8]) {
+        urgent_thread();
         let mut guard = lock(&self.0.out);
         let out = &mut *guard;
         let Some(f) = out.format else { return };
@@ -793,6 +816,7 @@ impl Source for InListener {
     }
 
     fn read(&self, _stream: u64, size: usize) -> Vec<u8> {
+        urgent_thread();
         let mut guard = lock(&self.0.inp);
         let inp = &mut *guard;
         let Some(f) = inp.format else {
@@ -846,11 +870,16 @@ impl Source for InListener {
                 ..Default::default()
             };
         }
-        // QEMU's mixing engine (which paces the input; without it QEMU 11.1's D-Bus input spins
-        // and the guest records nothing) duplicates a mono sample into both channels and sums
-        // them back: a mono capture arrives at twice its value. A mono source gives half, so the
-        // guest records the level it was given, to within one LSB (ADR 0003).
-        let mono_gain = if ch == 1 { 0.5 } else { 1.0 };
+        // Through QEMU's mixing engine (stock QEMU 11.1, whose D-Bus input spins without it) a
+        // mono sample is duplicated into both channels and summed back: a mono capture arrives
+        // at twice its value, so a mono source gives half and the guest records the level it was
+        // given, to within one LSB. The patched QEMU runs the input without the engine and
+        // carries it bit for bit (ADR 0003).
+        let mono_gain = if ch == 1 && self.0.mono_doubled {
+            0.5
+        } else {
+            1.0
+        };
         if ch == 1 {
             samples.iter_mut().for_each(|s| *s *= mono_gain);
         }
@@ -884,10 +913,11 @@ pub struct Sound {
 }
 
 impl Sound {
-    /// Listens to the guest's output and answers its input. `on_reading` runs on a listener's
-    /// thread.
+    /// Listens to the guest's output and answers its input. `input_direct`: QEMU runs the input
+    /// without its mixing engine (the patched QEMU). `on_reading` runs on a listener's thread.
     pub fn attach(
         session: &Session,
+        input_direct: bool,
         on_reading: impl Fn(Direction, Reading) + Send + Sync + 'static,
     ) -> io::Result<Sound> {
         let (tx, rx) = mpsc::channel();
@@ -922,6 +952,7 @@ impl Sound {
             cmd: Mutex::new(tx),
             feed,
             on_reading,
+            mono_doubled: !input_direct,
         });
         let out = session.audio_out(Arc::new(OutListener(shared.clone())))?;
         let inp = session.audio_in(Arc::new(InListener(shared.clone())))?;

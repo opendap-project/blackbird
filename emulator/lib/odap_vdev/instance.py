@@ -182,7 +182,15 @@ class Instance:
         # QEMU's audio timer pulls the input one block a tick; at its default 10 ms a loaded host
         # stretches the ticks and the input falls behind real time (measured: 73 % of it, the
         # guest's capture then fails), so it ticks every 5 ms: room to keep up (ADR 0003).
-        sound = "dbus,out.mixing-engine=off,in.fixed-settings=off,timer-period=5000" if display[1].startswith("dbus") else audio
+        # With the QEMU toolkit-host builds (odapkit qemu, its sound patches) both directions skip
+        # the mixing engine and carry every format bit for bit; a stock QEMU 11.1 needs the engine
+        # for the input, which paces it and doubles a mono capture (the window halves it).
+        direct = carries_sound_patches(qemu)
+        if display[1].startswith("dbus"):
+            sound = "dbus,out.mixing-engine=off," + ("in.mixing-engine=off" if direct else "in.fixed-settings=off") + ",timer-period=5000"
+        else:
+            sound = audio
+        (self.state / "sound-input").write_text("direct\n" if direct and display[1].startswith("dbus") else "mixing-engine\n")
         argv += compose.qemu_args(self.model, {"run.disk": str(self.disk), "run.ssh_port": self.ssh_port, "host.audio": audio, "run.sound": sound})
         argv += ["-name", self.name, "-accel", accel,
                  "-drive", f"if=pflash,format=raw,readonly=on,file={fw}",
@@ -223,6 +231,8 @@ class Instance:
                 "--qmp", str(self.window_qmp_socket), "--checkout", str(ROOT), "--name", self.name]
         argv += [] if framed else ["--no-frame"]
         argv += [] if on_top else ["--no-on-top"]
+        input_mode = self.state / "sound-input"
+        argv += ["--input-direct"] if input_mode.exists() and input_mode.read_text().strip() == "direct" else []
         with open(self.state / "window.log", "w") as log:
             subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True)
 
@@ -298,6 +308,9 @@ class Instance:
         if icon.is_file():
             (app / "Contents/Resources").mkdir(parents=True, exist_ok=True)
             shutil.copyfile(icon, app / "Contents/Resources/AppIcon.icns")
+        # No App Nap: the window answers QEMU's sound synchronously (ADR 0003), and a napping
+        # window, behind others on a loaded host, went seconds without running; QEMU then waited
+        # and the guest's playback and capture failed together.
         (app / "Contents/Info.plist").write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -307,6 +320,7 @@ class Instance:
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>LSAppNapIsDisabled</key><true/>
 </dict></plist>
 """)
         # Tell Launch Services the bundle changed, so the Dock shows the current icon.
@@ -368,6 +382,17 @@ def window_on_top_library():
               "install the Xcode command-line tools", file=sys.stderr)
         return None
     return str(out)
+
+
+def carries_sound_patches(qemu):
+    """Whether this QEMU is toolkit-host's build with OpenDAP's sound patches (odapkit qemu): its
+    version line names the patch set, `QEMU emulator version 11.1.2 (opendap1)`."""
+    try:
+        r = subprocess.run([qemu, "--version"], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    first = r.stdout.splitlines()[0] if r.stdout else ""
+    return "(opendap" in first
 
 
 def firmware(qemu):

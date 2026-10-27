@@ -30,7 +30,7 @@
 
 - A layer never names a model.
 - A model names layers by id, never QEMU devices.
-- Run-time values come from the tool: `run.disk`, `run.ssh_port`, `host.audio`, `run.sound` (the sound card's backend: QEMU's D-Bus audio with the simulator window, ADR 0003; the host's audio otherwise).
+- Run-time values come from the tool: `run.disk`, `run.ssh_port`, `host.audio`, `run.sound` (the sound card's backend: QEMU's D-Bus audio with the simulator window, ADR 0003; the host's audio otherwise). With the QEMU that toolkit-host builds (`odapkit qemu install`, OpenDAP's audio patches; its version line names the patch set) both directions skip QEMU's mixing engine; the state's `sound-input` file records which, and the window is told with `--input-direct`.
 - Controls are pressed by role; a control's QEMU key (`qcode`) is a runner-only field the description leaves out.
 - Run state lives in `~/.local/state/opendap/vdev/<model>/`, never in a repository. The image is blackbird-os's `image/mkosi.output/`, found through `repos.tsv` (or `ODAP_IMAGE`); the development key is toolkit-image's (`~/.local/share/opendap/dev-ssh`).
 - A new model is a new file in `models/`, or new layers combined differently, such as the no-display and round-display fixtures of the hardware support spec §8.

@@ -217,9 +217,8 @@ component Tool inherits VerticalLayout {
         accessible-action-default => { if root.live { root.clicked(); } }
         Image {
             source: root.icon;
-            rotation-angle: root.busy && root.spin ? -360deg * mod(animation-tick(), 1000ms) / 1000ms : 0deg;
-            rotation-origin-x: self.width / 2;
-            rotation-origin-y: self.height / 2;
+            transform-rotation: root.busy && root.spin ? -360deg * mod(animation-tick(), 1000ms) / 1000ms : 0deg;
+            transform-origin: { x: self.width / 2, y: self.height / 2 };
             opacity: root.busy && !root.spin ? (mod(animation-tick(), 1200ms) < 600ms ? 1 : 0.35) : 1;
             animate opacity { duration: 600ms; easing: ease-in-out; }
             colorize: root.danger ? #e5484d : Palette.text;
@@ -883,7 +882,7 @@ export component View inherits Window {
                 y: 84px;
                 width: parent.width;
                 height: parent.height - self.y - 34px;
-                viewport-height: groups.preferred-height;
+                content-height: groups.preferred-height;
                 interactive: true;
                 groups := VerticalLayout {
                     width: parent.width;
@@ -1028,7 +1027,7 @@ export component View inherits Window {
                 y: 84px;
                 width: parent.width;
                 height: parent.height - self.y - 34px;
-                viewport-height: meters.preferred-height;
+                content-height: meters.preferred-height;
                 interactive: true;
                 meters := VerticalLayout {
                     width: parent.width;
@@ -1195,7 +1194,7 @@ export component View inherits Window {
                     vertical-stretch: 1;
                     changed has-hover => { root.tasks-hovered = self.has-hover; root.task-hover-changed(); }
                     Flickable {
-                    viewport-height: rows.preferred-height;
+                    content-height: rows.preferred-height;
                     interactive: true;
                     rows := VerticalLayout {
                         width: parent.width;

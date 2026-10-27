@@ -138,6 +138,8 @@ struct Args {
     name: String,
     framed: bool,
     on_top: bool,
+    // QEMU runs the sound's input without its mixing engine (the runner's --input-direct).
+    input_direct: bool,
 }
 
 /// A switch's state on the window, read and set (the sidebar's attachments).
@@ -196,6 +198,7 @@ fn args() -> Args {
         name: "Virtual device".into(),
         framed: true,
         on_top: true,
+        input_direct: false,
     };
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
@@ -210,6 +213,7 @@ fn args() -> Args {
             "--name" => a.name = value(),
             "--no-frame" => a.framed = false,
             "--no-on-top" => a.on_top = false,
+            "--input-direct" => a.input_direct = true,
             "-h" | "--help" => usage(""),
             other => usage(&format!("unknown argument {other}")),
         }
@@ -222,7 +226,7 @@ fn usage(msg: &str) -> ! {
         eprintln!("odap-vdev-view: {msg}");
     }
     eprintln!(
-        "usage: odap-vdev-view --frame FRAME.json --qmp SOCKET --checkout VIRTUAL_DEVICES_DIR [--name NAME] [--no-frame] [--no-on-top]"
+        "usage: odap-vdev-view --frame FRAME.json --qmp SOCKET --checkout VIRTUAL_DEVICES_DIR [--name NAME] [--no-frame] [--no-on-top] [--input-direct]"
     );
     std::process::exit(if msg.is_empty() { 0 } else { 2 });
 }
@@ -604,61 +608,66 @@ fn main() -> Result<(), slint::PlatformError> {
         let weak = ui.as_weak();
         // The spectrograms scroll on the listeners' threads; the window gets each new picture.
         let waterfalls: Arc<std::sync::Mutex<[instruments::Waterfall; 2]>> = Arc::default();
-        let attached = sound::Sound::attach(display.session(), move |direction, reading| {
-            let waterfall = {
-                let mut w = waterfalls.lock().unwrap_or_else(|p| p.into_inner());
-                let w = &mut w[usize::from(direction == sound::Direction::Input)];
-                if reading.active {
-                    w.push(&reading.rows);
-                }
-                w.image()
-            };
-            let tint = match direction {
-                sound::Direction::Output => [59, 130, 196],
-                sound::Direction::Input => [255, 159, 10],
-            };
-            let bars = instruments::bars(&reading.levels);
-            let strip = instruments::strip(if reading.active { &reading.bands } else { &[] }, tint);
-            let text = instruments::readout(&reading);
-            let weak = weak.clone();
-            let _ = slint::invoke_from_event_loop(move || {
-                let Some(ui) = weak.upgrade() else { return };
-                let meters = ModelRc::from(Rc::new(VecModel::from(bars)));
-                let image = slint::Image::from_rgba8(strip);
-                match direction {
-                    sound::Direction::Output => {
-                        let f = if reading.active {
-                            reading.format.clone()
-                        } else {
-                            "nothing playing".into()
-                        };
-                        probes_update(&ui, |p| p.out = f);
-                        ui.set_out_active(reading.active);
-                        ui.set_out_format(reading.format.into());
-                        ui.set_out_meters(meters);
-                        ui.set_out_spectrum(image);
-                        ui.set_out_waterfall(slint::Image::from_rgba8(waterfall));
-                        ui.set_out_readout(text.into());
-                        ui.set_out_note(reading.note.into());
+        let attached = sound::Sound::attach(
+            display.session(),
+            a.input_direct,
+            move |direction, reading| {
+                let waterfall = {
+                    let mut w = waterfalls.lock().unwrap_or_else(|p| p.into_inner());
+                    let w = &mut w[usize::from(direction == sound::Direction::Input)];
+                    if reading.active {
+                        w.push(&reading.rows);
                     }
-                    sound::Direction::Input => {
-                        let f = if reading.active {
-                            reading.format.clone()
-                        } else {
-                            "not recording".into()
-                        };
-                        probes_update(&ui, |p| p.input = f);
-                        ui.set_in_active(reading.active);
-                        ui.set_in_format(reading.format.into());
-                        ui.set_in_meters(meters);
-                        ui.set_in_spectrum(image);
-                        ui.set_in_waterfall(slint::Image::from_rgba8(waterfall));
-                        ui.set_in_readout(text.into());
-                        ui.set_in_note(reading.note.into());
+                    w.image()
+                };
+                let tint = match direction {
+                    sound::Direction::Output => [59, 130, 196],
+                    sound::Direction::Input => [255, 159, 10],
+                };
+                let bars = instruments::bars(&reading.levels);
+                let strip =
+                    instruments::strip(if reading.active { &reading.bands } else { &[] }, tint);
+                let text = instruments::readout(&reading);
+                let weak = weak.clone();
+                let _ = slint::invoke_from_event_loop(move || {
+                    let Some(ui) = weak.upgrade() else { return };
+                    let meters = ModelRc::from(Rc::new(VecModel::from(bars)));
+                    let image = slint::Image::from_rgba8(strip);
+                    match direction {
+                        sound::Direction::Output => {
+                            let f = if reading.active {
+                                reading.format.clone()
+                            } else {
+                                "nothing playing".into()
+                            };
+                            probes_update(&ui, |p| p.out = f);
+                            ui.set_out_active(reading.active);
+                            ui.set_out_format(reading.format.into());
+                            ui.set_out_meters(meters);
+                            ui.set_out_spectrum(image);
+                            ui.set_out_waterfall(slint::Image::from_rgba8(waterfall));
+                            ui.set_out_readout(text.into());
+                            ui.set_out_note(reading.note.into());
+                        }
+                        sound::Direction::Input => {
+                            let f = if reading.active {
+                                reading.format.clone()
+                            } else {
+                                "not recording".into()
+                            };
+                            probes_update(&ui, |p| p.input = f);
+                            ui.set_in_active(reading.active);
+                            ui.set_in_format(reading.format.into());
+                            ui.set_in_meters(meters);
+                            ui.set_in_spectrum(image);
+                            ui.set_in_waterfall(slint::Image::from_rgba8(waterfall));
+                            ui.set_in_readout(text.into());
+                            ui.set_in_note(reading.note.into());
+                        }
                     }
-                }
-            });
-        });
+                });
+            },
+        );
         match attached {
             Ok(s) => Some(Arc::new(s)),
             Err(e) => {
