@@ -72,7 +72,10 @@ proptest! {
                     sent = t.release(v, now);
                     held = false;
                     if !reduce {
-                        prop_assert!((t.progress(now) - before).abs() < 1e-4, "let go where it is");
+                        // Within the half pixel a spring rests in: let go that close to an end, it
+                        // is already there (Transition::animator), so it moves less than a pixel.
+                        let rest = 0.5 / distance + 1e-6;
+                        prop_assert!((t.progress(now) - before).abs() <= rest, "let go where it is: {} → {}", before, t.progress(now));
                     }
                 }
                 Op::Wait(s) => now += s,
