@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Names, in the primitives matrix, the checks that prove each case again (opendap.verification/v1
 `checks`), from the suites themselves: an end-to-end scenario (tests/e2e/scenarios.py) lists the
-cases it covers, and an interface check (crates/odap-testbed/tests/interface.rs) whose name begins
-with a case's id and a colon covers that case. `odapkit verify collect` then joins their results.
+cases it covers, and an interface check (crates/odap-testbed/tests/interface.rs and its modules in
+interface/) whose name begins with a case's id and a colon covers that case. `odapkit verify
+collect` then joins their results.
 
   tests/matrix_checks.py [--check]
 
@@ -20,6 +21,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MATRIX = ROOT / "docs/verification/primitives-matrix.toml"
 INTERFACE = ROOT / "crates/odap-testbed/tests/interface.rs"
+# The interface test's modules, one a screen or area.
+INTERFACE_MODULES = ROOT / "crates/odap-testbed/tests/interface"
 
 
 def e2e_checks():
@@ -35,7 +38,9 @@ def e2e_checks():
 
 def interface_checks(case_ids):
     # The checks' names as written: run.check("name", …) or run.check(&format!("name…", …), …).
-    names = re.findall(r'run\.check\(\s*(?:&format!\()?"([^"]+)"', INTERFACE.read_text())
+    sources = [INTERFACE, *sorted(INTERFACE_MODULES.glob("*.rs"))]
+    text = "\n".join(p.read_text() for p in sources)
+    names = re.findall(r'run\.check\(\s*(?:&format!\()?"([^"]+)"', text)
     out = {}
     for n in names:
         head = n.split(":", 1)[0]

@@ -1,0 +1,79 @@
+// The Arena screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusVisible, Label, Toggle } from "@blackbird/slint/components.slint";
+import { KeyControl } from "../key-control.slint";
+import { Body, Group } from "../parts.slint";
+
+export component ArenaScreen inherits Body {
+    in-out property <bool> arena-double;
+    callback arena-pad(string, length, length);
+    in property <string> arena-text;
+    callback control-key(string, string) -> bool;
+    in property <length> nested-inner;
+    in property <length> nested-outer;
+    callback nested-pan(string, length, length, bool);
+    in property <string> nested-text;
+    in property <float> unit;
+
+    Group {
+        title: "Tap, double tap or hold: who wins the contact";
+        Rectangle {
+            height: 72px;
+            border-radius: Tokens.radius-control;
+            border-width: 1px;
+            border-color: Tokens.border-strong;
+            Label { role: "label"; text: root.arena-text == "" ? "Touch here" : root.arena-text; horizontal-alignment: center; vertical-alignment: center; }
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-arena.focus(); root.arena-pad("down", self.mouse-x, self.mouse-y); }
+                    if e.kind == PointerEventKind.up { root.arena-pad("up", self.mouse-x, self.mouse-y); }
+                    if e.kind == PointerEventKind.cancel { root.arena-pad("cancel", self.mouse-x, self.mouse-y); }
+                }
+                moved => { root.arena-pad("move", self.mouse-x, self.mouse-y); }
+            }
+            kc-arena := KeyControl { init => { self.focus(); } name: "arena"; kind: "button"; key(n, k) => { return root.control-key(n, k); } }
+        }
+        Toggle { label: "Double tap here"; on <=> root.arena-double; unit: root.unit; }
+    }
+    Group {
+        title: "Nested: the inner list first, the rest to the outer";
+        Rectangle {
+            height: 150px;
+            clip: true;
+            border-width: 1px;
+            border-color: Tokens.border-base;
+            // The outer content: 400 px, the inner list 60 px down it.
+            Rectangle {
+                y: -root.nested-outer;
+                height: 400px;
+                Label { x: 12px; width: parent.width - 24px; y: 8px; role: "caption"; muted: true; text: "outer content"; }
+                inner := Rectangle {
+                    x: 24px;
+                    y: 36px;
+                    width: parent.width - 48px;
+                    height: 72px;
+                    clip: true;
+                    border-width: 1px;
+                    border-color: Tokens.border-strong;
+                    for i in 8: Label { x: 8px; width: parent.width - 16px; y: i * 24px - root.nested-inner; height: 24px; role: "caption"; text: "inner row " + i; vertical-alignment: center; }
+                }
+                for i in 8: Label { x: 12px; width: parent.width - 24px; y: 130px + i * 32px; role: "caption"; muted: true; text: "outer row " + i; }
+            }
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down {
+                        FocusVisible.on = false;
+                        kc-nested.focus();
+                        root.nested-pan("down", self.mouse-x, self.mouse-y,
+                            self.mouse-x >= inner.x && self.mouse-x < inner.x + inner.width
+                            && self.mouse-y + root.nested-outer >= inner.y && self.mouse-y + root.nested-outer < inner.y + inner.height);
+                    }
+                }
+                moved => { root.nested-pan("move", self.mouse-x, self.mouse-y, false); }
+            }
+            kc-nested := KeyControl { name: "nested"; kind: "lockable"; key(n, k) => { return root.control-key(n, k); } }
+        }
+        Label { role: "caption"; mono: true; text: root.nested-text; }
+    }
+}

@@ -6,12 +6,15 @@
 //!
 //! The library is laid out by screen: `device` (the description and the calibration it gives),
 //! `debug` (the debug UI flag and jump), `keys` (how a control's keys reach the screen that owns
-//! it), `shell` (what every screen shares) and `screens/<screen>.rs`, one module per screen.
+//! it), `shell` (what every screen shares) and `screens/<screen>.rs`, one module per screen. The
+//! screens' order is kept once, in `screens.tsv`: build.rs makes the interface's list and
+//! [`SCREENS`] from it.
 
 use opendap_device::Description;
 use slint::ComponentHandle;
 
 slint::include_modules!();
+include!(concat!(env!("OUT_DIR"), "/screens.rs"));
 
 mod debug;
 mod device;
@@ -30,7 +33,14 @@ pub use device::description;
 pub fn wire(ui: &Testbed, desc: Option<Description>) {
     shell::wire(ui);
     let mut router = keys::Router::default();
-    screens::wire(ui, desc, &mut router);
+    let mut opened = screens::Openers::default();
+    screens::wire(ui, desc, &mut router, &mut opened);
+    let weak = ui.as_weak();
+    ui.on_screen_opened(move |name| {
+        if let Some(ui) = weak.upgrade() {
+            opened.open(&ui, &name);
+        }
+    });
     let weak = ui.as_weak();
     ui.on_control_key(move |name, key| {
         let Some(ui) = weak.upgrade() else {

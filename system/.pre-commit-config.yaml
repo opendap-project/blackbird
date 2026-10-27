@@ -34,7 +34,7 @@ repos:
         name: primitives matrix names the checks that prove its cases (tests/matrix_checks.py --check)
         entry: tests/matrix_checks.py --check
         language: system
-        files: ^(docs/verification/|tests/e2e/scenarios\.py|crates/odap-testbed/tests/interface\.rs)
+        files: ^(docs/verification/|tests/e2e/scenarios\.py|crates/odap-testbed/tests/interface(\.rs|/))
         pass_filenames: false
   - repo: local
     hooks:

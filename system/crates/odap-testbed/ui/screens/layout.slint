@@ -1,0 +1,44 @@
+// The Layout screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Label, Row, Wrap, AdaptivePair, AspectBox } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component LayoutScreen inherits Body {
+    callback focus-back();
+    in property <length> window-width;
+
+    init => { root.focus-back(); }
+    Group {
+        title: "Wrap: items of their own size, then the next line";
+        Wrap {
+            for f in ["FLAC 24/96", "DSD128", "MQA off", "Bit-perfect", "44.1 kHz", "Gapless"]: Rectangle {
+                height: 28px;
+                width: chip.preferred-width + 20px;
+                border-radius: 14px;
+                border-width: 1px;
+                border-color: Tokens.border-strong;
+                chip := Label { role: "caption"; text: f; x: 10px; vertical-alignment: center; wrap: no-wrap; }
+            }
+        }
+    }
+    Group {
+        title: "A label and its value: beside it from 280 px, under it below";
+        AdaptivePair { label: "Output"; value: "Headphones · 3.5 mm"; needs: 280px; available: root.window-width - 2 * Tokens.space-margin; }
+        AdaptivePair { label: "Needs 1000 px"; value: "So the value goes under"; needs: 1000px; available: root.window-width - 2 * Tokens.space-margin; }
+    }
+    Group {
+        title: "Aspect box: a cover keeps 1:1 at any width";
+        Row {
+            space: "group";
+            justify: start;
+            for w in [48px, 72px, 96px]: AspectBox {
+                width: w;
+                ratio: 1;
+                border-radius: 4px;
+                background: Tokens.surface-active;
+                Label { role: "caption"; mono: true; text: round(w / 1px); horizontal-alignment: center; vertical-alignment: center; }
+            }
+        }
+    }
+}

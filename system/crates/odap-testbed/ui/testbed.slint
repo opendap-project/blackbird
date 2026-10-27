@@ -9,300 +9,53 @@
 import { Tokens } from "@blackbird/slint/tokens.slint";
 // The design system's type, with the script companions (a language's own name, library metadata).
 import { Fonts } from "@blackbird/slint/fonts.slint";
-import { Blueprint, FocusReveal, FocusVisible, FocusNav, Motion, Layout, Screen, Header, Label, Button, PrimaryButton, ListLine, Toggle, Slider, RangeSlider, Segment, IconButton, Tab, SectionLabel, RadioStops, CheckLine, Readout, ProgressBar, LoadingLine, SeekBar, StatusIndicator, Toast, EdgeLabel, Panel, EmptyState, ErrorState, Group as CascadeGroup, DirRow, Layer, Backdrop, Overlay, Modal, Stack, Row, Wrap, AdaptivePair, AspectBox } from "@blackbird/slint/components.slint";
+import { Blueprint, FocusReveal, FocusVisible, FocusNav, Motion, Layout, Screen, Header, Label, Button, PrimaryButton, ListLine, Backdrop, Overlay, Modal, Toggle, Slider, RangeSlider, Segment, IconButton, Tab, RadioStops, CheckLine, Panel, EmptyState, ErrorState, DirRow } from "@blackbird/slint/components.slint";
+
+import { ScreenList } from "@testbed/screens.slint";
+import { KeyboardPanel } from "keyboard.slint";
+import { Body, Group } from "parts.slint";
+import { NavView, TrBox, FieldView, NavTile, VRow } from "models.slint";
+// One file a screen (screens/), each wired to the window's properties below.
+import { ActionsScreen } from "screens/actions.slint";
+import { ArenaScreen } from "screens/arena.slint";
+import { CalibrationScreen } from "screens/calibration.slint";
+import { ControlsScreen } from "screens/controls.slint";
+import { ExceptionsScreen } from "screens/exceptions.slint";
+import { GesturesScreen } from "screens/gestures.slint";
+import { KeyboardScreen } from "screens/keyboard.slint";
+import { LayersScreen } from "screens/layers.slint";
+import { LayoutScreen } from "screens/layout.slint";
+import { MediaScreen } from "screens/media.slint";
+import { MotionScreen } from "screens/motion.slint";
+import { NavigationScreen } from "screens/navigation.slint";
+import { OpacityScreen } from "screens/opacity.slint";
+import { SelectionScreen } from "screens/selection.slint";
+import { SpacesScreen } from "screens/spaces.slint";
+import { StatusScreen } from "screens/status.slint";
+import { TargetsScreen } from "screens/targets.slint";
+import { TransitionsScreen } from "screens/transitions.slint";
+import { TurnsScreen } from "screens/turns.slint";
+import { VirtualScreen } from "screens/virtual.slint";
 
 export { Blueprint, FocusReveal, FocusVisible, FocusNav, Motion, Layout }
 
-// A screen's content below its header, at the side margin.
-// The side margin belongs to each group, so lists can run the full width (§15.2).
-component Body inherits VerticalLayout {
-    padding-top: Tokens.space-group;
-    spacing: Tokens.space-section;
-    alignment: start;
-}
-
-component Group inherits VerticalLayout {
-    in property <string> title;
-    spacing: Tokens.space-unit;
-    padding-left: Tokens.space-margin;
-    padding-right: Tokens.space-margin;
-    if root.title != "": Label { role: "caption"; muted: true; text: root.title; }
-    @children
-}
-
-// A text field for the keyboard experiment (input events §3.7, §3.8): the box takes the focus like
-// any control; editing it is a level, entered by a touch on it or by Action, left by Escape or a tap
-// outside, which the screen decides (`editing`). What is typed goes to main.rs's form
-// (opendap-forms), which may refuse it (the kind's filter) and says the field's issue once it is left.
-component Field inherits VerticalLayout {
-    in property <string> label;
-    // The model's text (two-way binding without loops, input events §3.8): it reaches the input
-    // only when it says something else than the input shows, so the model echoing what was typed
-    // changes nothing, and a normalised value ("+2" for "02") does reach it. Never a `<=>` to the
-    // input: typing would break the binding, and the model could no longer reach the field.
-    in property <string> text;
-    in property <string> issue;
-    in property <bool> editing;
-    // The scroll area's content origin, in window coordinates: where the field is in the content
-    // changes only when the layout above it does (an issue appearing), never with the scroll.
-    in property <length> origin;
-    callback edit();
-    // The text as typed: what to keep (the same, or the text before, when the kind refuses it).
-    callback edited(string) -> string;
-    callback left();
-    out property <bool> focused: input.has-focus;
-    public function take() { input.focus(); }
-    changed text => { if input.text != root.text { input.text = root.text; } }
-    // Editing ends (the keyboard closed): the field is left as far as its value goes.
-    changed editing => { if !self.editing { root.left(); } }
-    property <length> at: root.absolute-position.y - root.origin;
-    changed at => { if input.has-focus { root.report(); } }
-    // The whole field is revealed, its caption and its issue with its box: a field brought under
-    // the header with its name hidden is not in view.
-    changed height => { if input.has-focus { root.report(); } }
-    function report() {
-        FocusReveal.y = root.absolute-position.y;
-        FocusReveal.h = root.height;
-        FocusReveal.fixed = false;
-        FocusReveal.serial += 1;
-    }
-    spacing: Tokens.space-unit;
-    Label { role: "caption"; muted: true; text: root.label; }
-    box := Rectangle {
-        height: 48px;
-        border-radius: Tokens.radius-control;
-        border-width: root.issue != "" ? 2px : 1px;
-        border-color: root.issue != "" ? Tokens.state-error : (root.editing && input.has-focus ? Tokens.brand-base : Tokens.border-strong);
-        background: Tokens.surface-base;
-        // The hidden focus (input events §3.7), as every control keeps it: a navigation key while
-        // the ring is hidden only shows where the focus is; typing, Action and back pass through.
-        FocusScope {
-            width: 100%;
-            height: 100%;
-            focus-on-tab-navigation: false;
-            focus-on-click: false;
-            capture-key-pressed(e) => {
-                if FocusVisible.on || !input.has-focus { return reject; }
-                if e.text == Key.Tab || e.text == Key.Backtab || e.text == Key.UpArrow || e.text == Key.DownArrow {
-                    FocusVisible.on = true;
-                    return accept;
-                }
-                reject
-            }
-            input := TextInput {
-                x: 12px;
-                width: parent.width - 24px;
-                vertical-alignment: center;
-                single-line: true;
-                // What is typed starts at the reading start (the right edge right to left).
-                horizontal-alignment: Layout.rtl ? TextHorizontalAlignment.right : TextHorizontalAlignment.left;
-                init => { self.text = root.text; }
-                color: Tokens.text-primary;
-                font-size: Tokens.font-size-body;
-                // Its issue is what a screen reader says after its name (aria-describedby).
-                accessible-label: root.label;
-                // What is typed is what it says it holds: a bare TextInput tells a screen reader
-                // its name and nothing of its content.
-                accessible-role: text-input;
-                accessible-value: self.text;
-                accessible-description: root.issue;
-                changed has-focus => {
-                    if self.has-focus { root.report(); } else { root.left(); }
-                }
-                edited => {
-                    let keep = root.edited(self.text);
-                    if keep != self.text { self.text = keep; }
-                }
-                accepted => { root.edit(); }
-            }
-        }
-        TouchArea {
-            clicked => { FocusVisible.on = false; input.focus(); root.edit(); }
-        }
-        if input.has-focus && FocusVisible.on: Rectangle {
-            border-radius: Tokens.radius-control;
-            border-width: 2px;
-            border-color: Tokens.focus;
-        }
-    }
-    // The issue, tied to the field, shown once it was left (never while first typed).
-    if root.issue != "": Label { role: "caption"; text: root.issue; color: Tokens.state-error; }
-}
-
-// A key of the experiment's keyboard: a 32 x 46 px target (design system §8.3, the documented
-// exception), drawn a little inside it. It never takes the focus: the field keeps it.
-component Key inherits Rectangle {
-    in property <string> label;
-    callback pressed-key(string);
-    height: 46px;
-    Rectangle {
-        x: 2px;
-        y: 3px;
-        width: parent.width - 4px;
-        height: parent.height - 6px;
-        border-radius: 5px;
-        background: t.pressed ? Tokens.surface-active : Tokens.surface-raised;
-        Label { role: "label"; text: root.label; horizontal-alignment: center; vertical-alignment: center; }
-    }
-    t := TouchArea { clicked => { root.pressed-key(root.label); } }
-}
-
-// The buttons for an experiment's control (design system §8.4): it takes the focus like any
-// control and draws its ring over its box. `kind`: "button" (Action activates), "lockable"
-// (Action locks, then Volume adjusts, as a slider), "list" (Volume walks its items, leaving at
-// the ends), "stop" (a composite with one stop, input events §3.7: main.rs navigates inside it
-// with opendap-input's nav; the ring is the stop's until it is engaged, then its child's). Keys
-// go to main.rs as `key(name, what)`.
-component KeyControl inherits FocusScope {
-    // A touch is the touch area's under it: it hides the ring, gives this the focus and starts its
-    // gesture, in that order. Taking the focus on the press itself (Slint's default) took the press
-    // from the touch area: the first drag after the buttons left the ring shown and moved nothing.
-    focus-on-click: false;
-    in property <string> name;
-    in property <string> kind: "button";
-    in-out property <bool> adjusting;
-    // A stop engaged draws the ring on its child, not on itself.
-    in property <bool> engaged;
-    // A touch inside the stop hid the ring: the touch decides its levels (it keeps those it is
-    // inside), not the hiding, which comes after it.
-    in-out property <bool> touched-inside;
-    // The lock ends when the focus hides.
-    property <bool> shown: FocusVisible.on;
-    changed shown => {
-        if !self.shown {
-            self.adjusting = false;
-            // The focus hid: every level releases (input events §3.7).
-            if root.kind == "stop" && !root.touched-inside { root.key(root.name, "release"); }
-        }
-        root.touched-inside = false;
-    }
-    callback key(string, string) -> bool;
-    changed has-focus => {
-        if !self.has-focus { self.adjusting = false; }
-        if !self.has-focus && root.kind == "stop" { root.key(root.name, "release"); }
-        if self.has-focus && root.kind == "stop" && FocusVisible.on { root.key(root.name, "enter"); }
-        if self.has-focus {
-            // Entered by the keys: from the side they came from; by a touch: left to the touch.
-            if root.kind == "list" && FocusVisible.on { root.key(root.name, FocusNav.backward ? "enter-up" : "enter-down"); }
-            FocusReveal.y = self.absolute-position.y;
-            FocusReveal.h = self.height;
-            FocusReveal.fixed = false;
-            FocusReveal.serial += 1;
-        }
-    }
-    key-pressed(e) => {
-        if !FocusVisible.on {
-            if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; }
-            FocusVisible.on = true;
-            // A list shows the ring on an item: the one it had, else its first.
-            if root.kind == "list" { root.key(root.name, "reveal"); }
-            return accept;
-        }
-        let vol-up = e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift);
-        let vol-down = e.text == Key.Tab && !e.modifiers.shift;
-        if root.kind == "lockable" {
-            if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
-            if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
-            // ← → are a keyboard's arrows: they mirror right to left (main.rs); Volume and ↑ ↓ are
-            // more and less by their place: never mirrored.
-            if e.text == Key.RightArrow { root.key(root.name, "right"); return accept; }
-            if e.text == Key.LeftArrow { root.key(root.name, "left"); return accept; }
-            if root.adjusting && (vol-up || e.text == Key.UpArrow) { root.key(root.name, "inc"); return accept; }
-            if root.adjusting && (vol-down || e.text == Key.DownArrow) { root.key(root.name, "dec"); return accept; }
-            return reject;
-        }
-        if root.kind == "stop" {
-            if e.text == Key.Return || e.text == " " { return root.key(root.name, "activate") ? accept : reject; }
-            if e.text == Key.Escape { return root.key(root.name, "escape") ? accept : reject; }
-            if e.text == Key.RightArrow { return root.key(root.name, "right") ? accept : reject; }
-            if e.text == Key.LeftArrow { return root.key(root.name, "left") ? accept : reject; }
-            if vol-down || e.text == Key.DownArrow { return root.key(root.name, "next") ? accept : reject; }
-            if vol-up || e.text == Key.UpArrow { return root.key(root.name, "prev") ? accept : reject; }
-            return reject;
-        }
-        if root.kind == "list" {
-            if e.text == Key.Return || e.text == " " { root.key(root.name, "activate"); return accept; }
-            if vol-down { return root.key(root.name, "next") ? accept : reject; }
-            if vol-up { return root.key(root.name, "prev") ? accept : reject; }
-            return reject;
-        }
-        if e.text == Key.Return || e.text == " " { root.key(root.name, "activate"); return accept; }
-        reject
-    }
-    // Above what the control draws inside it.
-    if root.has-focus && FocusVisible.on && !root.engaged: Rectangle {
-        z: 10;
-        border-width: root.adjusting ? 3px : 2px;
-        border-color: root.adjusting ? Tokens.brand-base : Tokens.focus;
-        background: root.adjusting ? Tokens.brand-base.with-alpha(0.12) : transparent;
-    }
-}
-
-// A stop of the Navigation screen as main.rs's navigator has it (input events §3.7).
-export struct NavView {
-    // The child with the focus inside it ("" when the stop itself has it).
-    focus: string,
-    // 0: the stop; 1: inside it; 2: a child engaged inside it.
-    depth: int,
-    // The shelf's scroll (the child kept in view), and the seek's value.
-    offset: length,
-    value: float,
-}
-
-// A box of the Transitions screen, as main.rs's primitives place it (opendap-motion's interpolate).
-export struct TrBox {
-    x: length,
-    y: length,
-    w: length,
-    h: length,
-    radius: length,
-    opacity: float,
-    label: string,
-}
-
-// A field of the Keyboard screen as main.rs's form has it.
-export struct FieldView {
-    label: string,
-    text: string,
-    issue: string,
-    // The keyboard it asks for (opendap-forms' Purpose): "number", "pin", "email", "normal"…
-    purpose: string,
-}
-
-// One built album of the Navigation screen's virtual shelf.
-export struct NavTile {
-    index: int,
-}
-
-// One slot of the virtual list: what it shows now, and where.
-export struct VRow {
-    index: int,
-    y: length,
-    h: length,
-    tall: bool,
-    // Its page has arrived; its cover is decoded (only when the scroll is slow).
-    ready: bool,
-    cover: bool,
-    // The item that has the focus (opendap-layout's focus: by item, never by slot).
-    focused: bool,
-    // A section's first row carries its section's header above it, in the content.
-    head: length,
-}
-
-// The frosted backdrop's global, for main.rs to fill when a dialog opens.
+// The frosted backdrop's global, for the logic to fill when a dialog opens.
 export { Backdrop }
 
+// What the activity's logic hands the screens.
+export { NavView, TrBox, FieldView, NavTile, VRow }
+
 export component Testbed inherits Window {
-    // From the device description and the window (main.rs).
+    // From the device description and the window (the logic).
     in property <string> device;
     in property <float> unit: 1.0;
     in property <[string]> calibration;
     in property <bool> calibration-off;
-    // The gesture pad: the gesture last recognised there (main.rs classifies it).
+    // The gesture pad: the gesture last recognised there (the logic classifies it).
     in property <string> gesture;
     in property <int> contacts;
     callback pad(string, length, length, length, length);
-    // The Spaces screen (main.rs answers through opendap-input): a list scrolled by its own pan,
+    // The Spaces screen (the logic answers through opendap-input): a list scrolled by its own pan,
     // a dial and a strip; each reports its contact with its place in the surface.
     callback spaces-list(string, length, length, length, length, length, length);
     callback spaces-dial(string, length, length, length, length);
@@ -332,9 +85,9 @@ export component Testbed inherits Window {
     // The pinned section header (opendap-layout's sticky): where it sits, and its text.
     in property <length> vband-y;
     in property <string> vband-text;
-    // Reduce motion, read by main.rs's animations.
+    // Reduce motion, read by the logic's animations.
     out property <bool> reduce-motion: Motion.reduce;
-    // The setting changed (Calibration's switch, standing for the system's): main.rs hands it to
+    // The setting changed (Calibration's switch, standing for the system's): the logic hands it to
     // opendap-motion, which every animation reads.
     callback reduce-motion-set(bool);
     changed reduce-motion => { root.reduce-motion-set(self.reduce-motion); }
@@ -353,11 +106,11 @@ export component Testbed inherits Window {
     in property <string> nav-text: "Action on a stop enters it; past either end, out.";
     // The keyboard experiment: the panel is open, the fields' texts, the field being edited.
     in-out property <bool> kb-open;
-    // A key of the on-screen keyboard: main.rs sends it to the focused field as a key event, as a
+    // A key of the on-screen keyboard: the logic sends it to the focused field as a key event, as a
     // virtual keyboard does (virtual-keyboard-v1), so the field keeps the focus.
     callback kb-key(string);
     // The Transitions screen (opendap-motion's transition, interpolate and presence,
-    // opendap-layout's pager, opendap-input's matched): main.rs places everything.
+    // opendap-layout's pager, opendap-input's matched): the logic places everything.
     in property <length> tr-pager-offset;
     in property <int> tr-page;
     in property <[TrBox]> tr-tiles;
@@ -384,6 +137,8 @@ export component Testbed inherits Window {
     in property <[float]> wave-hi;
     in property <string> media-text;
     callback exception(string);
+    // A screen opened from the list (its name): the logic prepares what it shows.
+    callback screen-opened(string);
     // Navigation: "" is the list, otherwise the screen open.
     in-out property <string> screen;
     // State of the primitives' screens.
@@ -412,12 +167,12 @@ export component Testbed inherits Window {
     title: "UI primitives";
     background: Blueprint.on ? Blueprint.paper : Tokens.bg;
 
-    // Past an end of the screen's focus chain (blackbird-ui Screen): main.rs sends the opposite
+    // Past an end of the screen's focus chain (blackbird-ui Screen): the logic sends the opposite
     // key, so the focus stays on the element at that end.
     callback screen-edge(bool);
-    // Frosts what is on screen for the next dialog's backdrop (main.rs: opendap-media's blur).
+    // Frosts what is on screen for the next dialog's backdrop (the logic: opendap-media's blur).
     callback frost();
-    // Where the popover goes next to its anchor (main.rs: opendap-input's anchor::place).
+    // Where the popover goes next to its anchor (the logic: opendap-input's anchor::place).
     callback place-menu(length, length, length, length, length);
     Screen {
         unit: root.unit;
@@ -529,905 +284,126 @@ export component Testbed inherits Window {
                         height: 28px;
                         vertical-alignment: center;
                     }
-                    // Focus on entry (design system §8.4): the screen's primary action if it has one, else its
-                    // first element.
-                    ListLine { label: "Calibration"; detail: "Sizes from this hardware"; unit: root.unit; clicked => { root.screen = "Calibration"; } init => { self.focus(); } }
-                    ListLine { label: "Targets"; detail: "48 · 52 · 64, gap 8"; unit: root.unit; clicked => { root.screen = "Targets"; } }
-                    ListLine { label: "Gestures"; detail: "Taps, presses, swipes, edges"; unit: root.unit; clicked => { root.screen = "Gestures"; } }
-                    ListLine { label: "Controls"; detail: "Sliders, toggles, a button group"; unit: root.unit; clicked => { root.screen = "Controls"; } }
-                    ListLine { label: "Actions"; detail: "Primary, secondary, icon, edge label"; unit: root.unit; clicked => { root.screen = "Actions"; } }
-                    ListLine { label: "Navigation"; detail: "Tabs, levels: stops and adjustables"; unit: root.unit; clicked => { root.screen = "Navigation"; } }
-                    ListLine { label: "Selection"; detail: "Stops on an axis, a pick list"; unit: root.unit; clicked => { root.screen = "Selection"; } }
-                    ListLine { label: "Status"; detail: "Indicators, progress, readouts, a toast"; unit: root.unit; clicked => { root.screen = "Status"; } }
-                    ListLine { label: "States"; detail: "Empty, error, disabled with its reason"; unit: root.unit; clicked => { root.screen = "States"; } }
-                    ListLine { label: "Motion"; detail: "Durations, the standard easing"; unit: root.unit; clicked => { root.screen = "Motion"; } }
-                    ListLine { label: "Opacity"; detail: "10 → 100 %"; unit: root.unit; clicked => { root.screen = "Opacity"; } }
-                    ListLine { label: "Layers"; detail: "A disabled group, a popover, a dialog"; unit: root.unit; clicked => { root.screen = "Layers"; } }
-                    ListLine { label: "Layout"; detail: "Wrap, a row that adapts, an aspect box"; unit: root.unit; clicked => { root.screen = "Layout"; } }
-                    ListLine { label: "Spaces"; detail: "Frames, paths, motion in a scrolled list"; unit: root.unit; clicked => { root.screen = "Spaces"; } }
-                    ListLine { label: "Turns"; detail: "A dial's angle, a strip from its start edge"; unit: root.unit; clicked => { root.screen = "Turns"; } }
-                    ListLine { label: "Arena"; detail: "One owner per contact, nested scrolling"; unit: root.unit; clicked => { root.screen = "Arena"; } }
-                    ListLine { label: "Virtual"; detail: "100 000 rows, a window of slots"; unit: root.unit; clicked => { root.screen = "Virtual"; root.vpan("open", 0, 0); } }
-                    ListLine { label: "Media"; detail: "A spring, a waveform, decode sizes"; unit: root.unit; clicked => { root.screen = "Media"; root.spring-drag("open", 0); } }
-                    ListLine { label: "Exceptions"; detail: "When the host fails"; unit: root.unit; clicked => { root.screen = "Exceptions"; } }
-                    ListLine { label: "Keyboard"; detail: "A form above the on-screen keyboard"; unit: root.unit; clicked => { root.screen = "Keyboard"; } }
-                    ListLine { label: "Transitions"; detail: "A pager, a morph, enter and exit"; unit: root.unit; clicked => { root.screen = "Transitions"; } }
-                }
-
-                if root.screen == "Calibration": Body {
-                    init => { rtl-switch.focus(); }
-                    // The settings every primitive follows: each screen can be tried in either.
-                    Group {
-                        title: "Settings every screen follows";
-                        rtl-switch := Toggle { label: "Right to left"; on: Layout.rtl; toggled(v) => { Layout.rtl = v; } unit: root.unit; }
-                        Toggle { label: "Reduce motion"; on: Motion.reduce; toggled(v) => { Motion.reduce = v; } unit: root.unit; }
-                        // Solid tints instead of frosted glass (design system §12.3), for dialogs' scrims.
-                        Toggle { label: "Reduce transparency"; on: Backdrop.reduce-transparency; toggled(v) => { Backdrop.reduce-transparency = v; } unit: root.unit; }
-                    }
-                    Group {
-                        for line in root.calibration: Label { role: "label"; mono: true; text: line; }
-                        if root.calibration-off: Label {
-                            role: "label";
-                            text: "The applied scale differs from this hardware's: sizes in mm are off by the deviation above.";
-                            color: Tokens.state-warning;
-                        }
+                    // The screens, in screens.tsv's order (generated by build.rs): opening one tells the logic,
+                    // for the screens that prepare something as they open.
+                    ScreenList {
+                        unit: root.unit;
+                        open(s) => { root.screen = s; root.screen-opened(s); }
                     }
                 }
 
-                if root.screen == "Targets": Body {
-                    Group {
-                        title: "Minimum, frequent, primary";
-                        DirRow {
-                            spacing: Tokens.space-target-gap * root.unit;
-                            justify: start;
-                            for size[i] in [Tokens.size-target-min, Tokens.size-target-frequent, Tokens.size-target-primary]: Button {
-                                init => { if i == 0 { self.focus(); } }
-                                width: size * root.unit;
-                                height: size * root.unit;
-                                label: round(size / 1px);
-                                unit: root.unit;
-                            }
-                        }
-                    }
-                    Group {
-                        title: "The primary action";
-                        // A sample of the size: not this screen's primary action, so it takes no focus on entry.
-                        PrimaryButton { label: "Play"; unit: root.unit; default-focus: false; }
-                    }
+                if root.screen == "Calibration": CalibrationScreen {
+                    calibration: root.calibration; calibration-off: root.calibration-off; unit: root.unit;
+                }
+
+                if root.screen == "Targets": TargetsScreen {
+                    unit: root.unit;
                 }
 
                 // A pad for gestures; the recognised one shows under it. The composer's debug UI mode
                 // shows them everywhere; this one checks the recogniser on its own.
-                if root.screen == "Gestures": Body {
-                    init => { hdr.focus-back(); }
-                    Group {
-                        Rectangle {
-                            height: 220px;
-                            border-radius: Tokens.radius-card;
-                            border-width: 1px;
-                            border-color: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.border-base;
-                            background: Blueprint.on ? transparent : Tokens.surface-base;
-                            accessible-role: text;
-                            accessible-label: "Gesture pad";
-                            Label {
-                                role: "label";
-                                muted: true;
-                                text: "Tap, press, swipe";
-                                horizontal-alignment: center;
-                                vertical-alignment: center;
-                            }
-                            TouchArea {
-                                pointer-event(e) => {
-                                    if e.kind == PointerEventKind.down { root.pad("down", self.mouse-x, self.mouse-y, self.width, self.height); }
-                                    if e.kind == PointerEventKind.up { root.pad("up", self.mouse-x, self.mouse-y, self.width, self.height); }
-                                    if e.kind == PointerEventKind.cancel { root.pad("cancel", self.mouse-x, self.mouse-y, self.width, self.height); }
-                                }
-                                moved => { root.pad("move", self.mouse-x, self.mouse-y, self.width, self.height); }
-                            }
-                        }
-                        Label { role: "body"; text: root.gesture == "" ? "No gesture yet" : root.gesture; }
-                        Label { role: "caption"; muted: true; mono: true; text: root.contacts + " contacts"; }
-                    }
+                if root.screen == "Gestures": GesturesScreen {
+                    contacts: root.contacts; gesture: root.gesture; focus-back => { hdr.focus-back(); }
+                    pad(p0, p1, p2, p3, p4) => { root.pad(p0, p1, p2, p3, p4); }
                 }
 
-                if root.screen == "Controls": Body {
-                    Group {
-                        title: "Slider: " + round(root.level);
-                        Slider { label: "Level"; value <=> root.level; unit: root.unit; init => { self.focus(); } }
-                    }
-                    Group {
-                        title: "Range: " + round(root.range-low) + " to " + round(root.range-high);
-                        RangeSlider { label: "Range"; low <=> root.range-low; high <=> root.range-high; unit: root.unit; }
-                    }
-                    Group {
-                        title: "Toggles";
-                        Toggle { label: "Gapless playback"; on <=> root.switch-a; unit: root.unit; }
-                        Toggle { label: "Blind comparison"; on <=> root.switch-b; unit: root.unit; }
-                    }
-                    Group {
-                        title: "Button group";
-                        DirRow {
-                            spacing: Tokens.size-group-divider;
-                            Segment { label: "Sharp"; first: true; selected: root.choice == 0; unit: root.unit; clicked => { root.choice = 0; } }
-                            Segment { label: "Slow"; selected: root.choice == 1; unit: root.unit; clicked => { root.choice = 1; } }
-                            Segment { label: "Short"; last: true; selected: root.choice == 2; unit: root.unit; clicked => { root.choice = 2; } }
-                        }
-                    }
+                if root.screen == "Controls": ControlsScreen {
+                    unit: root.unit; choice <=> root.choice; level <=> root.level; range-high <=> root.range-high;
+                    range-low <=> root.range-low; switch-a <=> root.switch-a; switch-b <=> root.switch-b;
                 }
 
-                if root.screen == "Motion": Body {
-                    Group {
-                        Rectangle {
-                            height: 24px;
-                            Rectangle {
-                                y: parent.height / 2;
-                                height: 1px;
-                                background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.border-base;
-                            }
-                            Rectangle {
-                                x: root.motion-at-end ? parent.width - self.width : 0;
-                                y: 4px;
-                                width: 16px;
-                                height: 16px;
-                                border-radius: 8px;
-                                background: Tokens.brand-base;
-                                animate x {
-                                    duration: root.motion == 0 ? Tokens.motion-duration-fast : (root.motion == 1 ? Tokens.motion-duration-standard : Tokens.motion-duration-slow);
-                                    easing: cubic-bezier(0.2, 0, 0, 1);
-                                }
-                            }
-                        }
-                        DirRow {
-                            spacing: Tokens.size-group-divider;
-                            Segment { label: "120 ms"; first: true; selected: root.motion == 0; unit: root.unit; clicked => { root.motion = 0; root.motion-at-end = !root.motion-at-end; } init => { self.focus(); } }
-                            Segment { label: "200 ms"; selected: root.motion == 1; unit: root.unit; clicked => { root.motion = 1; root.motion-at-end = !root.motion-at-end; } }
-                            Segment { label: "320 ms"; last: true; selected: root.motion == 2; unit: root.unit; clicked => { root.motion = 2; root.motion-at-end = !root.motion-at-end; } }
-                        }
-                    }
+                if root.screen == "Motion": MotionScreen {
+                    unit: root.unit; motion <=> root.motion; motion-at-end <=> root.motion-at-end;
                 }
 
-                if root.screen == "Opacity": Body {
-                    init => { hdr.focus-back(); }
-                    Group {
-                        DirRow {
-                            spacing: 3px;
-                            for a in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]: Rectangle {
-                                height: 32px;
-                                background: (Blueprint.on ? Blueprint.ink : Tokens.text-primary).with-alpha(a);
-                            }
-                        }
-                    }
+                if root.screen == "Opacity": OpacityScreen {
+                    focus-back => { hdr.focus-back(); }
                 }
 
-                if root.screen == "Spaces": Body {
-                    Group {
-                        title: "Drag the list: the finger moves in @viewport, not in @content";
-                        list-box := Rectangle {
-                            height: 168px;
-                            clip: true;
-                            border-width: 1px;
-                            border-color: Tokens.border-base;
-                            for i in 20: Rectangle {
-                                y: i * 42px - root.spaces-offset;
-                                height: 42px;
-                                Label { x: 12px; width: parent.width - 24px; role: "label"; text: "row-" + i; vertical-alignment: center; }
-                                Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
-                                // The ring on the row the buttons are on, not on the whole list.
-                                if i == root.spaces-focused && kc-spaces.has-focus && FocusVisible.on: Rectangle {
-                                    border-width: 2px;
-                                    border-color: Tokens.focus;
-                                }
-                            }
-                            TouchArea {
-                                pointer-event(e) => {
-                                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-spaces.focus(); root.spaces-list("down", self.mouse-x, self.mouse-y, self.absolute-position.x, self.absolute-position.y, self.width, self.height); }
-                                    if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.spaces-list("up", self.mouse-x, self.mouse-y, self.absolute-position.x, self.absolute-position.y, self.width, self.height); }
-                                }
-                                moved => { root.spaces-list("move", self.mouse-x, self.mouse-y, self.absolute-position.x, self.absolute-position.y, self.width, self.height); }
-                            }
-                            kc-spaces := KeyControl { engaged: root.spaces-focused >= 0; init => { self.focus(); if FocusVisible.on { root.control-key("spaces", "reveal"); } } name: "spaces"; kind: "list"; key(n, k) => { return root.control-key(n, k); } }
-                        }
-                        for line in root.spaces-lines: Label { role: "caption"; mono: true; text: line; }
-                    }
+                if root.screen == "Spaces": SpacesScreen {
+                    spaces-focused: root.spaces-focused; spaces-lines: root.spaces-lines;
+                    spaces-offset: root.spaces-offset; control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    spaces-list(p0, p1, p2, p3, p4, p5, p6) => { root.spaces-list(p0, p1, p2, p3, p4, p5, p6); }
                 }
 
-                if root.screen == "Media": Body {
-                    Group {
-                        title: "Drag the block and let go: it springs back with your velocity";
-                        Rectangle {
-                            height: 56px;
-                            border-width: 1px;
-                            border-color: Tokens.border-base;
-                            Rectangle { x: (parent.width - 1px) / 2; width: 1px; background: Tokens.border-strong; }
-                            Rectangle {
-                                x: (parent.width - self.width) / 2 + root.spring-x;
-                                y: 8px;
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 6px;
-                                background: Tokens.brand-base;
-                            }
-                            TouchArea {
-                                pointer-event(e) => {
-                                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-spring.focus(); root.spring-drag("down", self.mouse-x); }
-                                    if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.spring-drag("up", self.mouse-x); }
-                                }
-                                moved => { root.spring-drag("move", self.mouse-x); }
-                            }
-                            kc-spring := KeyControl { init => { self.focus(); } name: "spring"; kind: "button"; key(n, k) => { return root.control-key(n, k); } }
-                        }
-                        Label { role: "caption"; mono: true; text: root.spring-text; }
-                    }
-                    Group {
-                        title: "A million samples, one column per 2 px, every peak kept";
-                        Rectangle {
-                            height: 72px;
-                            border-width: 1px;
-                            border-color: Tokens.border-base;
-                            for lo[i] in root.wave-lo: Rectangle {
-                                x: i * 2px;
-                                width: 1px;
-                                y: parent.height / 2 - root.wave-hi[i] * parent.height / 2;
-                                height: max(1px, (root.wave-hi[i] - lo) * parent.height / 2);
-                                background: Tokens.text-primary;
-                            }
-                        }
-                        Label { role: "caption"; mono: true; text: root.media-text; }
-                    }
+                if root.screen == "Media": MediaScreen {
+                    media-text: root.media-text; spring-text: root.spring-text; spring-x: root.spring-x;
+                    wave-hi: root.wave-hi; wave-lo: root.wave-lo;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    spring-drag(p0, p1) => { root.spring-drag(p0, p1); }
                 }
 
-                if root.screen == "Virtual": Body {
-                    Group {
-                        title: "A hundred thousand rows: only the window is built, its slots reused";
-                        // The list takes the focus as one control whose items the buttons walk
-                        // (design system §8.4): Volume moves item by item, the list scrolls to keep
-                        // it in view, Action takes it; at either end the focus leaves the list.
-                        vfs := FocusScope {
-                            // Focus on entry: with the ring shown (the keys brought us here), on the
-                            // list's first item at once, not at the next press.
-                            init => { self.focus(); if FocusVisible.on { root.vkey("enter-down"); } }
-                            height: 260px;
-                            changed has-focus => {
-                                if self.has-focus {
-                                    // Entered from below (Volume +): its last item; from above: its first.
-                                    if FocusVisible.on { root.vkey(FocusNav.backward ? "enter-up" : "enter-down"); }
-                                    FocusReveal.y = self.absolute-position.y;
-                                    FocusReveal.h = self.height;
-                                    FocusReveal.fixed = false;
-                                    FocusReveal.serial += 1;
-                                }
-                            }
-                            key-pressed(e) => {
-                                if !FocusVisible.on {
-                                    if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; }
-                                    FocusVisible.on = true;
-                                    // The ring shows on an item: the one it had, else the first (the list
-                                    // took the focus on entry, before any item had it).
-                                    root.vkey("enter-down");
-                                    return accept;
-                                }
-                                if e.text == Key.Return || e.text == " " { root.vkey("activate"); return accept; }
-                                // A keyboard's Home and End: straight to the list's start or end.
-                                if e.text == Key.Home { return root.vkey("home") ? accept : reject; }
-                                if e.text == Key.End { return root.vkey("end") ? accept : reject; }
-                                if e.text == Key.Tab && !e.modifiers.shift { return root.vkey("next") ? accept : reject; }
-                                if e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift) { return root.vkey("prev") ? accept : reject; }
-                                reject
-                            }
-                        Rectangle {
-                                clip: true;
-                                border-width: 1px;
-                                border-color: Tokens.border-base;
-                                for r in root.vrows: Rectangle {
-                                    y: r.y;
-                                    height: r.h;
-                                    // Below its section's header, when it is a section's first row.
-                                    Rectangle {
-                                        y: r.head;
-                                        height: r.h - r.head;
-                                        background: r.tall ? Tokens.surface-raised : transparent;
-                                        // The cover: a placeholder until decoded.
-                                        Rectangle {
-                                            x: Layout.rtl ? parent.width - 12px - self.width : 12px;
-                                            width: 28px;
-                                            height: 28px;
-                                            y: (parent.height - self.height) / 2;
-                                            border-radius: 3px;
-                                            background: r.cover ? Tokens.brand-base.with-alpha(0.7) : Tokens.surface-active;
-                                        }
-                                        // The row's text: a placeholder bar until its page arrives.
-                                        if r.ready: Label { x: 52px; width: parent.width - 104px; role: "label"; text: "row " + r.index; vertical-alignment: center; }
-                                        if !r.ready: Rectangle {
-                                            x: Layout.rtl ? parent.width - 52px - self.width : 52px;
-                                            width: 96px;
-                                            height: 10px;
-                                            y: (parent.height - self.height) / 2;
-                                            border-radius: 5px;
-                                            background: Tokens.surface-active;
-                                        }
-                                        Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
-                                        // The focus ring: on the slot that shows the focused item now.
-                                        if r.focused && vfs.has-focus && FocusVisible.on: Rectangle {
-                                            border-width: 2px;
-                                            border-color: Tokens.focus;
-                                        }
-                                    }
-                                }
-                                // The section's header, pinned at the list's top while its section passes and
-                                // pushed out by the next (opendap-layout's sticky); the focus is revealed below
-                                // it (input events §3.7).
-                                Rectangle {
-                                    y: root.vband-y;
-                                    height: 28px;
-                                    background: Tokens.surface-raised;
-                                    Label { x: 12px; width: parent.width - 24px; role: "caption"; muted: true; text: root.vband-text; vertical-alignment: center; }
-                                    Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
-                                }
-                                TouchArea {
-                                    pointer-event(e) => {
-                                        // A touch gives the list the focus, hidden (design system §8.4); a
-                                        // tap that did not move focuses the row under it (main.rs).
-                                        if e.kind == PointerEventKind.down { FocusVisible.on = false; vfs.focus(); root.vpan("down", self.mouse-y, self.height); }
-                                        if e.kind == PointerEventKind.up { root.vpan("up", self.mouse-y, self.height); }
-                                        if e.kind == PointerEventKind.cancel { root.vpan("cancel", self.mouse-y, self.height); }
-                                    }
-                                    moved => { root.vpan("move", self.mouse-y, self.height); }
-                                }
-                            }
-                        }
-                        Label { role: "caption"; mono: true; text: root.vtext; }
-                    }
+                if root.screen == "Virtual": VirtualScreen {
+                    vband-text: root.vband-text; vband-y: root.vband-y; vrows: root.vrows; vtext: root.vtext;
+                    vkey(p0) => { return root.vkey(p0); } vpan(p0, p1, p2) => { root.vpan(p0, p1, p2); }
                 }
 
-                if root.screen == "Arena": Body {
-                    Group {
-                        title: "Tap, double tap or hold: who wins the contact";
-                        Rectangle {
-                            height: 72px;
-                            border-radius: Tokens.radius-control;
-                            border-width: 1px;
-                            border-color: Tokens.border-strong;
-                            Label { role: "label"; text: root.arena-text == "" ? "Touch here" : root.arena-text; horizontal-alignment: center; vertical-alignment: center; }
-                            TouchArea {
-                                pointer-event(e) => {
-                                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-arena.focus(); root.arena-pad("down", self.mouse-x, self.mouse-y); }
-                                    if e.kind == PointerEventKind.up { root.arena-pad("up", self.mouse-x, self.mouse-y); }
-                                    if e.kind == PointerEventKind.cancel { root.arena-pad("cancel", self.mouse-x, self.mouse-y); }
-                                }
-                                moved => { root.arena-pad("move", self.mouse-x, self.mouse-y); }
-                            }
-                            kc-arena := KeyControl { init => { self.focus(); } name: "arena"; kind: "button"; key(n, k) => { return root.control-key(n, k); } }
-                        }
-                        Toggle { label: "Double tap here"; on <=> root.arena-double; unit: root.unit; }
-                    }
-                    Group {
-                        title: "Nested: the inner list first, the rest to the outer";
-                        Rectangle {
-                            height: 150px;
-                            clip: true;
-                            border-width: 1px;
-                            border-color: Tokens.border-base;
-                            // The outer content: 400 px, the inner list 60 px down it.
-                            Rectangle {
-                                y: -root.nested-outer;
-                                height: 400px;
-                                Label { x: 12px; width: parent.width - 24px; y: 8px; role: "caption"; muted: true; text: "outer content"; }
-                                inner := Rectangle {
-                                    x: 24px;
-                                    y: 36px;
-                                    width: parent.width - 48px;
-                                    height: 72px;
-                                    clip: true;
-                                    border-width: 1px;
-                                    border-color: Tokens.border-strong;
-                                    for i in 8: Label { x: 8px; width: parent.width - 16px; y: i * 24px - root.nested-inner; height: 24px; role: "caption"; text: "inner row " + i; vertical-alignment: center; }
-                                }
-                                for i in 8: Label { x: 12px; width: parent.width - 24px; y: 130px + i * 32px; role: "caption"; muted: true; text: "outer row " + i; }
-                            }
-                            TouchArea {
-                                pointer-event(e) => {
-                                    if e.kind == PointerEventKind.down {
-                                        FocusVisible.on = false;
-                                        kc-nested.focus();
-                                        root.nested-pan("down", self.mouse-x, self.mouse-y,
-                                            self.mouse-x >= inner.x && self.mouse-x < inner.x + inner.width
-                                            && self.mouse-y + root.nested-outer >= inner.y && self.mouse-y + root.nested-outer < inner.y + inner.height);
-                                    }
-                                }
-                                moved => { root.nested-pan("move", self.mouse-x, self.mouse-y, false); }
-                            }
-                            kc-nested := KeyControl { name: "nested"; kind: "lockable"; key(n, k) => { return root.control-key(n, k); } }
-                        }
-                        Label { role: "caption"; mono: true; text: root.nested-text; }
-                    }
+                if root.screen == "Arena": ArenaScreen {
+                    arena-text: root.arena-text; nested-inner: root.nested-inner; nested-outer: root.nested-outer;
+                    nested-text: root.nested-text; unit: root.unit; arena-double <=> root.arena-double;
+                    arena-pad(p0, p1, p2) => { root.arena-pad(p0, p1, p2); }
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    nested-pan(p0, p1, p2, p3) => { root.nested-pan(p0, p1, p2, p3); }
                 }
 
-                if root.screen == "Turns": Body {
-                    Group {
-                        title: "Dial: turn around it; the total keeps counting past the top";
-                        DirRow {
-                            spacing: Tokens.space-group;
-                            dial := Rectangle {
-                                width: 96px;
-                                height: 96px;
-                                border-radius: 48px;
-                                border-width: 1px;
-                                border-color: Tokens.border-strong;
-                                // The needle, turned to the dial's angle (0 up, clockwise).
-                                Rectangle {
-                                    width: parent.width;
-                                    height: parent.height;
-                                    transform-rotation: root.dial-angle * 1deg;
-                                    Rectangle {
-                                        width: 2px;
-                                        height: 40px;
-                                        x: parent.width / 2 - 1px;
-                                        y: 8px;
-                                        background: Tokens.text-primary;
-                                    }
-                                }
-                                TouchArea {
-                                    pointer-event(e) => {
-                                        if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-dial.focus(); root.spaces-dial("down", self.mouse-x, self.mouse-y, self.width, self.height); }
-                                    }
-                                    moved => { root.spaces-dial("move", self.mouse-x, self.mouse-y, self.width, self.height); }
-                                }
-                                kc-dial := KeyControl { init => { self.focus(); } name: "dial"; kind: "lockable"; key(n, k) => { return root.control-key(n, k); } }
-                            }
-                            Label { role: "caption"; mono: true; text: root.dial-text; vertical-alignment: center; }
-                        }
-                    }
-                    Group {
-                        title: "Strip: 0 to 1 from the start edge";
-                        Rectangle {
-                            height: 32px;
-                            border-radius: 4px;
-                            background: Tokens.surface-active;
-                            Rectangle {
-                                x: (root.strip-rtl ? 1 - root.strip-value : root.strip-value) * (parent.width - self.width);
-                                width: 4px;
-                                background: Tokens.text-primary;
-                            }
-                            TouchArea {
-                                pointer-event(e) => {
-                                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-strip.focus(); root.spaces-strip(self.mouse-x, self.width, root.strip-rtl); }
-                                }
-                                moved => { root.spaces-strip(self.mouse-x, self.width, root.strip-rtl); }
-                            }
-                            kc-strip := KeyControl { name: "strip"; kind: "lockable"; key(n, k) => { return root.control-key(n, k); } }
-                        }
-                        Label { role: "caption"; mono: true; text: root.strip-text; }
-                        Toggle { label: "Right to left"; on: Layout.rtl; toggled(v) => { Layout.rtl = v; } unit: root.unit; }
-                    }
+                if root.screen == "Turns": TurnsScreen {
+                    dial-angle: root.dial-angle; dial-text: root.dial-text; strip-rtl: root.strip-rtl;
+                    strip-text: root.strip-text; strip-value: root.strip-value; unit: root.unit;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    spaces-dial(p0, p1, p2, p3, p4) => { root.spaces-dial(p0, p1, p2, p3, p4); }
+                    spaces-strip(p0, p1, p2) => { root.spaces-strip(p0, p1, p2); }
                 }
 
-                if root.screen == "Layout": Body {
-                    init => { hdr.focus-back(); }
-                    Group {
-                        title: "Wrap: items of their own size, then the next line";
-                        Wrap {
-                            for f in ["FLAC 24/96", "DSD128", "MQA off", "Bit-perfect", "44.1 kHz", "Gapless"]: Rectangle {
-                                height: 28px;
-                                width: chip.preferred-width + 20px;
-                                border-radius: 14px;
-                                border-width: 1px;
-                                border-color: Tokens.border-strong;
-                                chip := Label { role: "caption"; text: f; x: 10px; vertical-alignment: center; wrap: no-wrap; }
-                            }
-                        }
-                    }
-                    Group {
-                        title: "A label and its value: beside it from 280 px, under it below";
-                        AdaptivePair { label: "Output"; value: "Headphones · 3.5 mm"; needs: 280px; available: root.width - 2 * Tokens.space-margin; }
-                        AdaptivePair { label: "Needs 1000 px"; value: "So the value goes under"; needs: 1000px; available: root.width - 2 * Tokens.space-margin; }
-                    }
-                    Group {
-                        title: "Aspect box: a cover keeps 1:1 at any width";
-                        Row {
-                            space: "group";
-                            justify: start;
-                            for w in [48px, 72px, 96px]: AspectBox {
-                                width: w;
-                                ratio: 1;
-                                border-radius: 4px;
-                                background: Tokens.surface-active;
-                                Label { role: "caption"; mono: true; text: round(w / 1px); horizontal-alignment: center; vertical-alignment: center; }
-                            }
-                        }
-                    }
+                if root.screen == "Layout": LayoutScreen {
+                    window-width: root.width; focus-back => { hdr.focus-back(); }
                 }
 
-                if root.screen == "Layers": Body {
-                    // A group that cascades its state: disabled, nothing in it acts, its reason
-                    // shows once (ui-model §9, ADR 0003).
-                    CascadeGroup {
-                        title: "A group, disabled with its reason";
-                        enabled: root.group-on;
-                        reason: "Turn the switch below on to use these.";
-                        unit: root.unit;
-                        // Disabled with the group: skipped by the buttons (input events §3.7).
-                        Button { label: "Sync now"; enabled: root.group-on; unit: root.unit; }
-                        Toggle { label: "Crossfeed"; enabled: root.group-on; unit: root.unit; }
-                    }
-                    Group {
-                        // Focus on entry: the first element that is not disabled.
-                        Toggle { label: "Group enabled"; on <=> root.group-on; unit: root.unit; init => { self.focus(); } }
-                    }
-                    Group {
-                        title: "A popover above everything, and a dialog that makes the rest inert";
-                        // Anchored to this button: the popover opens under it (a popup is declared
-                        // at the window's root, Slint's rule, and placed at its anchor).
-                        Button {
-                            label: "Open a popover";
-                            unit: root.unit;
-                            clicked => {
-                                // Placed by opendap-input's anchor: below the button, or above it
-                                // when it does not fit, slid to stay on the screen.
-                                root.anchor-w = self.width;
-                                root.place-menu(self.absolute-position.x, self.absolute-position.y, self.width, self.height, 2 * Tokens.size-row + 2 * Tokens.space-unit + 2px);
-                                menu.show();
-                            }
-                        }
-                        Button { label: "Open a dialog"; unit: root.unit; clicked => { root.frost(); dialog.show(); } }
-                        Readout { label: "Last choice"; value: root.picked; }
-                    }
+                if root.screen == "Layers": LayersScreen {
+                    unit: root.unit; show-menu => { menu.show(); } show-dialog => { dialog.show(); }
+                    anchor-w <=> root.anchor-w; frost() => { root.frost(); } group-on <=> root.group-on;
+                    picked <=> root.picked; place-menu(p0, p1, p2, p3, p4) => { root.place-menu(p0, p1, p2, p3, p4); }
                 }
 
-                if root.screen == "Keyboard": Body {
-                    for fv[i] in root.kb-fields: Group {
-                        Field {
-                            label: fv.label;
-                            text: fv.text;
-                            issue: fv.issue;
-                            origin: flick.absolute-position.y + flick.content-y;
-                            editing: root.kb-open && root.kb-field == i;
-                            init => { if i == 0 { self.take(); } }
-                            // The focus leaving the field being edited ends the editing level (input
-                            // events §3.7), unless another field took it.
-                            changed focused => {
-                                if self.focused { root.kb-field = i; } else if root.kb-field == i { root.kb-open = false; }
-                            }
-                            edit => { root.kb-field = i; root.kb-open = true; }
-                            edited(t) => { return root.field-edited(i, t); }
-                            left => { root.field-left(i); }
-                        }
-                    }
-                    Group {
-                        Label { role: "caption"; muted: true; text: root.kb-open ? "Keyboard open: the form is compressed above it" : "Tap a field, or Action on it, to type"; }
-                    }
+                if root.screen == "Keyboard": KeyboardScreen {
+                    content-origin: flick.absolute-position.y + flick.content-y;
+                    field-edited(p0, p1) => { return root.field-edited(p0, p1); }
+                    field-left(p0) => { root.field-left(p0); } kb-field <=> root.kb-field;
+                    kb-fields <=> root.kb-fields; kb-open <=> root.kb-open;
                 }
 
-                if root.screen == "Transitions": Body {
-                    // A pager: one stop; Action locks it, Volume turns the pages (input events §3.7).
-                    Group {
-                        title: "Pages: drag, or Action then Volume";
-                        kc-pager := KeyControl {
-                            name: "pager";
-                            kind: "lockable";
-                            key(n, k) => { return root.control-key(n, k); }
-                            init => { self.focus(); }
-                            height: 96px;
-                            Rectangle {
-                                clip: true;
-                                for i in 3: Rectangle {
-                                    // Page 0 at the start edge: right to left mirrors the strip.
-                                    x: Layout.rtl ? root.tr-pager-offset - i * parent.width : i * parent.width - root.tr-pager-offset;
-                                    width: parent.width;
-                                    background: i == 0 ? Tokens.surface-raised : (i == 1 ? Tokens.surface-active : Tokens.surface-base);
-                                    border-width: 1px;
-                                    border-color: Tokens.border-base;
-                                    Label { role: "title"; text: "Page " + (i + 1); horizontal-alignment: center; vertical-alignment: center; }
-                                }
-                                TouchArea {
-                                    pointer-event(e) => {
-                                        if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-pager.focus(); root.tr-pager("down", self.mouse-x); }
-                                        if e.kind == PointerEventKind.up { root.tr-pager("up", self.mouse-x); }
-                                        if e.kind == PointerEventKind.cancel { root.tr-pager("up", self.mouse-x); }
-                                    }
-                                    moved => { root.tr-pager("move", self.mouse-x); }
-                                }
-                            }
-                        }
-                    }
-                    // Enter and exit: a removed line leaves (still drawn), the rest close up.
-                    Group {
-                        title: "Enter and exit";
-                        Button { label: "Remove or restore line 2"; unit: root.unit; clicked => { root.tr-list(); } }
-                        Rectangle {
-                            height: 4 * 40px;
-                            clip: true;
-                            for r in root.tr-rows: Rectangle {
-                                y: r.y;
-                                height: r.h;
-                                opacity: r.opacity;
-                                clip: true;
-                                Label { x: 12px; width: parent.width - 24px; role: "label"; text: r.label; vertical-alignment: center; }
-                                Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
-                            }
-                        }
-                    }
-                    // A morph: a tile and the detail it becomes are one matched element.
-                    Group {
-                        title: "Morph: tap a tile, tap or drag the detail down to go back";
-                        kc-morph := KeyControl {
-                            name: "morph";
-                            kind: "button";
-                            key(n, k) => { return root.control-key(n, k); }
-                            height: 200px;
-                            Rectangle {
-                                clip: true;
-                                for t[i] in root.tr-tiles: Rectangle {
-                                    x: t.x;
-                                    y: t.y;
-                                    width: t.w;
-                                    height: t.h;
-                                    border-radius: t.radius;
-                                    opacity: t.opacity;
-                                    background: Tokens.surface-active;
-                                    Label { role: "caption"; text: t.label; horizontal-alignment: center; vertical-alignment: center; }
-                                    TouchArea { clicked => { FocusVisible.on = false; kc-morph.focus(); root.tr-tile(i); } }
-                                }
-                                if root.tr-detail.opacity > 0: Rectangle {
-                                    x: root.tr-detail.x;
-                                    y: root.tr-detail.y;
-                                    width: root.tr-detail.w;
-                                    height: root.tr-detail.h;
-                                    border-radius: root.tr-detail.radius;
-                                    background: Tokens.brand-base;
-                                    opacity: root.tr-detail.opacity;
-                                    Label { role: "title"; text: root.tr-detail.label; horizontal-alignment: center; vertical-alignment: center; color: Tokens.surface-base; }
-                                    TouchArea {
-                                        pointer-event(e) => {
-                                            if e.kind == PointerEventKind.down { FocusVisible.on = false; root.tr-detail-touch("down", self.mouse-y + parent.y); }
-                                            if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.tr-detail-touch("up", self.mouse-y + parent.y); }
-                                        }
-                                        moved => { root.tr-detail-touch("move", self.mouse-y + parent.y); }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Group {
-                        Label { role: "caption"; mono: true; muted: true; text: root.tr-text; }
-                    }
+                if root.screen == "Transitions": TransitionsScreen {
+                    tr-detail: root.tr-detail; tr-pager-offset: root.tr-pager-offset; tr-rows: root.tr-rows;
+                    tr-text: root.tr-text; tr-tiles: root.tr-tiles; unit: root.unit;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    tr-detail-touch(p0, p1) => { root.tr-detail-touch(p0, p1); } tr-list() => { root.tr-list(); }
+                    tr-pager(p0, p1) => { root.tr-pager(p0, p1); } tr-tile(p0) => { root.tr-tile(p0); }
                 }
 
-                if root.screen == "Exceptions": Body {
-                    Group {
-                        Label { role: "label"; muted: true; text: "The composer keeps the last frame and restarts the activity."; }
-                        Button { label: "Panic"; unit: root.unit; clicked => { root.exception("panic"); } init => { self.focus(); } }
-                        Button { label: "Hang for 5 s"; unit: root.unit; clicked => { root.exception("hang"); } }
-                        Button { label: "Exit"; unit: root.unit; clicked => { root.exception("exit"); } }
-                    }
+                if root.screen == "Exceptions": ExceptionsScreen {
+                    unit: root.unit; exception(p0) => { root.exception(p0); }
                 }
 
-                if root.screen == "Actions": Body {
-                    Group {
-                        title: "Primary: a word makes a capsule, an icon a circle";
-                        PrimaryButton { label: "Continue"; unit: root.unit; clicked => { root.continued += 1; } }
-                        Readout { label: "Continued"; value: root.continued; }
-                        HorizontalLayout {
-                            alignment: center;
-                            PrimaryButton { icon: @image-url("@blackbird/icons/24/play.svg"); name: "Play"; unit: root.unit; default-focus: false; }
-                        }
-                    }
-                    Group {
-                        title: "Secondary and icon actions";
-                        DirRow {
-                            spacing: Tokens.space-target-gap;
-                            justify: start;
-                            Button { label: "Sync now"; unit: root.unit; }
-                            IconButton { icon: @image-url("@blackbird/icons/24/like.svg"); name: "Like"; unit: root.unit; }
-                            IconButton { icon: @image-url("@blackbird/icons/24/queue.svg"); name: "Queue"; unit: root.unit; }
-                        }
-                    }
-                    Group {
-                        title: "Edge label: what a physical control does here";
-                        // A fixed-width element in a stack caps the stack's width (Slint takes the
-                        // smallest maximum): a row aligned to the start holds it.
-                        HorizontalLayout { alignment: start; EdgeLabel { text: "Action: compare"; } }
-                    }
+                if root.screen == "Actions": ActionsScreen {
+                    unit: root.unit; continued <=> root.continued;
                 }
 
-                if root.screen == "Navigation": Body {
-                    DirRow {
-                        padding-left: Layout.rtl ? 0 : Tokens.space-margin - Tokens.space-unit;
-                        padding-right: Layout.rtl ? Tokens.space-margin - Tokens.space-unit : 0;
-                        Tab { label: "Albums"; current: root.tab == 0; unit: root.unit; clicked => { root.tab = 0; } init => { self.focus(); } }
-                        Tab { label: "Artists"; current: root.tab == 1; unit: root.unit; clicked => { root.tab = 1; } }
-                        Tab { label: "Playlists"; current: root.tab == 2; unit: root.unit; clicked => { root.tab = 2; } }
-                        Tab { label: "More"; current: root.tab == 3; unit: root.unit; clicked => { root.tab = 3; } }
-                    }
-                    Group {
-                        SectionLabel { text: "SECTION LABEL"; }
-                        Label { role: "body"; muted: true; text: "Tabs switch views of the same level; a section label heads a group."; }
-                    }
-                    // Levels (input events §3.7): a shelf is one stop; Action enters it, Volume walks
-                    // its albums, past either end the focus comes back to the shelf.
-                    Group {
-                        title: "A shelf of 10 000 albums: one stop, Action enters it";
-                        kc-shelf := KeyControl {
-                            name: "shelf";
-                            kind: "stop";
-                            engaged: root.nav-shelf.depth > 0;
-                            key(n, k) => { return root.control-key(n, k); }
-                            height: 96px;
-                            Rectangle {
-                                clip: true;
-                                // A list for a screen reader; what peeks in at its edges is clipped by it.
-                                accessible-role: list;
-                                accessible-label: "Albums";
-                                for t in root.nav-tiles: tile := Rectangle {
-                                    property <bool> current: root.nav-shelf.focus == "a" + t.index;
-                                    // Reading order: right to left, the first album at the right.
-                                    x: Layout.rtl ? parent.width - t.index * 80px - 72px + root.nav-shelf.offset : t.index * 80px - root.nav-shelf.offset;
-                                    width: 72px;
-                                    height: 96px;
-                                    Rectangle {
-                                        y: 0;
-                                        height: 72px;
-                                        border-radius: 4px;
-                                        background: Tokens.surface-active;
-                                        Label { role: "caption"; mono: true; text: t.index + 1; horizontal-alignment: center; vertical-alignment: center; }
-                                    }
-                                    Label { y: 76px; width: 72px; role: "caption"; text: "Album " + (t.index + 1); horizontal-alignment: center; wrap: no-wrap; overflow: elide; }
-                                    if tile.current && FocusVisible.on: Rectangle {
-                                        height: 72px;
-                                        y: 0;
-                                        border-radius: 4px;
-                                        border-width: 2px;
-                                        border-color: Tokens.focus;
-                                    }
-                                    TouchArea {
-                                        clicked => {
-                                            if FocusVisible.on { kc-shelf.touched-inside = true; }
-                                            FocusVisible.on = false;
-                                            kc-shelf.focus();
-                                            root.control-key("shelf", "touch:a" + t.index);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // Past the ends (opendap-input's ends): the shelf above stops, as every list does;
-                    // the days of the week are cyclic content, so their stop goes round.
-                    Group {
-                        title: "Days of the week: cyclic, so Volume goes round";
-                        kc-days := KeyControl {
-                            name: "days";
-                            kind: "stop";
-                            engaged: root.nav-days.depth > 0;
-                            key(n, k) => { return root.control-key(n, k); }
-                            height: 48px;
-                            DirRow {
-                                spacing: 4px;
-                                padding: 4px;
-                                for d in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]: day := Rectangle {
-                                    property <bool> current: root.nav-days.focus == d;
-                                    // Seven equal days, whatever their names' widths: the same
-                                    // basis, the row's width shared.
-                                    preferred-width: 1px;
-                                    min-width: 1px;
-                                    horizontal-stretch: 1;
-                                    border-radius: 4px;
-                                    background: Tokens.surface-active;
-                                    Label { role: "caption"; text: d; horizontal-alignment: center; vertical-alignment: center; }
-                                    if day.current && FocusVisible.on: Rectangle {
-                                        border-radius: 4px;
-                                        border-width: 2px;
-                                        border-color: Tokens.focus;
-                                    }
-                                    TouchArea {
-                                        clicked => {
-                                            if FocusVisible.on { kc-days.touched-inside = true; }
-                                            FocusVisible.on = false;
-                                            kc-days.focus();
-                                            root.control-key("days", "touch:" + d);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // Two levels: a player is a stop; inside it, the seek is adjustable (a level of its
-                    // own: Action locks it, Volume moves the position).
-                    Group {
-                        title: "A player: a stop with an adjustable inside, two levels";
-                        kc-player := KeyControl {
-                            name: "player";
-                            kind: "stop";
-                            engaged: root.nav-player.depth > 0;
-                            key(n, k) => { return root.control-key(n, k); }
-                            height: 56px;
-                            HorizontalLayout {
-                                spacing: Tokens.space-target-gap;
-                                padding: 4px;
-                                for c[i] in ["play", "seek"]: part := Rectangle {
-                                    property <bool> current: root.nav-player.focus == c;
-                                    property <bool> locked: self.current && root.nav-player.depth == 2;
-                                    horizontal-stretch: i == 0 ? 0 : 1;
-                                    min-width: 48px;
-                                    border-radius: 4px;
-                                    background: Tokens.surface-active;
-                                    if c == "seek": Rectangle {
-                                        x: 8px;
-                                        width: (parent.width - 16px) * root.nav-player.value / 100;
-                                        height: 4px;
-                                        background: Tokens.brand-base;
-                                    }
-                                    if c == "play": Label { role: "caption"; text: "Play"; horizontal-alignment: center; vertical-alignment: center; }
-                                    if part.current && FocusVisible.on: Rectangle {
-                                        border-radius: 4px;
-                                        border-width: part.locked ? 3px : 2px;
-                                        border-color: part.locked ? Tokens.brand-base : Tokens.focus;
-                                        background: part.locked ? Tokens.brand-base.with-alpha(0.12) : transparent;
-                                    }
-                                    TouchArea {
-                                        clicked => {
-                                            if FocusVisible.on { kc-player.touched-inside = true; }
-                                            FocusVisible.on = false;
-                                            kc-player.focus();
-                                            root.control-key("player", "touch:" + c);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Group {
-                        title: "After the stops";
-                        Slider { label: "Level"; value <=> root.level; unit: root.unit; }
-                        Button { label: "Sync now"; unit: root.unit; }
-                        Label { role: "label"; mono: true; muted: true; text: root.nav-text; }
-                    }
+                if root.screen == "Navigation": NavigationScreen {
+                    nav-days: root.nav-days; nav-player: root.nav-player; nav-shelf: root.nav-shelf;
+                    nav-text: root.nav-text; nav-tiles: root.nav-tiles; unit: root.unit;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); } level <=> root.level;
+                    tab <=> root.tab;
                 }
 
-                if root.screen == "Selection": Body {
-                    Group {
-                        title: "Stops on an axis";
-                        RadioStops {
-                            stops: ["Enjoy", "Balanced", "Neutral", "Analyse"];
-                            selected <=> root.stop;
-                            description: root.stop == 0 ? "warm, relaxed" : (root.stop == 1 ? "a little colour" : (root.stop == 2 ? "as recorded" : "every detail, meters"));
-                            unit: root.unit;
-                            init => { self.focus(); }
-                        }
-                    }
-                    Group {
-                        title: "Pick one";
-                        VerticalLayout {
-                            CheckLine { label: "English"; checked: root.language == 0; unit: root.unit; clicked => { root.language = 0; } }
-                            CheckLine { label: "Español"; checked: root.language == 1; unit: root.unit; clicked => { root.language = 1; } }
-                            CheckLine { label: "中文"; checked: root.language == 2; unit: root.unit; clicked => { root.language = 2; } }
-                        }
-                    }
+                if root.screen == "Selection": SelectionScreen {
+                    unit: root.unit; language <=> root.language; stop <=> root.stop;
                 }
 
-                if root.screen == "Status": Body {
-                    Group {
-                        title: "Indicators: a word and an icon, never colour alone";
-                        StatusIndicator { kind: "success"; label: "Synced"; }
-                        StatusIndicator { kind: "processing"; label: "Syncing"; }
-                        StatusIndicator { kind: "warning"; label: "Above the safe level"; }
-                        StatusIndicator { kind: "error"; label: "Can't sync"; }
-                    }
-                    Group {
-                        title: "Progress, loading, position";
-                        ProgressBar { value: 0.62; }
-                        LoadingLine { }
-                        SeekBar { init => { self.focus(); } position <=> root.seek; length: 229; elapsed: "1:19"; remaining: "−2:30"; unit: root.unit; }
-                    }
-                    Group {
-                        title: "Readouts";
-                        Readout { label: "Sample rate"; value: "44.1 kHz"; }
-                        Readout { label: "Bit depth"; value: "16 bit"; }
-                    }
-                    if root.toast-up: Group {
-                        Toast { text: "Removed from the queue"; action: "Undo"; unit: root.unit; acted => { root.toast-up = false; } }
-                    }
+                if root.screen == "Status": StatusScreen {
+                    unit: root.unit; seek <=> root.seek; toast-up <=> root.toast-up;
                 }
 
+                // States stays here, not in screens/: as a component of its own, a drag scrolled it 19 px
+                // further than in place (Slint 1.18), and the interface tests' disabled gallery checks moved.
                 if root.screen == "States": Body {
                                         Group {
                     // The panel takes the row's width; the state sits in it with the margin as
@@ -1476,44 +452,12 @@ export component Testbed inherits Window {
                 }
                 }
             }
-            // The on-screen keyboard's container. On the device the OS Shell places the keyboard's panel through the composer
-            // (bottom, full width, its height the compositor's) and resizes the
-            // activity; here it stands in inside the activity, in the same place: docked at the
-            // bottom, it takes its height from the content area, so the viewport above it shrinks
-            // (resized, never covered) and the focused field is revealed in what is left.
-            Rectangle {
-                property <bool> shown: root.kb-open && root.screen == "Keyboard";
-                height: self.shown ? 236px : 0;
-                animate height { duration: Motion.reduce ? 0 : 180ms; easing: ease-out; }
-                clip: true;
-                background: Blueprint.on ? Blueprint.paper : Tokens.surface-base;
-                // Every touch on it is its own (hit: self): a tap between keys closes nothing.
-                TouchArea { }
-                Rectangle { height: 1px; y: 0; background: Tokens.border-base; }
-                VerticalLayout {
-                    y: 0;
-                    height: 236px;
-                    padding-top: 8px;
-                    alignment: start;
-                    // Its variant follows the field's purpose (text-input-v3): letters, or digits.
-                    if !root.kb-digits: VerticalLayout {
-                        for row in [["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"], ["a", "s", "d", "f", "g", "h", "j", "k", "l"], ["z", "x", "c", "v", "b", "n", "m", "⌫"], ["@", ".", "-", ","]]: HorizontalLayout {
-                            alignment: center;
-                            for k in row: Key { width: 32px; label: k; pressed-key(t) => { root.kb-key(t); } }
-                        }
-                    }
-                    if root.kb-digits: VerticalLayout {
-                        for row in [["1", "2", "3", "-"], ["4", "5", "6", ":"], ["7", "8", "9", "⌫"], ["+", "0", "."]]: HorizontalLayout {
-                            alignment: center;
-                            for k in row: Key { width: 64px; label: k; pressed-key(t) => { root.kb-key(t); } }
-                        }
-                    }
-                    HorizontalLayout {
-                        alignment: center;
-                        Key { width: 192px; label: "space"; pressed-key(t) => { root.kb-key(" "); } }
-                        Key { width: 64px; label: "Done"; pressed-key(t) => { root.kb-open = false; } }
-                    }
-                }
+            // The on-screen keyboard (keyboard.slint), docked at the bottom.
+            KeyboardPanel {
+                shown: root.kb-open && root.screen == "Keyboard";
+                digits: root.kb-digits;
+                key(t) => { root.kb-key(t); }
+                done => { root.kb-open = false; }
             }
         }
     }

@@ -1,0 +1,29 @@
+// The Targets screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Button, PrimaryButton, DirRow } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component TargetsScreen inherits Body {
+    in property <float> unit;
+
+    Group {
+        title: "Minimum, frequent, primary";
+        DirRow {
+            spacing: Tokens.space-target-gap * root.unit;
+            justify: start;
+            for size[i] in [Tokens.size-target-min, Tokens.size-target-frequent, Tokens.size-target-primary]: Button {
+                init => { if i == 0 { self.focus(); } }
+                width: size * root.unit;
+                height: size * root.unit;
+                label: round(size / 1px);
+                unit: root.unit;
+            }
+        }
+    }
+    Group {
+        title: "The primary action";
+        // A sample of the size: not this screen's primary action, so it takes no focus on entry.
+        PrimaryButton { label: "Play"; unit: root.unit; default-focus: false; }
+    }
+}

@@ -20,10 +20,13 @@ from odap_vdev.qmp import Qmp  # noqa: E402
 
 # The focus ring's colour (design system: the focus token), as the display shows it.
 RING = tokens.colour("focus")
-# The screens of the UI primitives activity, in its list's order.
-SCREENS = ["Calibration", "Targets", "Gestures", "Controls", "Actions", "Navigation", "Selection", "Status",
-           "States", "Motion", "Opacity", "Layers", "Layout", "Spaces", "Turns", "Arena", "Virtual", "Media",
-           "Exceptions", "Keyboard", "Transitions"]
+# The screens of the UI primitives activity, in its list's order: the testbed's own table.
+SCREENS_TSV = Path(__file__).resolve().parents[2] / "crates/odap-testbed/screens.tsv"
+SCREENS = [
+    line.split("\t", 1)[0]
+    for line in SCREENS_TSV.read_text().splitlines()
+    if line.strip() and not line.startswith("#")
+]
 
 
 class Device:

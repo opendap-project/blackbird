@@ -1,0 +1,116 @@
+// The Virtual screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusReveal, FocusVisible, FocusNav, Layout, Label, Tab } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+import { VRow } from "../models.slint";
+
+export component VirtualScreen inherits Body {
+    in property <string> vband-text;
+    in property <length> vband-y;
+    callback vkey(string) -> bool;
+    callback vpan(string, length, length);
+    in property <[VRow]> vrows;
+    in property <string> vtext;
+
+    Group {
+        title: "A hundred thousand rows: only the window is built, its slots reused";
+        // The list takes the focus as one control whose items the buttons walk
+        // (design system §8.4): Volume moves item by item, the list scrolls to keep
+        // it in view, Action takes it; at either end the focus leaves the list.
+        vfs := FocusScope {
+            // Focus on entry: with the ring shown (the keys brought us here), on the
+            // list's first item at once, not at the next press.
+            init => { self.focus(); if FocusVisible.on { root.vkey("enter-down"); } }
+            height: 260px;
+            changed has-focus => {
+                if self.has-focus {
+                    // Entered from below (Volume +): its last item; from above: its first.
+                    if FocusVisible.on { root.vkey(FocusNav.backward ? "enter-up" : "enter-down"); }
+                    FocusReveal.y = self.absolute-position.y;
+                    FocusReveal.h = self.height;
+                    FocusReveal.fixed = false;
+                    FocusReveal.serial += 1;
+                }
+            }
+            key-pressed(e) => {
+                if !FocusVisible.on {
+                    if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; }
+                    FocusVisible.on = true;
+                    // The ring shows on an item: the one it had, else the first (the list
+                    // took the focus on entry, before any item had it).
+                    root.vkey("enter-down");
+                    return accept;
+                }
+                if e.text == Key.Return || e.text == " " { root.vkey("activate"); return accept; }
+                // A keyboard's Home and End: straight to the list's start or end.
+                if e.text == Key.Home { return root.vkey("home") ? accept : reject; }
+                if e.text == Key.End { return root.vkey("end") ? accept : reject; }
+                if e.text == Key.Tab && !e.modifiers.shift { return root.vkey("next") ? accept : reject; }
+                if e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift) { return root.vkey("prev") ? accept : reject; }
+                reject
+            }
+        Rectangle {
+                clip: true;
+                border-width: 1px;
+                border-color: Tokens.border-base;
+                for r in root.vrows: Rectangle {
+                    y: r.y;
+                    height: r.h;
+                    // Below its section's header, when it is a section's first row.
+                    Rectangle {
+                        y: r.head;
+                        height: r.h - r.head;
+                        background: r.tall ? Tokens.surface-raised : transparent;
+                        // The cover: a placeholder until decoded.
+                        Rectangle {
+                            x: Layout.rtl ? parent.width - 12px - self.width : 12px;
+                            width: 28px;
+                            height: 28px;
+                            y: (parent.height - self.height) / 2;
+                            border-radius: 3px;
+                            background: r.cover ? Tokens.brand-base.with-alpha(0.7) : Tokens.surface-active;
+                        }
+                        // The row's text: a placeholder bar until its page arrives.
+                        if r.ready: Label { x: 52px; width: parent.width - 104px; role: "label"; text: "row " + r.index; vertical-alignment: center; }
+                        if !r.ready: Rectangle {
+                            x: Layout.rtl ? parent.width - 52px - self.width : 52px;
+                            width: 96px;
+                            height: 10px;
+                            y: (parent.height - self.height) / 2;
+                            border-radius: 5px;
+                            background: Tokens.surface-active;
+                        }
+                        Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
+                        // The focus ring: on the slot that shows the focused item now.
+                        if r.focused && vfs.has-focus && FocusVisible.on: Rectangle {
+                            border-width: 2px;
+                            border-color: Tokens.focus;
+                        }
+                    }
+                }
+                // The section's header, pinned at the list's top while its section passes and
+                // pushed out by the next (opendap-layout's sticky); the focus is revealed below
+                // it (input events §3.7).
+                Rectangle {
+                    y: root.vband-y;
+                    height: 28px;
+                    background: Tokens.surface-raised;
+                    Label { x: 12px; width: parent.width - 24px; role: "caption"; muted: true; text: root.vband-text; vertical-alignment: center; }
+                    Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
+                }
+                TouchArea {
+                    pointer-event(e) => {
+                        // A touch gives the list the focus, hidden (design system §8.4); a
+                        // tap that did not move focuses the row under it (the logic).
+                        if e.kind == PointerEventKind.down { FocusVisible.on = false; vfs.focus(); root.vpan("down", self.mouse-y, self.height); }
+                        if e.kind == PointerEventKind.up { root.vpan("up", self.mouse-y, self.height); }
+                        if e.kind == PointerEventKind.cancel { root.vpan("cancel", self.mouse-y, self.height); }
+                    }
+                    moved => { root.vpan("move", self.mouse-y, self.height); }
+                }
+            }
+        }
+        Label { role: "caption"; mono: true; text: root.vtext; }
+    }
+}

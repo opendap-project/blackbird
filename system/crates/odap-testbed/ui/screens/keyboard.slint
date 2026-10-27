@@ -1,0 +1,37 @@
+// The Keyboard screen of the UI primitives activity (SYS-071).
+
+import { Label } from "@blackbird/slint/components.slint";
+import { Field } from "../keyboard.slint";
+import { Body, Group } from "../parts.slint";
+import { FieldView } from "../models.slint";
+
+export component KeyboardScreen inherits Body {
+    in property <length> content-origin;
+    callback field-edited(int, string) -> string;
+    callback field-left(int);
+    in-out property <int> kb-field;
+    in-out property <[FieldView]> kb-fields;
+    in-out property <bool> kb-open;
+
+    for fv[i] in root.kb-fields: Group {
+        Field {
+            label: fv.label;
+            text: fv.text;
+            issue: fv.issue;
+            origin: root.content-origin;
+            editing: root.kb-open && root.kb-field == i;
+            init => { if i == 0 { self.take(); } }
+            // The focus leaving the field being edited ends the editing level (input
+            // events §3.7), unless another field took it.
+            changed focused => {
+                if self.focused { root.kb-field = i; } else if root.kb-field == i { root.kb-open = false; }
+            }
+            edit => { root.kb-field = i; root.kb-open = true; }
+            edited(t) => { return root.field-edited(i, t); }
+            left => { root.field-left(i); }
+        }
+    }
+    Group {
+        Label { role: "caption"; muted: true; text: root.kb-open ? "Keyboard open: the form is compressed above it" : "Tap a field, or Action on it, to type"; }
+    }
+}

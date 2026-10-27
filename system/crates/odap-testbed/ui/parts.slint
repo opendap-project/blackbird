@@ -1,0 +1,21 @@
+// The parts every screen of the UI primitives activity (SYS-071) lays its content out with.
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Label } from "@blackbird/slint/components.slint";
+
+// A screen's content below its header, at the side margin.
+// The side margin belongs to each group, so lists can run the full width (§15.2).
+export component Body inherits VerticalLayout {
+    padding-top: Tokens.space-group;
+    spacing: Tokens.space-section;
+    alignment: start;
+}
+
+export component Group inherits VerticalLayout {
+    in property <string> title;
+    spacing: Tokens.space-unit;
+    padding-left: Tokens.space-margin;
+    padding-right: Tokens.space-margin;
+    if root.title != "": Label { role: "caption"; muted: true; text: root.title; }
+    @children
+}

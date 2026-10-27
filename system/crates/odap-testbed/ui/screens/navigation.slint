@@ -1,0 +1,171 @@
+// The Navigation screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusVisible, Layout, Label, Button, Slider, Tab, SectionLabel, DirRow } from "@blackbird/slint/components.slint";
+import { KeyControl } from "../key-control.slint";
+import { Body, Group } from "../parts.slint";
+import { NavView, NavTile } from "../models.slint";
+
+export component NavigationScreen inherits Body {
+    callback control-key(string, string) -> bool;
+    in-out property <float> level;
+    in property <NavView> nav-days;
+    in property <NavView> nav-player;
+    in property <NavView> nav-shelf;
+    in property <string> nav-text;
+    in property <[NavTile]> nav-tiles;
+    in-out property <int> tab;
+    in property <float> unit;
+
+    DirRow {
+        padding-left: Layout.rtl ? 0 : Tokens.space-margin - Tokens.space-unit;
+        padding-right: Layout.rtl ? Tokens.space-margin - Tokens.space-unit : 0;
+        Tab { label: "Albums"; current: root.tab == 0; unit: root.unit; clicked => { root.tab = 0; } init => { self.focus(); } }
+        Tab { label: "Artists"; current: root.tab == 1; unit: root.unit; clicked => { root.tab = 1; } }
+        Tab { label: "Playlists"; current: root.tab == 2; unit: root.unit; clicked => { root.tab = 2; } }
+        Tab { label: "More"; current: root.tab == 3; unit: root.unit; clicked => { root.tab = 3; } }
+    }
+    Group {
+        SectionLabel { text: "SECTION LABEL"; }
+        Label { role: "body"; muted: true; text: "Tabs switch views of the same level; a section label heads a group."; }
+    }
+    // Levels (input events §3.7): a shelf is one stop; Action enters it, Volume walks
+    // its albums, past either end the focus comes back to the shelf.
+    Group {
+        title: "A shelf of 10 000 albums: one stop, Action enters it";
+        kc-shelf := KeyControl {
+            name: "shelf";
+            kind: "stop";
+            engaged: root.nav-shelf.depth > 0;
+            key(n, k) => { return root.control-key(n, k); }
+            height: 96px;
+            Rectangle {
+                clip: true;
+                // A list for a screen reader; what peeks in at its edges is clipped by it.
+                accessible-role: list;
+                accessible-label: "Albums";
+                for t in root.nav-tiles: tile := Rectangle {
+                    property <bool> current: root.nav-shelf.focus == "a" + t.index;
+                    // Reading order: right to left, the first album at the right.
+                    x: Layout.rtl ? parent.width - t.index * 80px - 72px + root.nav-shelf.offset : t.index * 80px - root.nav-shelf.offset;
+                    width: 72px;
+                    height: 96px;
+                    Rectangle {
+                        y: 0;
+                        height: 72px;
+                        border-radius: 4px;
+                        background: Tokens.surface-active;
+                        Label { role: "caption"; mono: true; text: t.index + 1; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                    Label { y: 76px; width: 72px; role: "caption"; text: "Album " + (t.index + 1); horizontal-alignment: center; wrap: no-wrap; overflow: elide; }
+                    if tile.current && FocusVisible.on: Rectangle {
+                        height: 72px;
+                        y: 0;
+                        border-radius: 4px;
+                        border-width: 2px;
+                        border-color: Tokens.focus;
+                    }
+                    TouchArea {
+                        clicked => {
+                            if FocusVisible.on { kc-shelf.touched-inside = true; }
+                            FocusVisible.on = false;
+                            kc-shelf.focus();
+                            root.control-key("shelf", "touch:a" + t.index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Past the ends (opendap-input's ends): the shelf above stops, as every list does;
+    // the days of the week are cyclic content, so their stop goes round.
+    Group {
+        title: "Days of the week: cyclic, so Volume goes round";
+        kc-days := KeyControl {
+            name: "days";
+            kind: "stop";
+            engaged: root.nav-days.depth > 0;
+            key(n, k) => { return root.control-key(n, k); }
+            height: 48px;
+            DirRow {
+                spacing: 4px;
+                padding: 4px;
+                for d in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]: day := Rectangle {
+                    property <bool> current: root.nav-days.focus == d;
+                    // Seven equal days, whatever their names' widths: the same
+                    // basis, the row's width shared.
+                    preferred-width: 1px;
+                    min-width: 1px;
+                    horizontal-stretch: 1;
+                    border-radius: 4px;
+                    background: Tokens.surface-active;
+                    Label { role: "caption"; text: d; horizontal-alignment: center; vertical-alignment: center; }
+                    if day.current && FocusVisible.on: Rectangle {
+                        border-radius: 4px;
+                        border-width: 2px;
+                        border-color: Tokens.focus;
+                    }
+                    TouchArea {
+                        clicked => {
+                            if FocusVisible.on { kc-days.touched-inside = true; }
+                            FocusVisible.on = false;
+                            kc-days.focus();
+                            root.control-key("days", "touch:" + d);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Two levels: a player is a stop; inside it, the seek is adjustable (a level of its
+    // own: Action locks it, Volume moves the position).
+    Group {
+        title: "A player: a stop with an adjustable inside, two levels";
+        kc-player := KeyControl {
+            name: "player";
+            kind: "stop";
+            engaged: root.nav-player.depth > 0;
+            key(n, k) => { return root.control-key(n, k); }
+            height: 56px;
+            HorizontalLayout {
+                spacing: Tokens.space-target-gap;
+                padding: 4px;
+                for c[i] in ["play", "seek"]: part := Rectangle {
+                    property <bool> current: root.nav-player.focus == c;
+                    property <bool> locked: self.current && root.nav-player.depth == 2;
+                    horizontal-stretch: i == 0 ? 0 : 1;
+                    min-width: 48px;
+                    border-radius: 4px;
+                    background: Tokens.surface-active;
+                    if c == "seek": Rectangle {
+                        x: 8px;
+                        width: (parent.width - 16px) * root.nav-player.value / 100;
+                        height: 4px;
+                        background: Tokens.brand-base;
+                    }
+                    if c == "play": Label { role: "caption"; text: "Play"; horizontal-alignment: center; vertical-alignment: center; }
+                    if part.current && FocusVisible.on: Rectangle {
+                        border-radius: 4px;
+                        border-width: part.locked ? 3px : 2px;
+                        border-color: part.locked ? Tokens.brand-base : Tokens.focus;
+                        background: part.locked ? Tokens.brand-base.with-alpha(0.12) : transparent;
+                    }
+                    TouchArea {
+                        clicked => {
+                            if FocusVisible.on { kc-player.touched-inside = true; }
+                            FocusVisible.on = false;
+                            kc-player.focus();
+                            root.control-key("player", "touch:" + c);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Group {
+        title: "After the stops";
+        Slider { label: "Level"; value <=> root.level; unit: root.unit; }
+        Button { label: "Sync now"; unit: root.unit; }
+        Label { role: "label"; mono: true; muted: true; text: root.nav-text; }
+    }
+}

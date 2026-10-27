@@ -127,9 +127,11 @@ impl Virtual {
     }
 }
 
-pub(super) fn wire(ui: &Testbed) {
+pub(super) fn wire(ui: &Testbed, opened: &mut super::Openers<Testbed>) {
     let st: Shared = Rc::new(RefCell::new(Virtual::new()));
     let timer = Rc::new(Timer::default());
     focus::wire(ui, st.clone(), timer.clone());
     pan::wire(ui, st, timer);
+    // Opened from the list: the scroll is still, the window laid out.
+    opened.add("Virtual", |ui| ui.invoke_vpan("open".into(), 0.0, 0.0));
 }

@@ -1,0 +1,29 @@
+// The Calibration screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Motion, Layout, Label, Toggle, Backdrop } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component CalibrationScreen inherits Body {
+    in property <[string]> calibration;
+    in property <bool> calibration-off;
+    in property <float> unit;
+
+    init => { rtl-switch.focus(); }
+    // The settings every primitive follows: each screen can be tried in either.
+    Group {
+        title: "Settings every screen follows";
+        rtl-switch := Toggle { label: "Right to left"; on: Layout.rtl; toggled(v) => { Layout.rtl = v; } unit: root.unit; }
+        Toggle { label: "Reduce motion"; on: Motion.reduce; toggled(v) => { Motion.reduce = v; } unit: root.unit; }
+        // Solid tints instead of frosted glass (design system §12.3), for dialogs' scrims.
+        Toggle { label: "Reduce transparency"; on: Backdrop.reduce-transparency; toggled(v) => { Backdrop.reduce-transparency = v; } unit: root.unit; }
+    }
+    Group {
+        for line in root.calibration: Label { role: "label"; mono: true; text: line; }
+        if root.calibration-off: Label {
+            role: "label";
+            text: "The applied scale differs from this hardware's: sizes in mm are off by the deviation above.";
+            color: Tokens.state-warning;
+        }
+    }
+}

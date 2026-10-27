@@ -1,0 +1,42 @@
+// The Gestures screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Blueprint, Label } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component GesturesScreen inherits Body {
+    callback focus-back();
+    in property <int> contacts;
+    in property <string> gesture;
+    callback pad(string, length, length, length, length);
+
+    init => { root.focus-back(); }
+    Group {
+        Rectangle {
+            height: 220px;
+            border-radius: Tokens.radius-card;
+            border-width: 1px;
+            border-color: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.border-base;
+            background: Blueprint.on ? transparent : Tokens.surface-base;
+            accessible-role: text;
+            accessible-label: "Gesture pad";
+            Label {
+                role: "label";
+                muted: true;
+                text: "Tap, press, swipe";
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down { root.pad("down", self.mouse-x, self.mouse-y, self.width, self.height); }
+                    if e.kind == PointerEventKind.up { root.pad("up", self.mouse-x, self.mouse-y, self.width, self.height); }
+                    if e.kind == PointerEventKind.cancel { root.pad("cancel", self.mouse-x, self.mouse-y, self.width, self.height); }
+                }
+                moved => { root.pad("move", self.mouse-x, self.mouse-y, self.width, self.height); }
+            }
+        }
+        Label { role: "body"; text: root.gesture == "" ? "No gesture yet" : root.gesture; }
+        Label { role: "caption"; muted: true; mono: true; text: root.contacts + " contacts"; }
+    }
+}

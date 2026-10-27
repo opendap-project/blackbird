@@ -1,0 +1,44 @@
+// The Spaces screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusVisible, Label } from "@blackbird/slint/components.slint";
+import { KeyControl } from "../key-control.slint";
+import { Body, Group } from "../parts.slint";
+
+export component SpacesScreen inherits Body {
+    callback control-key(string, string) -> bool;
+    in property <int> spaces-focused;
+    in property <[string]> spaces-lines;
+    callback spaces-list(string, length, length, length, length, length, length);
+    in property <length> spaces-offset;
+
+    Group {
+        title: "Drag the list: the finger moves in @viewport, not in @content";
+        list-box := Rectangle {
+            height: 168px;
+            clip: true;
+            border-width: 1px;
+            border-color: Tokens.border-base;
+            for i in 20: Rectangle {
+                y: i * 42px - root.spaces-offset;
+                height: 42px;
+                Label { x: 12px; width: parent.width - 24px; role: "label"; text: "row-" + i; vertical-alignment: center; }
+                Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
+                // The ring on the row the buttons are on, not on the whole list.
+                if i == root.spaces-focused && kc-spaces.has-focus && FocusVisible.on: Rectangle {
+                    border-width: 2px;
+                    border-color: Tokens.focus;
+                }
+            }
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-spaces.focus(); root.spaces-list("down", self.mouse-x, self.mouse-y, self.absolute-position.x, self.absolute-position.y, self.width, self.height); }
+                    if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.spaces-list("up", self.mouse-x, self.mouse-y, self.absolute-position.x, self.absolute-position.y, self.width, self.height); }
+                }
+                moved => { root.spaces-list("move", self.mouse-x, self.mouse-y, self.absolute-position.x, self.absolute-position.y, self.width, self.height); }
+            }
+            kc-spaces := KeyControl { engaged: root.spaces-focused >= 0; init => { self.focus(); if FocusVisible.on { root.control-key("spaces", "reveal"); } } name: "spaces"; kind: "list"; key(n, k) => { return root.control-key(n, k); } }
+        }
+        for line in root.spaces-lines: Label { role: "caption"; mono: true; text: line; }
+    }
+}

@@ -31,7 +31,7 @@ struct SpringState {
 
 type Shared = Rc<RefCell<SpringState>>;
 
-pub(super) fn wire(ui: &Testbed, keys: &mut Router<Testbed>) {
+pub(super) fn wire(ui: &Testbed, keys: &mut Router<Testbed>, opened: &mut super::Openers<Testbed>) {
     let spring: Shared = Rc::new(RefCell::new(SpringState {
         animator: Animator::new(0.0, AnimKind::Spring(Spring::SETTLE)),
         dragging: false,
@@ -95,6 +95,8 @@ pub(super) fn wire(ui: &Testbed, keys: &mut Router<Testbed>) {
         ui.invoke_spring_drag("kick".into(), 0.0);
         true
     });
+    // Opened from the list: the waveform and the decode sizes.
+    opened.add("Media", |ui| ui.invoke_spring_drag("open".into(), 0.0));
 }
 
 /// Frames until the spring rests, then none.

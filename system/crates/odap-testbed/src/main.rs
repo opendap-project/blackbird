@@ -3,18 +3,38 @@
 
 #[cfg(target_os = "linux")]
 use odap_testbed::watch_debug;
-use odap_testbed::{Blueprint, Testbed, debug_ui, description, wire};
+use odap_testbed::{Blueprint, SCREENS, Testbed, debug_ui, description, wire};
 use slint::ComponentHandle;
 
-const USAGE: &str = "usage: odap-testbed [SCREEN]
-  SCREEN   open that primitive's screen (Calibration, Targets, Gestures, Controls, Motion,
-           Opacity, Exceptions)";
+/// The usage, with every screen the list has (screens.tsv), wrapped under the argument.
+fn usage() -> String {
+    let mut out =
+        String::from("usage: odap-testbed [SCREEN]\n  SCREEN   open that primitive's screen:");
+    let mut width = 80;
+    for (i, name) in SCREENS.iter().enumerate() {
+        let item = if i + 1 < SCREENS.len() {
+            format!("{name},")
+        } else {
+            name.to_string()
+        };
+        if width + 1 + item.len() > 80 {
+            out.push_str("\n           ");
+            width = 11;
+        } else {
+            out.push(' ');
+            width += 1;
+        }
+        out.push_str(&item);
+        width += item.len();
+    }
+    out
+}
 
 fn main() -> Result<(), slint::PlatformError> {
     let ui = Testbed::new()?;
     if let Some(arg) = std::env::args().nth(1) {
         if arg == "-h" || arg == "--help" {
-            println!("{USAGE}");
+            println!("{}", usage());
             return Ok(());
         }
         ui.set_screen(arg.into());

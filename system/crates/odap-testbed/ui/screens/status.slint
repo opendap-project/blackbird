@@ -1,0 +1,32 @@
+// The Status screen of the UI primitives activity (SYS-071).
+
+import { Readout, ProgressBar, LoadingLine, SeekBar, StatusIndicator, Toast } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component StatusScreen inherits Body {
+    in-out property <float> seek;
+    in-out property <bool> toast-up;
+    in property <float> unit;
+
+    Group {
+        title: "Indicators: a word and an icon, never colour alone";
+        StatusIndicator { kind: "success"; label: "Synced"; }
+        StatusIndicator { kind: "processing"; label: "Syncing"; }
+        StatusIndicator { kind: "warning"; label: "Above the safe level"; }
+        StatusIndicator { kind: "error"; label: "Can't sync"; }
+    }
+    Group {
+        title: "Progress, loading, position";
+        ProgressBar { value: 0.62; }
+        LoadingLine { }
+        SeekBar { init => { self.focus(); } position <=> root.seek; length: 229; elapsed: "1:19"; remaining: "−2:30"; unit: root.unit; }
+    }
+    Group {
+        title: "Readouts";
+        Readout { label: "Sample rate"; value: "44.1 kHz"; }
+        Readout { label: "Bit depth"; value: "16 bit"; }
+    }
+    if root.toast-up: Group {
+        Toast { text: "Removed from the queue"; action: "Undo"; unit: root.unit; acted => { root.toast-up = false; } }
+    }
+}
