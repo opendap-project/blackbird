@@ -13,12 +13,12 @@ Every combination of a primitive with the conditions it meets (input source, foc
 | Area | verified | unit | gap | open | blocked | na | Cases |
 |---|---|---|---|---|---|---|---|
 | gestures | 15 |  |  |  | 1 |  | 16 |
+| layers | 6 |  |  |  |  |  | 6 |
 | layout | 6 |  |  |  |  |  | 6 |
 | controls | 7 |  |  |  |  |  | 7 |
 | navigation | 19 | 1 |  |  |  |  | 20 |
 | large content | 8 |  |  |  |  |  | 8 |
 | motion | 9 |  |  |  | 1 |  | 10 |
-| layers | 5 |  |  |  |  |  | 5 |
 | fields | 12 | 1 |  |  |  |  | 13 |
 | display | 1 |  |  |  |  |  | 1 |
 | lifecycle | 3 |  |  |  |  |  | 3 |
@@ -29,18 +29,18 @@ Every combination of a primitive with the conditions it meets (input source, foc
 | media | 2 |  |  |  |  |  | 2 |
 | spaces | 1 |  |  |  |  |  | 1 |
 | OS Shell drafts |  |  |  |  |  | 1 | 1 |
-| **All** | **98** | **3** | **0** | **0** | **2** | **1** | **104** |
+| **All** | **99** | **3** | **0** | **0** | **2** | **1** | **105** |
 
 ### By level
 
-Of the 101 cases verified or covered by tests:
+Of the 102 cases verified or covered by tests:
 
 | Level | Cases |
 |---|---|
 | L0 | 54 |
 | L1 | 47 |
 | L2 | 32 |
-| L3 | 39 |
+| L3 | 40 |
 | L4 | 0 |
 | L3m | 74 |
 
@@ -66,6 +66,17 @@ Of the 101 cases verified or covered by tests:
 | gest-bar-owner | ownership | touch, focus-visible | Swipe and tap starting in the status bar over Virtual | the system's; the activity sees nothing, its ring stays | as expected after the fix | system b610910 | verified (2026-10-26) · checks: virtual-t1 pass | L3 L3m |
 | gest-edge-action | edge swipe action | touch | Leading-edge swipe goes back | back | named only; the action waits for the OS Shell | composer spec §4 | blocked (2026-10-24) | — |
 | arena-3 | arena | touch | Tap, double tap, long press competing | one owner | as expected | testbed Arena (earlier session) | verified (2026-10-24) | L0 L1 L3m |
+
+## Layers
+
+| Id | Primitive | Conditions | Case | Expected | Observed | Evidence | Status | Levels |
+|---|---|---|---|---|---|---|---|---|
+| sb-battery | status-bar | discharging, charging, low | The battery set to 50, 13 and 12 % discharging and to 10, 50 and 100 % charging | the nearest of five levels (13 % one bar, 12 % none); amber at 15 % or less while discharging; while charging the battery with its bolt inside at every level, never amber | as expected | tests/e2e status_bar_battery | verified (2026-10-27) | L3 |
+| blur-backdrop | backdrop | — | Dialog over Layers | frosted under a tint, 0.6 ms once | as expected | testbed Layers; system 4f14171 | verified (2026-10-26) · checks: virtual-t1 pass | L3 L3m |
+| blur-reduce-tr | backdrop | reduce-transparency | Dialog with reduce transparency | solid tint | a plain tint: the pixels under the scrim are the screen's own darkened by the tint's alpha (1.8 levels off, against 24 for the frost); the switch had no setter before (Calibration's Reduce transparency now) | tests/e2e scrim_variants | verified (2026-10-26) · checks: virtual-t1 pass | L3 |
+| blur-blueprint | backdrop | blueprint | Dialog in the blueprint | hatched scrim | hatched: vertical lines every 16 px under the dialog (phase contrast 1.49, 1.24 without the dialog) | tests/e2e scrim_variants | verified (2026-10-26) · checks: virtual-t1 pass | L3 |
+| layers-popover-rtl | popover placement | rtl, touch | Popover in RTL | placed by anchor at the start side, panel mirrored | hangs from the button's start corner, chevrons mirrored (anchor fix 7fa4a5c) | target captures on the virtual T1 in RTL 2026-10-26; tests/interface.rs mirror check | verified (2026-10-26) | L1 L3m |
+| layers-modal-rtl | modal | rtl | Dialog in RTL | mirrored content, buttons in reading order | content mirrored, actions in reading order | target captures on the virtual T1 in RTL 2026-10-26; tests/interface.rs mirror check | verified (2026-10-26) | L3m |
 
 ## Layout
 
@@ -142,16 +153,6 @@ Of the 101 cases verified or covered by tests:
 | tr-presence | presence | buttons | Remove and restore a line | leaves in place, others close up, re-enters | as expected | testbed Transitions | verified (2026-10-24) | L0 L1 L3m |
 | tr-reduce | transitions | reduce-motion | Pager, morph and lines with reduce motion | land at once | pager and transitions land in one frame (8 ms at 120 Hz sampling, against 167 ms with motion); scenario reduce_motion | odapkit motion on the virtual T1; tests/e2e reduce_motion | verified (2026-10-26) · checks: virtual-t1 pass | L3 |
 | tr-activity | between activities | touch | The composer moves buffers between places | as composer spec §4 | not built (OS Shell) | — | blocked (2026-10-24) | — |
-
-## Layers
-
-| Id | Primitive | Conditions | Case | Expected | Observed | Evidence | Status | Levels |
-|---|---|---|---|---|---|---|---|---|
-| blur-backdrop | backdrop | — | Dialog over Layers | frosted under a tint, 0.6 ms once | as expected | testbed Layers; system 4f14171 | verified (2026-10-26) · checks: virtual-t1 pass | L3 L3m |
-| blur-reduce-tr | backdrop | reduce-transparency | Dialog with reduce transparency | solid tint | a plain tint: the pixels under the scrim are the screen's own darkened by the tint's alpha (1.8 levels off, against 24 for the frost); the switch had no setter before (Calibration's Reduce transparency now) | tests/e2e scrim_variants | verified (2026-10-26) · checks: virtual-t1 pass | L3 |
-| blur-blueprint | backdrop | blueprint | Dialog in the blueprint | hatched scrim | hatched: vertical lines every 16 px under the dialog (phase contrast 1.49, 1.24 without the dialog) | tests/e2e scrim_variants | verified (2026-10-26) · checks: virtual-t1 pass | L3 |
-| layers-popover-rtl | popover placement | rtl, touch | Popover in RTL | placed by anchor at the start side, panel mirrored | hangs from the button's start corner, chevrons mirrored (anchor fix 7fa4a5c) | target captures on the virtual T1 in RTL 2026-10-26; tests/interface.rs mirror check | verified (2026-10-26) | L1 L3m |
-| layers-modal-rtl | modal | rtl | Dialog in RTL | mirrored content, buttons in reading order | content mirrored, actions in reading order | target captures on the virtual T1 in RTL 2026-10-26; tests/interface.rs mirror check | verified (2026-10-26) | L3m |
 
 ## Fields
 

@@ -628,6 +628,69 @@ def composer_restart(d):
 
 # The scenarios in the order they run (cheap and harmless first, the restart last), with the matrix
 # cases each covers.
+
+# The battery's icon in the status bar: its 16 px box at the bar's right end (composer spec §2:
+# 16 px side margins, the icon 16 px, centred on the 28 px bar).
+BATTERY_BOX = (288, 6, 304, 22)
+POWER = "/sys/module/test_power/parameters"
+
+
+def battery_icon(d, name, percent, charging):
+    """The battery set to `percent`, charging or not (the virtual board's test_power), and the
+    pixels of its icon then."""
+    state = "charging" if charging else "discharging"
+    ac = "on" if charging else "off"
+    d.ssh(f"echo {ac} > {POWER}/ac_online; echo {state} > {POWER}/battery_status; "
+          f"echo {percent} > {POWER}/battery_capacity")
+    img = d.capture(name, settle=1.5)
+    x0, y0, x1, y1 = BATTERY_BOX
+    c = img.channels
+    return [tuple(img.rows[y][x * c:x * c + 3]) for y in range(y0, y1) for x in range(x0, x1)]
+
+
+def tinted(icon, colour):
+    """Whether the icon is drawn in `colour`: its brightest pixel, a full stroke's, is that colour
+    (the antialiased edges between it and the background are not)."""
+    brightest = max(icon, key=sum)
+    return sum(abs(a - b) for a, b in zip(brightest, colour)) < 12
+
+
+def status_bar_battery(d):
+    """sb-battery: the battery's icon in the status bar shows the nearest of its five levels (13 %
+    one bar, 12 % none), amber at 15 % or less while discharging, and, while charging, the battery
+    with its bolt inside whatever the level, never amber (SYS-038, SYS-076). The battery is put
+    back as it was."""
+    import tokens
+    amber, plain = tokens.colour("state-warning"), tokens.colour("text-secondary")
+    # test_power reads its battery_status parameter back as "on": the state comes from the class.
+    supply = "/sys/class/power_supply"
+    was = d.ssh(f"cat {supply}/test_battery/capacity {supply}/test_battery/status {supply}/test_ac/online").split()
+    bad = []
+    try:
+        half = battery_icon(d, "sb-50", 50, False)
+        one = battery_icon(d, "sb-13", 13, False)
+        none = battery_icon(d, "sb-12", 12, False)
+        charging = [battery_icon(d, f"sb-charging-{p}", p, True) for p in (10, 50, 100)]
+        if one == none:
+            bad.append("13 % and 12 % look the same (one bar against none)")
+        if not tinted(half, plain) or tinted(half, amber):
+            bad.append("50 % discharging is not in the secondary text colour")
+        if not (tinted(one, amber) and tinted(none, amber)):
+            bad.append("13 % and 12 % discharging are not amber")
+        if not all(c == charging[0] for c in charging):
+            bad.append("charging does not show the same glyph at 10, 50 and 100 %")
+        if charging[0] in (half, one, none):
+            bad.append("charging looks like a level glyph")
+        if any(tinted(c, amber) for c in charging):
+            bad.append("charging at 10 % is amber")
+    finally:
+        if len(was) == 3:
+            capacity, status, ac = was
+            ac = "on" if ac == "1" else "off"
+            d.ssh(f"echo {ac} > {POWER}/ac_online; echo {status.lower()} > {POWER}/battery_status; "
+                  f"echo {capacity} > {POWER}/battery_capacity")
+    return bad
+
 ALL = [
     ("nav_entry", nav_entry, ["nav-entry-20"]),
     ("hidden_first_key", hidden_first_key, ["nav-hidden-action"]),
@@ -645,6 +708,7 @@ ALL = [
     ("repeat", repeat, ["ctl-repeat"]),
     ("turns", turns, ["turns-dial"]),
     ("status_bar_owner", status_bar_owner, ["gest-bar-owner"]),
+    ("status_bar_battery", status_bar_battery, ["sb-battery"]),
     ("reduce_motion", reduce_motion, ["tr-reduce", "kb-reduce", "comp-media-reduce"]),
     ("exceptions", exceptions, ["life-exceptions"]),
     ("composer_restart", composer_restart, ["life-restart"]),

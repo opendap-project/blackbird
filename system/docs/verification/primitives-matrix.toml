@@ -255,6 +255,21 @@ checks = ["e2e/status_bar_owner"]
 date = "2026-10-26"
 
 [[case]]
+id = "sb-battery"
+area = "layers"
+primitive = "status-bar"
+conditions = ["discharging", "charging", "low"]
+case = "The battery set to 50, 13 and 12 % discharging and to 10, 50 and 100 % charging"
+expected = "the nearest of five levels (13 % one bar, 12 % none); amber at 15 % or less while discharging; while charging the battery with its bolt inside at every level, never amber"
+observed = "as expected"
+evidence = "tests/e2e status_bar_battery"
+status = "verified"
+levels = ["L3"]
+checks = ["e2e/status_bar_battery"]
+verifies = ["SYS-038", "SYS-076"]
+date = "2026-10-27"
+
+[[case]]
 id = "gest-edge-action"
 area = "gestures"
 primitive = "edge swipe action"
