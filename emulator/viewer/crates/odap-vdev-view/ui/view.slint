@@ -2,507 +2,15 @@
 // case exports its geometry), and a sidebar of hardware actions that folds away.
 
 import { Slider, ComboBox } from "std-widgets.slint";
+import { Palette, Key, MeterBar, ProbeRow, TaskRow } from "theme.slint";
+import { Section, Pill, Toggle, Tool, Keycap, Binding, HeaderButton, Tabs, Choice } from "widgets.slint";
+import { ControlsPage } from "controls-page.slint";
+import { InstrumentsPage } from "instruments-page.slint";
+import { TasksPage } from "tasks-page.slint";
+import { KeymapDialog } from "keymap.slint";
+import { Device } from "device.slint";
 
-export struct Key {
-    role: string,
-    // Where the key is in the drawn front, in logical px, to press it there.
-    x: length,
-    y: length,
-    w: length,
-    h: length,
-    pressed: bool,
-    // A key of the case, drawn alone under the front: where it sits, and how far (signed) it
-    // slides towards the case when pressed. Without one (a faceplate's own control), pressing
-    // darkens it in place.
-    sprite: image,
-    has-sprite: bool,
-    sx: length,
-    sy: length,
-    sw: length,
-    sh: length,
-    travel: length,
-}
-
-export global Palette {
-    in property <color> body: #1d2125;
-    in property <color> bezel: #0b0c0e;
-    in property <color> action: #ff6a2a;
-    in property <color> key: #aab0b6;
-    out property <color> page: #111315;
-    out property <color> panel: #181b1e;
-    out property <color> line: #2a2e33;
-    out property <color> text: #f5f6f4;
-    out property <color> muted: #9aa0a6;
-}
-
-// A group of the sidebar: its title bar folds and unfolds it (a click, or the screen reader's
-// action), so the sidebar stays short as groups are added.
-component Section inherits VerticalLayout {
-    in property <string> title;
-    in-out property <bool> open: true;
-    spacing: 6px;
-    head := Rectangle {
-        height: 18px;
-        accessible-role: button;
-        accessible-label: root.title;
-        accessible-description: root.open ? "Expanded" : "Collapsed";
-        accessible-action-default => { root.open = !root.open; }
-        Text { x: 0; width: parent.width; text: root.title; color: head-touch.has-hover ? Palette.text : Palette.muted; font-size: 11px; font-weight: 600; vertical-alignment: center; }
-        head-touch := TouchArea { mouse-cursor: pointer; clicked => { root.open = !root.open; } }
-    }
-    Rectangle {
-        clip: true;
-        height: root.open ? body.preferred-height : 0;
-        visible: root.open || self.height > 0;
-        animate height { duration: 160ms; easing: ease-out; }
-        body := VerticalLayout {
-            y: 0;
-            height: self.preferred-height;
-            spacing: 6px;
-            @children
-        }
-    }
-}
-
-// A control of the device in the sidebar: pressed while the mouse button is down, so long
-// presses and combinations work as on the hardware.
-component Pill inherits Rectangle {
-    in property <string> glyph;
-    in property <image> icon;
-    in property <string> label;
-    // A second line: how the hardware does it (a combination), and what holding it does.
-    in property <string> detail;
-    in property <bool> accent;
-    // Down, whatever pressed it: this pill, the drawn key, a host key (main.rs).
-    in property <bool> active;
-    callback down();
-    callback up();
-    height: root.detail == "" ? 34px : 44px;
-    min-width: 0;
-    border-radius: root.detail == "" ? 17px : 12px;
-    background: touch.pressed || root.active ? (root.accent ? Palette.action : Palette.line.brighter(50%)) : (touch.has-hover ? Palette.line.brighter(22%) : Palette.line);
-    border-width: 1px;
-    border-color: root.accent ? Palette.action.with-alpha(0.7) : #ffffff10;
-    // The icon in a square slot at the left, as far from the left edge as from the top and the
-    // bottom; the label at the left of the space that remains.
-    property <length> slot: root.height;
-    // Optical correction: a mark whose weight sits left of its box (a dot in a round end, the
-    // power glyph's open top) is moved right until it reads centred in the slot.
-    in property <length> nudge;
-    HorizontalLayout {
-        Rectangle {
-            width: root.slot;
-            if root.glyph != "": Text { x: root.nudge; width: parent.width; text: root.glyph; color: root.accent && !(touch.pressed || root.active) ? Palette.action : Palette.text; font-size: 14px; vertical-alignment: center; horizontal-alignment: center; }
-            if root.icon.width > 0: Image { x: (parent.width - self.width) / 2 + root.nudge; source: root.icon; colorize: Palette.text; width: 15px; height: 15px; }
-        }
-        // The label at the left, just past the icon's slot, with a small gap. Optical correction:
-        // the font's line box puts a lone label 1 px above centre (measured), so it moves down.
-        VerticalLayout {
-            alignment: center;
-            horizontal-stretch: 1;
-            padding-left: 2px;
-            padding-top: root.detail == "" ? 2px : 1px;
-            padding-right: 12px;
-            Text { text: root.label; color: Palette.text; font-size: 12px; overflow: elide; horizontal-alignment: left; }
-            if root.detail != "": Text { text: root.detail; color: Palette.muted; font-size: 10px; overflow: elide; horizontal-alignment: left; }
-        }
-    }
-    touch := TouchArea {
-        mouse-cursor: pointer;
-        pointer-event(e) => {
-            if e.kind == PointerEventKind.down { root.down(); }
-            if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.up(); }
-        }
-    }
-}
-
-// A switch with its label: a state of the hardware (a card in, a charger on). The hardware owns
-// it: `state` is 0 off, 1 attaching, 2 on, 3 detaching. A click asks for the other side; while
-// the change is in flight the knob already stands where it goes, the track and the icon pulse and
-// the switch takes no click, until the hardware has it. A switch that cannot take a change now is
-// dimmed. The state is shown, never written beside it; the words are for screen readers.
-component Toggle inherits Rectangle {
-    in property <string> label;
-    in property <image> icon;
-    in property <int> state;
-    // Off when the hardware cannot take the change now (`why` says so).
-    in property <bool> enabled: true;
-    in property <string> why;
-    in property <string> attaching: "Attaching…";
-    in property <string> detaching: "Detaching…";
-    callback toggled(bool);
-    property <bool> on: root.state == 1 || root.state == 2;
-    property <bool> busy: root.state == 1 || root.state == 3;
-    property <bool> live: root.enabled && !root.busy;
-    property <string> detail: root.busy ? (root.state == 1 ? root.attaching : root.detaching) : (root.enabled ? "" : root.why);
-    property <bool> beat: mod(animation-tick(), 1200ms) < 600ms;
-    height: 28px;
-    opacity: root.enabled ? 1 : 0.45;
-    accessible-role: switch;
-    accessible-label: root.label;
-    accessible-checked: root.on;
-    accessible-enabled: root.live;
-    accessible-description: root.detail;
-    accessible-action-default => { if root.live { root.toggled(!root.on); } }
-    HorizontalLayout {
-        spacing: 8px;
-        Image {
-            source: root.icon;
-            colorize: root.busy ? (root.beat ? #3b82c4 : Palette.muted) : (root.on ? Palette.text : Palette.muted);
-            animate colorize { duration: 600ms; easing: ease-in-out; }
-            width: 16px;
-            height: 16px;
-            y: (parent.height - self.height) / 2;
-        }
-        Text { text: root.label; color: Palette.text; font-size: 12px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
-        Rectangle {
-            width: 34px;
-            height: 18px;
-            y: (parent.height - self.height) / 2;
-            border-radius: 9px;
-            background: root.on ? #3b82c4 : Palette.line;
-            animate background { duration: 120ms; }
-            // In flight: a slow pulse over the track, so it reads as waiting, not as broken.
-            Rectangle {
-                border-radius: parent.border-radius;
-                background: Palette.text;
-                opacity: root.busy ? (root.beat ? 0.22 : 0.04) : 0;
-                animate opacity { duration: 600ms; easing: ease-in-out; }
-            }
-            Rectangle {
-                width: 14px;
-                height: 14px;
-                y: 2px;
-                x: root.on ? parent.width - self.width - 2px : 2px;
-                border-radius: 7px;
-                background: Palette.text;
-                animate x { duration: 120ms; easing: cubic-bezier(0.2, 0, 0, 1); }
-            }
-        }
-    }
-    hover := TouchArea {
-        enabled: root.live;
-        mouse-cursor: root.live ? pointer : default;
-        clicked => { root.toggled(!root.on); }
-    }
-    background: hover.has-hover && root.live ? #ffffff08 : transparent;
-    border-radius: 6px;
-}
-
-// A system action: an icon button, its label below it, outside the button, so a longer label
-// never crowds the icon.
-// `busy`: its action is in flight, shown by its icon (turning, with `spin`, or pulsing) on a
-// pulsing ground, its label unchanged (`busy-label` is for screen readers); `enabled`: it can take one.
-component Tool inherits VerticalLayout {
-    in property <image> icon;
-    in property <string> label;
-    in property <bool> danger;
-    in property <bool> enabled: true;
-    in property <bool> busy;
-    in property <string> busy-label;
-    in property <bool> spin;
-    callback clicked();
-    property <bool> live: root.enabled && !root.busy;
-    spacing: 4px;
-    Rectangle {
-        height: 40px;
-        border-radius: 8px;
-        opacity: root.live || root.busy ? 1 : 0.4;
-        background: root.busy ? Palette.line.brighter(mod(animation-tick(), 1200ms) < 600ms ? 40% : 10%) : (touch.pressed ? Palette.line.brighter(50%) : (touch.has-hover && root.live ? Palette.line.brighter(22%) : Palette.line));
-        animate background { duration: 600ms; easing: ease-in-out; }
-        accessible-role: button;
-        accessible-label: root.label;
-        accessible-enabled: root.live;
-        accessible-description: root.busy ? root.busy-label : "";
-        accessible-action-default => { if root.live { root.clicked(); } }
-        Image {
-            source: root.icon;
-            transform-rotation: root.busy && root.spin ? -360deg * mod(animation-tick(), 1000ms) / 1000ms : 0deg;
-            transform-origin: { x: self.width / 2, y: self.height / 2 };
-            opacity: root.busy && !root.spin ? (mod(animation-tick(), 1200ms) < 600ms ? 1 : 0.35) : 1;
-            animate opacity { duration: 600ms; easing: ease-in-out; }
-            colorize: root.danger ? #e5484d : Palette.text;
-            width: 18px;
-            height: 18px;
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
-        }
-        touch := TouchArea { enabled: root.live; mouse-cursor: root.live ? pointer : default; clicked => { root.clicked(); } }
-    }
-    Text {
-        text: root.label;
-        color: root.danger && root.live ? #e5484d : Palette.muted;
-        font-size: 10px;
-        horizontal-alignment: center;
-        wrap: word-wrap;
-    }
-}
-
-// A key as printed on a keyboard.
-component Keycap inherits Rectangle {
-    in property <string> text;
-    height: 20px;
-    min-width: 22px;
-    border-radius: 4px;
-    border-width: 1px;
-    border-color: #ffffff22;
-    background: Palette.line;
-    HorizontalLayout {
-        padding-left: 6px;
-        padding-right: 6px;
-        Text { text: root.text; color: Palette.text; font-size: 11px; vertical-alignment: center; horizontal-alignment: center; }
-    }
-}
-
-// One binding: its keys, and what they do.
-component Binding inherits HorizontalLayout {
-    in property <[string]> keys;
-    in property <string> does;
-    spacing: 4px;
-    height: 24px;
-    for k in root.keys: Keycap { text: k; y: (parent.height - self.height) / 2; }
-    Text { text: root.does; color: Palette.muted; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
-}
-
-// A square icon button of the sidebar's header.
-component HeaderButton inherits Rectangle {
-    in property <image> icon;
-    in property <string> label;
-    callback clicked();
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: touch.has-hover ? Palette.line : transparent;
-    accessible-role: button;
-    accessible-label: root.label;
-    accessible-action-default => { root.clicked(); }
-    Image {
-        source: root.icon;
-        colorize: touch.has-hover ? Palette.text : Palette.muted;
-        width: 16px;
-        height: 16px;
-        x: (parent.width - self.width) / 2;
-        y: (parent.height - self.height) / 2;
-    }
-    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
-}
-
-
-// One channel's level: the bar is the RMS, the tick the held peak, both as positions from
-// -60 dBFS (0) to full scale (1).
-export struct MeterBar {
-    label: string,
-    rms: float,
-    peak: float,
-    value: string,
-    clipped: bool,
-}
-
-
-// The sidebar's pages: a segmented row of tabs.
-component Tabs inherits Rectangle {
-    in property <[string]> labels;
-    in-out property <int> current;
-    callback changed(int);
-    height: 28px;
-    border-radius: 8px;
-    background: Palette.page;
-    accessible-role: tab-list;
-    HorizontalLayout {
-        padding: 2px;
-        spacing: 2px;
-        for label[i] in root.labels: Rectangle {
-            border-radius: 6px;
-            background: i == root.current ? Palette.line.brighter(30%) : (tab-touch.has-hover ? #ffffff0a : transparent);
-            accessible-role: tab;
-            accessible-label: label;
-            accessible-item-selected: i == root.current;
-            accessible-action-default => { root.current = i; root.changed(i); }
-            Text { text: label; color: i == root.current ? Palette.text : Palette.muted; font-size: 12px; font-weight: i == root.current ? 600 : 400; horizontal-alignment: center; vertical-alignment: center; }
-            tab-touch := TouchArea { mouse-cursor: pointer; clicked => { root.current = i; root.changed(i); } }
-        }
-    }
-}
-
-// One of a few choices, side by side (how a strip shows the sound).
-component Choice inherits Rectangle {
-    in property <[string]> labels;
-    in-out property <int> current;
-    callback changed(int);
-    height: 22px;
-    border-radius: 6px;
-    background: Palette.page;
-    HorizontalLayout {
-        padding: 2px;
-        spacing: 2px;
-        for label[i] in root.labels: Rectangle {
-            border-radius: 4px;
-            background: i == root.current ? Palette.line.brighter(30%) : (choice-touch.has-hover ? #ffffff0a : transparent);
-            accessible-role: radio-button;
-            accessible-label: label;
-            accessible-checked: i == root.current;
-            accessible-action-default => { root.current = i; root.changed(i); }
-            Text { text: label; color: i == root.current ? Palette.text : Palette.muted; font-size: 10px; horizontal-alignment: center; vertical-alignment: center; overflow: elide; }
-            choice-touch := TouchArea { mouse-cursor: pointer; clicked => { root.current = i; root.changed(i); } }
-        }
-    }
-}
-
-// A spectrogram strip (main.rs): time across, the last 42 s; frequency up, 20 Hz to 20 kHz on a
-// log axis, with its marks; level as colour.
-component WaterfallStrip inherits Rectangle {
-    in property <image> source;
-    in property <string> label;
-    height: 84px;
-    accessible-role: image;
-    accessible-label: root.label;
-    Rectangle {
-        height: 84px;
-        border-radius: 4px;
-        background: #000004;
-        clip: true;
-        Image { width: parent.width; height: parent.height; source: root.source; image-fit: fill; }
-        for f in [{ hz: 100, t: "100" }, { hz: 1000, t: "1k" }, { hz: 10000, t: "10k" }]: Text {
-            x: 3px;
-            y: parent.height * (1 - log(f.hz / 20, 10) / 3) - self.height / 2;
-            text: f.t;
-            color: #ffffffa0;
-            font-size: 8px;
-        }
-    }
-}
-
-// A channel's level meter: its label, the RMS bar with the held peak's tick, the peak in dBFS.
-component MeterRow inherits HorizontalLayout {
-    in property <MeterBar> m;
-    in property <color> tint;
-    spacing: 6px;
-    height: 14px;
-    accessible-role: progress-indicator;
-    accessible-label: root.m.label;
-    accessible-value: root.m.value + " dBFS peak" + (root.m.clipped ? ", clipped" : "");
-    Text { text: root.m.label; color: Palette.muted; font-size: 10px; width: 10px; vertical-alignment: center; }
-    Rectangle {
-        horizontal-stretch: 1;
-        Rectangle {
-            y: (parent.height - self.height) / 2;
-            height: 6px;
-            border-radius: 3px;
-            background: Palette.page;
-            clip: true;
-            Rectangle { x: 0; width: parent.width * root.m.rms; background: root.tint; }
-            Rectangle {
-                x: max(0px, parent.width * root.m.peak - 2px);
-                width: 2px;
-                background: root.m.clipped ? #e5484d : Palette.text;
-            }
-        }
-    }
-    Text { text: root.m.value; color: root.m.clipped ? #e5484d : Palette.text; font-size: 10px; width: 38px; horizontal-alignment: right; vertical-alignment: center; }
-}
-
-// A spectrum strip, drawn by main.rs from the device's sound, with its frequency marks.
-component SpectrumStrip inherits Rectangle {
-    in property <image> source;
-    in property <string> label;
-    height: 84px;
-    accessible-role: image;
-    accessible-label: root.label;
-    Rectangle {
-        height: 72px;
-        y: 0;
-        border-radius: 4px;
-        background: Palette.page;
-        clip: true;
-        Image { width: parent.width; height: parent.height; source: root.source; image-fit: fill; }
-        // dB marks of the drawn grid (0 at the top, -140 dBFS at the bottom, a line every 20 dB).
-        Text { x: 3px; y: 1px; text: "0"; color: Palette.muted.with-alpha(0.7); font-size: 8px; }
-        Text { x: 3px; y: parent.height / 2 - 5px; text: "−70"; color: Palette.muted.with-alpha(0.7); font-size: 8px; }
-    }
-    // Frequency marks on a log axis from 20 Hz to 20 kHz.
-    for f in [{ hz: 100, t: "100" }, { hz: 1000, t: "1k" }, { hz: 10000, t: "10k" }]: Text {
-        x: parent.width * log(f.hz / 20, 10) / 3 - self.width / 2;
-        y: 73px;
-        text: f.t;
-        color: Palette.muted;
-        font-size: 9px;
-    }
-}
-
-// A label and its value, on one line.
-component Stat inherits HorizontalLayout {
-    in property <string> label;
-    in property <string> value;
-    height: 18px;
-    Text { text: root.label; color: Palette.muted; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; }
-    Text { text: root.value; color: Palette.text; font-size: 11px; vertical-alignment: center; horizontal-alignment: right; }
-}
-
-// A signal a layer declares for the simulator to observe (VD-010), and what it reads now.
-export struct ProbeRow {
-    name: string,
-    what: string,
-    value: string,
-}
-
-// A process in the Tasks tab.
-export struct TaskRow {
-    pid: int,
-    name: string,
-    user: string,
-    state: string,
-    nice: int,
-    cpu: string,
-    mem: string,
-    busy: float,
-    kernel: bool,
-}
-
-// A column heading of the Tasks list: a click sorts by it (again: the other way).
-component SortHead inherits Rectangle {
-    in property <string> label;
-    in property <string> key;
-    in property <string> sort;
-    in property <bool> descending;
-    in property <TextHorizontalAlignment> align: left;
-    callback sort-by(string);
-    height: 20px;
-    accessible-role: button;
-    accessible-label: "Sort by " + root.label;
-    accessible-description: root.sort == root.key ? (root.descending ? "Sorted, descending" : "Sorted, ascending") : "";
-    accessible-action-default => { root.sort-by(root.key); }
-    Text {
-        width: parent.width;
-        text: root.label + (root.sort == root.key ? (root.descending ? " ▾" : " ▴") : "");
-        color: root.sort == root.key ? Palette.text : Palette.muted;
-        font-size: 10px;
-        font-weight: root.sort == root.key ? 600 : 400;
-        horizontal-alignment: root.align;
-        vertical-alignment: center;
-    }
-    head-touch := TouchArea { mouse-cursor: pointer; clicked => { root.sort-by(root.key); } }
-}
-
-// A task manager's graph: what it measures, its value now, and the last two minutes.
-component Graph inherits VerticalLayout {
-    in property <string> label;
-    in property <string> value;
-    in property <image> source;
-    spacing: 2px;
-    accessible-role: image;
-    accessible-label: root.label + ", " + root.value + ", the last two minutes";
-    HorizontalLayout {
-        Text { text: root.label; color: Palette.muted; font-size: 10px; horizontal-stretch: 1; }
-        Text { text: root.value; color: Palette.text; font-size: 10px; horizontal-alignment: right; }
-    }
-    Rectangle {
-        height: 48px;
-        border-radius: 4px;
-        background: Palette.page;
-        clip: true;
-        Image { width: parent.width; height: parent.height; source: root.source; image-fit: fill; }
-    }
-}
+export { Key, MeterBar, ProbeRow, TaskRow }
 
 // An action on the chosen process.
 component ActionButton inherits Rectangle {
@@ -732,74 +240,23 @@ export component View inherits Window {
         spacing: 16px;
 
         // The device: its drawn front, the live display in it, the keys to press, the LED.
-        Rectangle {
-            width: root.framed ? root.front-w : root.screen-w;
-            height: root.framed ? root.front-h : root.screen-h;
-            // The case's keys, under the front: pressed, a key slides sideways into the case, as
-            // on the hardware, and the body covers what goes in.
-            if root.framed: Rectangle {
-                for k in root.keys: Image {
-                    visible: k.has-sprite;
-                    x: k.sx + (k.pressed ? k.travel : 0);
-                    y: k.sy;
-                    width: k.sw;
-                    height: k.sh;
-                    source: k.sprite;
-                    animate x { duration: 40ms; easing: ease-out; }
-                }
-            }
-            if root.framed: Image {
-                x: 0;
-                y: 0;
-                width: root.front-w;
-                height: root.front-h;
-                source: root.front;
-            }
-            if root.framed: Rectangle {
-                for k in root.keys: Rectangle {
-                    x: k.x;
-                    y: k.y;
-                    width: k.w;
-                    height: k.h;
-                    border-radius: 3px;
-                    // A case key moves when pressed (above); a faceplate control darkens in place.
-                    // Hovered: a faint light on it.
-                    background: k.pressed && !k.has-sprite ? #00000070 : (key-touch.has-hover ? #ffffff18 : transparent);
-                    key-touch := TouchArea {
-                        mouse-cursor: pointer;
-                        pointer-event(e) => {
-                            if e.kind == PointerEventKind.down { root.key(k.role, true); }
-                            if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.key(k.role, false); }
-                        }
-                    }
-                }
-            }
-            if root.framed && root.led != transparent: Rectangle {
-                x: root.led-x - root.led-d / 2;
-                y: root.led-y - root.led-d / 2;
-                width: root.led-d;
-                height: root.led-d;
-                border-radius: self.width / 2;
-                background: root.led;
-                drop-shadow-blur: 10px;
-                drop-shadow-color: root.led;
-            }
-            // The display: the guest's frame, 1:1 in panel pixels; the pointer is a finger.
-            Image {
-                x: root.framed ? root.screen-x : 0;
-                y: root.framed ? root.screen-y : 0;
-                width: root.screen-w;
-                height: root.screen-h;
-                source: root.screen;
-                image-rendering: pixelated;
-                TouchArea {
-                    pointer-event(e) => {
-                        if e.kind == PointerEventKind.down { root.screen-pointer("down", self.mouse-x, self.mouse-y); }
-                        if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.screen-pointer("up", self.mouse-x, self.mouse-y); }
-                        if e.kind == PointerEventKind.move { root.screen-pointer("move", self.mouse-x, self.mouse-y); }
-                    }
-                }
-            }
+        Device {
+            framed: root.framed;
+            front: root.front;
+            front-h: root.front-h;
+            front-w: root.front-w;
+            key(a0, a1) => { root.key(a0, a1); }
+            keys <=> root.keys;
+            led: root.led;
+            led-d: root.led-d;
+            led-x: root.led-x;
+            led-y: root.led-y;
+            screen: root.screen;
+            screen-h: root.screen-h;
+            screen-pointer(a0, a1, a2) => { root.screen-pointer(a0, a1, a2); }
+            screen-w: root.screen-w;
+            screen-x: root.screen-x;
+            screen-y: root.screen-y;
         }
 
         // The layout gives the sidebar its column; inside it, the panel is the whole column when
@@ -877,389 +334,125 @@ export component View inherits Window {
                 changed(i) => { root.tab-changed(i); keys-in.focus(); }
             }
             // The groups scroll when they do not fit, between the tabs and the note line.
-            if root.sidebar && root.tab == 0: Flickable {
+            if root.sidebar && root.tab == 0: ControlsPage {
                 x: 0;
                 y: 84px;
                 width: parent.width;
                 height: parent.height - self.y - 34px;
-                content-height: groups.preferred-height;
-                interactive: true;
-                groups := VerticalLayout {
-                    width: parent.width;
-                    padding: 12px;
-                    padding-top: 8px;
-                    spacing: 20px;
-                    alignment: start;
-
-                    Section {
-                        title: "SYSTEM";
-                        HorizontalLayout {
-                            spacing: 6px;
-                            // Restarts and power-off take a ready device, once: the one in flight
-                            // shows it, the others wait for it.
-                            Tool { icon: @image-url("icons/screenshot.svg"); label: "Save PNG"; busy: root.saving; busy-label: "Saving…"; width: (parent.width - 18px) / 4; clicked => { root.action("screenshot"); } }
-                            Tool { icon: @image-url("icons/restart.svg"); label: "Reboot"; enabled: root.phase == 2; busy: root.phase == 3 && !root.debug-reboot; busy-label: "Restarting…"; spin: true; width: (parent.width - 18px) / 4; clicked => { root.action("reboot"); } }
-                            Tool { icon: @image-url("icons/developer.svg"); label: "Debug"; enabled: root.phase == 2; busy: root.phase == 3 && root.debug-reboot; busy-label: "Restarting…"; width: (parent.width - 18px) / 4; clicked => { root.action("reboot-debug"); } }
-                            Tool { icon: @image-url("icons/power.svg"); label: "Power off"; enabled: root.phase == 2; busy: root.phase == 4; busy-label: "Powering off…"; width: (parent.width - 18px) / 4; danger: true; clicked => { root.action("poweroff"); } }
-                        }
-                    }
-
-                    Section {
-                        title: "BUTTONS";
-                        GridLayout {
-                            spacing: 6px;
-                            width: parent.width;
-                            Row {
-                                Pill { glyph: "●"; nudge: 2px; label: "Action"; accent: true; active: root.action-down; down => { root.key("action", true); } up => { root.key("action", false); } }
-                                Pill { icon: @image-url("icons/power.svg"); nudge: 2px; label: "Main"; active: root.main-down; down => { root.key("main", true); } up => { root.key("main", false); } }
-                            }
-                            Row {
-                                Pill { glyph: "+"; label: "Volume"; active: root.volume-up-down; down => { root.key("volume-up", true); } up => { root.key("volume-up", false); } }
-                                Pill { glyph: "−"; label: "Volume"; active: root.volume-down-down; down => { root.key("volume-down", true); } up => { root.key("volume-down", false); } }
-                            }
-                            Row {
-                                Pill { colspan: 2; icon: @image-url("icons/screenshot.svg"); label: "Screenshot"; active: root.main-down && root.volume-down-down; detail: "Main + Vol − · hold: power menu"; down => { root.combo(true); } up => { root.combo(false); } }
-                            }
-                        }
-                    }
-
-                    Section {
-                        title: "POWER";
-                        HorizontalLayout {
-                            spacing: 8px;
-                            Image { source: @image-url("icons/battery.svg"); colorize: Palette.text; width: 16px; height: 16px; y: (parent.height - self.height) / 2; }
-                            Text { text: root.battery-known ? round(root.battery) + " %" : "– %"; color: Palette.text; font-size: 12px; vertical-alignment: center; min-width: 34px; }
-                            Slider {
-                                minimum: 0;
-                                maximum: 100;
-                                // Fire and forget: every change is sent as it is made, never waiting for
-                                // the last; the worker applies the latest (device.rs).
-                                enabled: root.battery-known;
-                                value <=> root.battery;
-                                changed => { root.battery-dragging = true; root.battery-set(root.battery); }
-                                released => { root.battery-dragging = false; root.battery-set(root.battery); keys-in.focus(); }
-                            }
-                        }
-                        // The battery and charger are the board's battery model, on the device: they
-                        // take changes once it runs.
-                        Toggle {
-                            icon: @image-url("icons/battery-charging.svg");
-                            label: "Charger on USB-C";
-                            state: root.charger;
-                            enabled: root.battery-known;
-                            why: "Once the device runs";
-                            attaching: "Connecting…";
-                            detaching: "Disconnecting…";
-                            toggled(on) => { root.attach("charger", on); }
-                        }
-                    }
-
-                    Section {
-                        title: "SENSORS";
-                        // The light that falls on the faceplate's sensor, which the device reads as an
-                        // IIO illuminance (odap-vdev-hw); fire and forget, as the battery.
-                        HorizontalLayout {
-                            spacing: 8px;
-                            Image { source: @image-url("icons/light.svg"); colorize: Palette.text; width: 16px; height: 16px; y: (parent.height - self.height) / 2; }
-                            Text {
-                                text: !root.light-known ? "– lx" : (root.light >= 4 ? round((pow(10, root.light) - 1) / 1000) + " klx" : round(pow(10, root.light) - 1) + " lx");
-                                color: Palette.text; font-size: 12px; vertical-alignment: center; min-width: 52px;
-                            }
-                            Slider {
-                                minimum: 0;
-                                maximum: 5;
-                                enabled: root.light-known;
-                                value <=> root.light;
-                                changed => { root.light-set(root.light); }
-                                released => { root.light-set(root.light); keys-in.focus(); }
-                            }
-                        }
-                        // The microphone: live while the device records (its privacy light), never
-                        // switched from here: the light follows the hardware.
-                        HorizontalLayout {
-                            spacing: 8px;
-                            height: 22px;
-                            Rectangle {
-                                width: 16px;
-                                Rectangle {
-                                    width: 8px;
-                                    height: 8px;
-                                    x: 4px;
-                                    y: (parent.height - self.height) / 2;
-                                    border-radius: 4px;
-                                    background: root.mic-live ? #ff9f0a : transparent;
-                                    border-width: 1px;
-                                    border-color: root.mic-live ? #ff9f0a : Palette.muted;
-                                }
-                            }
-                            Text { text: "Microphone"; color: Palette.text; font-size: 12px; vertical-alignment: center; horizontal-stretch: 1; }
-                            Text { text: root.mic-live ? "Live" : "Off"; color: root.mic-live ? Palette.text : Palette.muted; font-size: 12px; vertical-alignment: center; }
-                        }
-                    }
-
-                    Section {
-                        title: "STORAGE";
-                        // The hardware takes these at any time, booting or not, as a real socket does.
-                        Toggle { icon: @image-url("icons/microsd.svg"); label: "microSD card"; state: root.sd; attaching: "Inserting…"; detaching: "Ejecting…"; toggled(on) => { root.attach("microsd", on); } }
-                        Toggle { icon: @image-url("icons/usb.svg"); label: "USB disk"; state: root.usb-disk; attaching: "Plugging in…"; detaching: "Unplugging…"; toggled(on) => { root.attach("usb-storage", on); } }
-                        Toggle { icon: @image-url("icons/dac.svg"); label: "USB DAC"; state: root.usb-dac; attaching: "Plugging in…"; detaching: "Unplugging…"; toggled(on) => { root.attach("usb-audio", on); } }
-                    }
-
-                    // Development options of the device's interface.
-                    Section {
-                        title: "DEBUG";
-                        Toggle {
-                            icon: @image-url("icons/developer.svg");
-                            label: "Blueprint mode";
-                            state: root.debug-ui;
-                            enabled: root.phase == 2;
-                            why: "Once the device runs";
-                            attaching: "Turning on";
-                            detaching: "Turning off";
-                            toggled(on) => { root.set-debug-ui(on); }
-                        }
-                    }
-                }
+                action(a0) => { root.action(a0); }
+                action-down: root.action-down;
+                attach(a0, a1) => { root.attach(a0, a1); }
+                battery <=> root.battery;
+                battery-dragging <=> root.battery-dragging;
+                battery-known: root.battery-known;
+                battery-set(a0) => { root.battery-set(a0); }
+                charger: root.charger;
+                combo(a0) => { root.combo(a0); }
+                debug-reboot: root.debug-reboot;
+                debug-ui: root.debug-ui;
+                key(a0, a1) => { root.key(a0, a1); }
+                light <=> root.light;
+                light-known: root.light-known;
+                light-set(a0) => { root.light-set(a0); }
+                main-down: root.main-down;
+                mic-live: root.mic-live;
+                phase: root.phase;
+                saving: root.saving;
+                sd: root.sd;
+                set-debug-ui(a0) => { root.set-debug-ui(a0); }
+                usb-dac: root.usb-dac;
+                usb-disk: root.usb-disk;
+                volume-down-down: root.volume-down-down;
+                volume-up-down: root.volume-up-down;
+                refocus => { keys-in.focus(); }
             }
             // The instruments: the device's sound and load, measured from the host (ADR 0003).
-            if root.sidebar && root.tab == 1: Flickable {
+            if root.sidebar && root.tab == 1: InstrumentsPage {
                 x: 0;
                 y: 84px;
                 width: parent.width;
                 height: parent.height - self.y - 34px;
-                content-height: meters.preferred-height;
-                interactive: true;
-                meters := VerticalLayout {
-                    width: parent.width;
-                    padding: 12px;
-                    padding-top: 8px;
-                    spacing: 20px;
-                    alignment: start;
-
-                    Section {
-                        title: "OUTPUT · HEADPHONES";
-                        Toggle {
-                            icon: @image-url("icons/waveform.svg");
-                            label: "Measure";
-                            state: root.out-analyze ? 2 : 0;
-                            toggled(on) => { root.out-analyze = on; root.sound-measure-wish("out", on); keys-in.focus(); }
-                        }
-                        if root.out-analyze: VerticalLayout {
-                            spacing: 6px;
-                            Text { text: root.out-active ? root.out-format : "Nothing playing"; color: root.out-active ? Palette.text : Palette.muted; font-size: 11px; }
-                            for m in root.out-meters: MeterRow { m: m; tint: #3b82c4; }
-                            Choice { labels: ["Spectrum", "Spectrogram"]; current <=> root.out-view; changed(i) => { root.sound-view("out", i); keys-in.focus(); } }
-                            if root.out-view == 0: SpectrumStrip { source: root.out-spectrum; label: "Output spectrum, 20 Hz to 20 kHz"; }
-                            if root.out-view == 1: WaterfallStrip { source: root.out-waterfall; label: "Output spectrogram, the last 42 seconds"; }
-                            // Three lines kept whether or not there is anything to say, so the box keeps its size.
-                            Text { text: root.out-readout; color: Palette.text; font-size: 11px; wrap: no-wrap; overflow: elide; height: 44px; vertical-alignment: top; }
-                        }
-                        Toggle {
-                            icon: @image-url("icons/headphones.svg");
-                            label: "Play on this computer";
-                            state: root.out-play ? 2 : 0;
-                            toggled(on) => { root.out-play = on; root.sound-play(on); keys-in.focus(); }
-                        }
-                        if root.out-note != "": Text { text: root.out-note; color: Palette.muted; font-size: 10px; wrap: word-wrap; }
-                    }
-
-                    Section {
-                        title: "INPUT · MICROPHONE";
-                        // What the device records: any of this computer's inputs, a test tone or
-                        // silence (sound.rs); the list is read again whenever this page opens.
-                        ComboBox {
-                            model: root.in-sources;
-                            current-index <=> root.in-source;
-                            accessible-label: "Recorded from";
-                            selected => { root.sound-source(self.current-index); keys-in.focus(); }
-                        }
-                        Toggle {
-                            icon: @image-url("icons/microphone.svg");
-                            label: "Measure";
-                            state: root.in-analyze ? 2 : 0;
-                            toggled(on) => { root.in-analyze = on; root.sound-measure-wish("in", on); keys-in.focus(); }
-                        }
-                        if root.in-analyze: VerticalLayout {
-                            spacing: 6px;
-                            Text { text: root.in-active ? root.in-format : "Not recording"; color: root.in-active ? Palette.text : Palette.muted; font-size: 11px; }
-                            for m in root.in-meters: MeterRow { m: m; tint: #ff9f0a; }
-                            Choice { labels: ["Spectrum", "Spectrogram"]; current <=> root.in-view; changed(i) => { root.sound-view("in", i); keys-in.focus(); } }
-                            if root.in-view == 0: SpectrumStrip { source: root.in-spectrum; label: "Input spectrum, 20 Hz to 20 kHz"; }
-                            if root.in-view == 1: WaterfallStrip { source: root.in-waterfall; label: "Input spectrogram, the last 42 seconds"; }
-                            // Three lines kept whether or not there is anything to say, so the box keeps its size.
-                            Text { text: root.in-readout; color: Palette.text; font-size: 11px; wrap: no-wrap; overflow: elide; height: 44px; vertical-alignment: top; }
-                        }
-                        if root.in-note != "": Text { text: root.in-note; color: Palette.muted; font-size: 10px; wrap: word-wrap; }
-                    }
-
-                    // Every signal the device's layers declare for observation, where the
-                    // measurements above come from (VD-010).
-                    Section {
-                        title: "PROBES";
-                        for p in root.probes: VerticalLayout {
-                            spacing: 0px;
-                            accessible-role: text;
-                            accessible-label: p.name + ": " + p.what + ", " + p.value;
-                            HorizontalLayout {
-                                height: 16px;
-                                Text { text: p.name; color: Palette.text; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; }
-                                Text { text: p.value; color: Palette.text; font-size: 11px; vertical-alignment: center; horizontal-alignment: right; overflow: elide; }
-                            }
-                            Text { text: p.what; color: Palette.muted; font-size: 10px; overflow: elide; }
-                        }
-                    }
-
-                    Section {
-                        title: "ENERGY";
-                        if !root.energy-known: Text { text: root.phase == 2 ? "Reading the device…" : "Once the device runs"; color: Palette.muted; font-size: 11px; }
-                        if root.energy-known: VerticalLayout {
-                            spacing: 4px;
-                            HorizontalLayout {
-                                spacing: 8px;
-                                Graph { label: "Battery"; value: root.energy-level; source: root.graph-battery; }
-                                Graph { label: "Power"; value: root.energy-power; source: root.graph-power; }
-                            }
-                            Stat { label: "State"; value: root.energy-status; }
-                            Stat { label: "Voltage"; value: root.energy-voltage; }
-                            Stat { label: "Current"; value: root.energy-current; }
-                            Stat { label: "Temperature"; value: root.energy-temperature; }
-                            Stat { label: "Time"; value: root.energy-time; }
-                            Stat { label: "Charger"; value: root.energy-charger; }
-                            // What the model does not simulate is said, never hidden (SYS-040).
-                            Stat { label: "Per rail"; value: "Not modelled on this hardware"; }
-                            Text {
-                                text: "The virtual board's battery model: its values are set (Controls, Power), not drawn by the device's load.";
-                                color: Palette.muted;
-                                font-size: 10px;
-                                wrap: word-wrap;
-                            }
-                        }
-                    }
-
-                    Section {
-                        title: "SYSTEM";
-                        open <=> root.sys-open;
-                        if !root.sys-known: Text { text: root.phase == 2 ? "Reading the device…" : "Once the device runs"; color: Palette.muted; font-size: 11px; }
-                        if root.sys-known: VerticalLayout {
-                            spacing: 2px;
-                            Stat { label: "CPU"; value: root.sys-cpu; }
-                            MeterRow { m: { label: "", rms: root.sys-cpu-busy, peak: root.sys-cpu-busy, value: "" }; tint: #3b82c4; }
-                            Stat { label: "Memory"; value: root.sys-mem; }
-                            MeterRow { m: { label: "", rms: root.sys-mem-busy, peak: root.sys-mem-busy, value: "" }; tint: #3b82c4; }
-                            Stat { label: "Load"; value: root.sys-load; }
-                            Stat { label: "Up"; value: root.sys-uptime; }
-                            // What the hardware lacks is shown as absent, never hidden (SYS-040).
-                            Stat { label: "NPU"; value: "None on this hardware"; }
-                        }
-                    }
-                }
+                energy-charger: root.energy-charger;
+                energy-current: root.energy-current;
+                energy-known: root.energy-known;
+                energy-level: root.energy-level;
+                energy-power: root.energy-power;
+                energy-status: root.energy-status;
+                energy-temperature: root.energy-temperature;
+                energy-time: root.energy-time;
+                energy-voltage: root.energy-voltage;
+                graph-battery: root.graph-battery;
+                graph-power: root.graph-power;
+                in-active: root.in-active;
+                in-analyze <=> root.in-analyze;
+                in-format: root.in-format;
+                in-meters: root.in-meters;
+                in-note: root.in-note;
+                in-readout: root.in-readout;
+                in-source <=> root.in-source;
+                in-sources: root.in-sources;
+                in-spectrum: root.in-spectrum;
+                in-view <=> root.in-view;
+                in-waterfall: root.in-waterfall;
+                out-active: root.out-active;
+                out-analyze <=> root.out-analyze;
+                out-format: root.out-format;
+                out-meters: root.out-meters;
+                out-note: root.out-note;
+                out-play <=> root.out-play;
+                out-readout: root.out-readout;
+                out-spectrum: root.out-spectrum;
+                out-view <=> root.out-view;
+                out-waterfall: root.out-waterfall;
+                phase: root.phase;
+                probes: root.probes;
+                sound-measure-wish(a0, a1) => { root.sound-measure-wish(a0, a1); }
+                sound-play(a0) => { root.sound-play(a0); }
+                sound-source(a0) => { root.sound-source(a0); }
+                sound-view(a0, a1) => { root.sound-view(a0, a1); }
+                sys-cpu: root.sys-cpu;
+                sys-cpu-busy: root.sys-cpu-busy;
+                sys-known: root.sys-known;
+                sys-load: root.sys-load;
+                sys-mem: root.sys-mem;
+                sys-mem-busy: root.sys-mem-busy;
+                sys-open <=> root.sys-open;
+                sys-uptime: root.sys-uptime;
+                refocus => { keys-in.focus(); }
             }
             // The device's processes, as a task manager shows them (stats.rs): sorted by a
             // column, kernel threads hidden unless asked for, and actions on the chosen one.
-            if root.sidebar && root.tab == 2: VerticalLayout {
+            if root.sidebar && root.tab == 2: TasksPage {
                 x: 0;
                 y: 84px;
                 width: parent.width;
                 height: parent.height - self.y - 34px;
-                padding: 12px;
-                padding-top: 8px;
-                spacing: 6px;
-                if !root.sys-known: Text { text: root.phase == 2 ? "Reading the device…" : "Once the device runs"; color: Palette.muted; font-size: 11px; }
-                if root.sys-known: VerticalLayout {
-                    spacing: 4px;
-                    Text { text: root.tasks-summary; color: Palette.muted; font-size: 11px; }
-                    HorizontalLayout {
-                        spacing: 8px;
-                        Graph { label: "CPU"; value: root.sys-cpu; source: root.graph-cpu; }
-                        Graph { label: "Memory"; value: root.sys-mem-short; source: root.graph-mem; }
-                    }
-                    Toggle {
-                        icon: @image-url("icons/cpu.svg");
-                        label: "Kernel threads";
-                        state: root.task-kernel ? 2 : 0;
-                        toggled(on) => { root.task-kernel = on; root.task-show-kernel(on); keys-in.focus(); }
-                    }
-                    HorizontalLayout {
-                        spacing: 6px;
-                        SortHead { label: "Name"; key: "name"; sort: root.task-sort; descending: root.task-descending; horizontal-stretch: 1; sort-by(k) => { root.task-sort-by(k); } }
-                        SortHead { label: "PID"; key: "pid"; sort: root.task-sort; descending: root.task-descending; width: 44px; align: right; sort-by(k) => { root.task-sort-by(k); } }
-                        SortHead { label: "State"; key: "state"; sort: root.task-sort; descending: root.task-descending; width: 58px; sort-by(k) => { root.task-sort-by(k); } }
-                        SortHead { label: "CPU"; key: "cpu"; sort: root.task-sort; descending: root.task-descending; width: 46px; align: right; sort-by(k) => { root.task-sort-by(k); } }
-                        SortHead { label: "Memory"; key: "mem"; sort: root.task-sort; descending: root.task-descending; width: 58px; align: right; sort-by(k) => { root.task-sort-by(k); } }
-                    }
-                }
-                // While the pointer is over the list its order holds (the values still update), so a
-                // row does not move away from the click meant for it.
-                if root.sys-known: list-hover := TouchArea {
-                    vertical-stretch: 1;
-                    changed has-hover => { root.tasks-hovered = self.has-hover; root.task-hover-changed(); }
-                    Flickable {
-                    content-height: rows.preferred-height;
-                    interactive: true;
-                    rows := VerticalLayout {
-                        width: parent.width;
-                        alignment: start;
-                        for t in root.tasks: Rectangle {
-                            height: 20px;
-                            border-radius: 4px;
-                            background: t.pid == root.task-pid ? #3b82c440 : (row-touch.has-hover ? #ffffff0a : transparent);
-                            accessible-role: list-item;
-                            accessible-label: t.name + ", PID " + t.pid + ", " + t.state + ", CPU " + t.cpu + ", memory " + t.mem;
-                            accessible-item-selected: t.pid == root.task-pid;
-                            accessible-action-default => { root.task-choose(t.pid); }
-                            HorizontalLayout {
-                                spacing: 6px;
-                                padding-left: 2px;
-                                padding-right: 2px;
-                                Text { text: t.name; color: t.kernel ? Palette.muted : Palette.text; font-size: 11px; horizontal-stretch: 1; overflow: elide; vertical-alignment: center; }
-                                Text { text: t.pid; color: Palette.muted; font-size: 11px; width: 44px; horizontal-alignment: right; vertical-alignment: center; }
-                                Text { text: t.state; color: t.state == "Stopped" ? #ff9f0a : Palette.muted; font-size: 11px; width: 58px; overflow: elide; vertical-alignment: center; }
-                                Text { text: t.cpu; color: Palette.text; font-size: 11px; width: 46px; horizontal-alignment: right; vertical-alignment: center; }
-                                Text { text: t.mem; color: Palette.muted; font-size: 11px; width: 58px; horizontal-alignment: right; vertical-alignment: center; }
-                            }
-                            row-touch := TouchArea { mouse-cursor: pointer; clicked => { root.task-choose(t.pid); keys-in.focus(); } }
-                        }
-                    }
-                }
-                }
-                // The chosen process and what can be done to it.
-                if root.sys-known && root.task-found: Rectangle {
-                    height: chosen.preferred-height;
-                    border-radius: 8px;
-                    background: Palette.page;
-                    chosen := VerticalLayout {
-                        padding: 8px;
-                        spacing: 6px;
-                        Text { text: root.task-chosen.name; color: Palette.text; font-size: 12px; font-weight: 600; overflow: elide; }
-                        Text {
-                            text: "PID " + root.task-chosen.pid + " · " + root.task-chosen.user + " · " + root.task-chosen.state + " · priority " + (root.task-chosen.nice > 0 ? "+" : "") + root.task-chosen.nice;
-                            color: Palette.muted;
-                            font-size: 11px;
-                            overflow: elide;
-                        }
-                        HorizontalLayout {
-                            spacing: 8px;
-                            Graph { label: "CPU"; value: root.task-cpu-now; source: root.graph-task-cpu; }
-                            Graph { label: "Memory"; value: root.task-mem-now; source: root.graph-task-mem; }
-                        }
-                        HorizontalLayout {
-                            spacing: 6px;
-                            ActionButton { label: "End"; enabled: root.task-refused == ""; clicked => { root.task-act("end"); } }
-                            ActionButton { label: "Kill"; danger: true; enabled: root.task-refused == ""; clicked => { root.task-act("kill"); } }
-                            ActionButton {
-                                label: root.task-chosen.state == "Stopped" ? "Resume" : "Pause";
-                                enabled: root.task-refused == "";
-                                clicked => { root.task-act(root.task-chosen.state == "Stopped" ? "resume" : "pause"); }
-                            }
-                        }
-                        HorizontalLayout {
-                            spacing: 6px;
-                            ActionButton { label: "Lower priority"; enabled: root.task-refused == "" && root.task-chosen.nice < 19; clicked => { root.task-act("lower"); } }
-                            ActionButton { label: "Raise priority"; enabled: root.task-refused == "" && root.task-chosen.nice > -20; clicked => { root.task-act("raise"); } }
-                        }
-                        if root.task-refused != "": Text { text: "Not available: " + root.task-refused; color: Palette.muted; font-size: 10px; wrap: word-wrap; }
-                    }
-                }
+                graph-cpu: root.graph-cpu;
+                graph-mem: root.graph-mem;
+                graph-task-cpu: root.graph-task-cpu;
+                graph-task-mem: root.graph-task-mem;
+                phase: root.phase;
+                sys-cpu: root.sys-cpu;
+                sys-known: root.sys-known;
+                sys-mem-short: root.sys-mem-short;
+                task-act(a0) => { root.task-act(a0); }
+                task-choose(a0) => { root.task-choose(a0); }
+                task-chosen: root.task-chosen;
+                task-cpu-now: root.task-cpu-now;
+                task-descending <=> root.task-descending;
+                task-found: root.task-found;
+                task-hover-changed() => { root.task-hover-changed(); }
+                task-kernel <=> root.task-kernel;
+                task-mem-now: root.task-mem-now;
+                task-pid <=> root.task-pid;
+                task-refused: root.task-refused;
+                task-show-kernel(a0) => { root.task-show-kernel(a0); }
+                task-sort <=> root.task-sort;
+                task-sort-by(a0) => { root.task-sort-by(a0); }
+                tasks: root.tasks;
+                tasks-hovered <=> root.tasks-hovered;
+                tasks-summary: root.tasks-summary;
+                refocus => { keys-in.focus(); }
             }
 
         }
@@ -1267,69 +460,14 @@ export component View inherits Window {
     }
 
     // The keyboard bindings. Closed by its X, a click outside it, or Esc.
-    if root.keymap: Rectangle {
+    if root.keymap: KeymapDialog {
         x: 0;
         y: 0;
         width: root.width;
         height: root.height;
-        background: #000000a0;
-        TouchArea { clicked => { root.keymap = false; keys-in.focus(); } }
-        Rectangle {
-            width: min(root.width - 32px, 560px);
-            height: min(root.height - 32px, body.preferred-height);
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
-            background: Palette.panel;
-            border-radius: 12px;
-            border-width: 1px;
-            border-color: Palette.line;
-            drop-shadow-blur: 24px;
-            drop-shadow-color: #00000080;
-            accessible-role: groupbox;
-            accessible-label: "Keyboard bindings";
-            // Clicks inside the dialog stay in it.
-            TouchArea { }
-            body := VerticalLayout {
-                padding: 16px;
-                spacing: 12px;
-                HorizontalLayout {
-                    Text { text: "Keyboard"; color: Palette.text; font-size: 14px; font-weight: 600; vertical-alignment: center; horizontal-stretch: 1; }
-                    HeaderButton { icon: @image-url("icons/x.svg"); label: "Close"; clicked => { root.keymap = false; keys-in.focus(); } }
-                }
-                HorizontalLayout {
-                    spacing: 24px;
-                    alignment: start;
-                    Section {
-                        title: "DEVICE · held as long as the key";
-                        horizontal-stretch: 1;
-                        alignment: start;
-                        Binding { keys: ["Space", "Enter"]; does: "Action (either)"; }
-                        Binding { keys: ["P"]; does: "Main"; }
-                        Binding { keys: ["↑"]; does: "Volume + (the upper button)"; }
-                        Binding { keys: ["↓"]; does: "Volume − (the lower button)"; }
-                        Binding { keys: ["←", "→"]; does: "Keyboard arrows (a focused slider)"; }
-                        Binding { keys: ["S"]; does: "Screenshot (Main + Vol −)"; }
-                        Binding { keys: ["P", "↓"]; does: "The same, by hand"; }
-                    }
-                    Section {
-                        title: "SIMULATOR";
-                        horizontal-stretch: 1;
-                        alignment: start;
-                        Binding { keys: ["⌘", "S"]; does: "Save PNG"; }
-                        Binding { keys: ["⌘", "R"]; does: "Reboot"; }
-                        Binding { keys: ["⌘", "⇧", "R"]; does: "Reboot into debug"; }
-                        Binding { keys: ["⌘", "⇧", "P"]; does: "Power off"; }
-                        Binding { keys: ["⌘", "1"]; does: "microSD card in / out"; }
-                        Binding { keys: ["⌘", "2"]; does: "USB disk in / out"; }
-                        Binding { keys: ["⌘", "3"]; does: "USB DAC in / out"; }
-                        Binding { keys: ["⌘", "4"]; does: "Charger on / off"; }
-                        Binding { keys: ["⌘", "−"]; does: "Battery −5 %"; }
-                        Binding { keys: ["⌘", "="]; does: "Battery +5 %"; }
-                        Binding { keys: ["⌘", "\\"]; does: "Fold the sidebar"; }
-                        Binding { keys: ["⌘", "K"]; does: "These bindings"; }
-                    }
-                }
-            }
+        close => {
+            root.keymap = false;
+            keys-in.focus();
         }
     }
 }

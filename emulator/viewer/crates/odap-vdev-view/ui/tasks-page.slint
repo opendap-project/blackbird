@@ -1,0 +1,178 @@
+// The sidebar's Tasks page: the device's processes, sorted, with graphs and actions on the chosen one.
+
+import { Slider, ComboBox } from "std-widgets.slint";
+import { Palette, TaskRow } from "theme.slint";
+import { Section, Pill, Toggle, Tool, Keycap, Binding, HeaderButton, Tabs, Choice } from "widgets.slint";
+import { WaterfallStrip, MeterRow, SpectrumStrip, Stat, Graph } from "meters.slint";
+
+// A column heading of the Tasks list: a click sorts by it (again: the other way).
+component SortHead inherits Rectangle {
+    in property <string> label;
+    in property <string> key;
+    in property <string> sort;
+    in property <bool> descending;
+    in property <TextHorizontalAlignment> align: left;
+    callback sort-by(string);
+    height: 20px;
+    accessible-role: button;
+    accessible-label: "Sort by " + root.label;
+    accessible-description: root.sort == root.key ? (root.descending ? "Sorted, descending" : "Sorted, ascending") : "";
+    accessible-action-default => { root.sort-by(root.key); }
+    Text {
+        width: parent.width;
+        text: root.label + (root.sort == root.key ? (root.descending ? " ▾" : " ▴") : "");
+        color: root.sort == root.key ? Palette.text : Palette.muted;
+        font-size: 10px;
+        font-weight: root.sort == root.key ? 600 : 400;
+        horizontal-alignment: root.align;
+        vertical-alignment: center;
+    }
+    head-touch := TouchArea { mouse-cursor: pointer; clicked => { root.sort-by(root.key); } }
+}
+
+// An action on the chosen process.
+component ActionButton inherits Rectangle {
+    in property <string> label;
+    in property <bool> enabled: true;
+    in property <bool> danger;
+    callback clicked();
+    height: 28px;
+    border-radius: 7px;
+    opacity: root.enabled ? 1 : 0.4;
+    background: act-touch.pressed ? Palette.line.brighter(50%) : (act-touch.has-hover && root.enabled ? Palette.line.brighter(22%) : Palette.line);
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if root.enabled { root.clicked(); } }
+    Text { text: root.label; color: root.danger && root.enabled ? #e5484d : Palette.text; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; }
+    act-touch := TouchArea { enabled: root.enabled; mouse-cursor: root.enabled ? pointer : default; clicked => { root.clicked(); } }
+}
+
+export component TasksPage inherits VerticalLayout {
+    in property <image> graph-cpu;
+    in property <image> graph-mem;
+    in property <image> graph-task-cpu;
+    in property <image> graph-task-mem;
+    in property <int> phase;
+    in property <string> sys-cpu;
+    in property <bool> sys-known;
+    in property <string> sys-mem-short;
+    callback task-act(string);
+    callback task-choose(int);
+    in property <TaskRow> task-chosen;
+    in property <string> task-cpu-now;
+    in-out property <bool> task-descending;
+    in property <bool> task-found;
+    callback task-hover-changed();
+    in-out property <bool> task-kernel;
+    in property <string> task-mem-now;
+    in-out property <int> task-pid;
+    in property <string> task-refused;
+    callback task-show-kernel(bool);
+    in-out property <string> task-sort;
+    callback task-sort-by(string);
+    in property <[TaskRow]> tasks;
+    in-out property <bool> tasks-hovered;
+    in property <string> tasks-summary;
+    // Hands the keyboard back to the window after a control takes a click.
+    callback refocus();
+    padding: 12px;
+    padding-top: 8px;
+    spacing: 6px;
+    if !root.sys-known: Text { text: root.phase == 2 ? "Reading the device…" : "Once the device runs"; color: Palette.muted; font-size: 11px; }
+    if root.sys-known: VerticalLayout {
+        spacing: 4px;
+        Text { text: root.tasks-summary; color: Palette.muted; font-size: 11px; }
+        HorizontalLayout {
+            spacing: 8px;
+            Graph { label: "CPU"; value: root.sys-cpu; source: root.graph-cpu; }
+            Graph { label: "Memory"; value: root.sys-mem-short; source: root.graph-mem; }
+        }
+        Toggle {
+            icon: @image-url("icons/cpu.svg");
+            label: "Kernel threads";
+            state: root.task-kernel ? 2 : 0;
+            toggled(on) => { root.task-kernel = on; root.task-show-kernel(on); root.refocus(); }
+        }
+        HorizontalLayout {
+            spacing: 6px;
+            SortHead { label: "Name"; key: "name"; sort: root.task-sort; descending: root.task-descending; horizontal-stretch: 1; sort-by(k) => { root.task-sort-by(k); } }
+            SortHead { label: "PID"; key: "pid"; sort: root.task-sort; descending: root.task-descending; width: 44px; align: right; sort-by(k) => { root.task-sort-by(k); } }
+            SortHead { label: "State"; key: "state"; sort: root.task-sort; descending: root.task-descending; width: 58px; sort-by(k) => { root.task-sort-by(k); } }
+            SortHead { label: "CPU"; key: "cpu"; sort: root.task-sort; descending: root.task-descending; width: 46px; align: right; sort-by(k) => { root.task-sort-by(k); } }
+            SortHead { label: "Memory"; key: "mem"; sort: root.task-sort; descending: root.task-descending; width: 58px; align: right; sort-by(k) => { root.task-sort-by(k); } }
+        }
+    }
+    // While the pointer is over the list its order holds (the values still update), so a
+    // row does not move away from the click meant for it.
+    if root.sys-known: list-hover := TouchArea {
+        vertical-stretch: 1;
+        changed has-hover => { root.tasks-hovered = self.has-hover; root.task-hover-changed(); }
+        Flickable {
+        content-height: rows.preferred-height;
+        interactive: true;
+        rows := VerticalLayout {
+            width: parent.width;
+            alignment: start;
+            for t in root.tasks: Rectangle {
+                height: 20px;
+                border-radius: 4px;
+                background: t.pid == root.task-pid ? #3b82c440 : (row-touch.has-hover ? #ffffff0a : transparent);
+                accessible-role: list-item;
+                accessible-label: t.name + ", PID " + t.pid + ", " + t.state + ", CPU " + t.cpu + ", memory " + t.mem;
+                accessible-item-selected: t.pid == root.task-pid;
+                accessible-action-default => { root.task-choose(t.pid); }
+                HorizontalLayout {
+                    spacing: 6px;
+                    padding-left: 2px;
+                    padding-right: 2px;
+                    Text { text: t.name; color: t.kernel ? Palette.muted : Palette.text; font-size: 11px; horizontal-stretch: 1; overflow: elide; vertical-alignment: center; }
+                    Text { text: t.pid; color: Palette.muted; font-size: 11px; width: 44px; horizontal-alignment: right; vertical-alignment: center; }
+                    Text { text: t.state; color: t.state == "Stopped" ? #ff9f0a : Palette.muted; font-size: 11px; width: 58px; overflow: elide; vertical-alignment: center; }
+                    Text { text: t.cpu; color: Palette.text; font-size: 11px; width: 46px; horizontal-alignment: right; vertical-alignment: center; }
+                    Text { text: t.mem; color: Palette.muted; font-size: 11px; width: 58px; horizontal-alignment: right; vertical-alignment: center; }
+                }
+                row-touch := TouchArea { mouse-cursor: pointer; clicked => { root.task-choose(t.pid); root.refocus(); } }
+            }
+        }
+    }
+    }
+    // The chosen process and what can be done to it.
+    if root.sys-known && root.task-found: Rectangle {
+        height: chosen.preferred-height;
+        border-radius: 8px;
+        background: Palette.page;
+        chosen := VerticalLayout {
+            padding: 8px;
+            spacing: 6px;
+            Text { text: root.task-chosen.name; color: Palette.text; font-size: 12px; font-weight: 600; overflow: elide; }
+            Text {
+                text: "PID " + root.task-chosen.pid + " · " + root.task-chosen.user + " · " + root.task-chosen.state + " · priority " + (root.task-chosen.nice > 0 ? "+" : "") + root.task-chosen.nice;
+                color: Palette.muted;
+                font-size: 11px;
+                overflow: elide;
+            }
+            HorizontalLayout {
+                spacing: 8px;
+                Graph { label: "CPU"; value: root.task-cpu-now; source: root.graph-task-cpu; }
+                Graph { label: "Memory"; value: root.task-mem-now; source: root.graph-task-mem; }
+            }
+            HorizontalLayout {
+                spacing: 6px;
+                ActionButton { label: "End"; enabled: root.task-refused == ""; clicked => { root.task-act("end"); } }
+                ActionButton { label: "Kill"; danger: true; enabled: root.task-refused == ""; clicked => { root.task-act("kill"); } }
+                ActionButton {
+                    label: root.task-chosen.state == "Stopped" ? "Resume" : "Pause";
+                    enabled: root.task-refused == "";
+                    clicked => { root.task-act(root.task-chosen.state == "Stopped" ? "resume" : "pause"); }
+                }
+            }
+            HorizontalLayout {
+                spacing: 6px;
+                ActionButton { label: "Lower priority"; enabled: root.task-refused == "" && root.task-chosen.nice < 19; clicked => { root.task-act("lower"); } }
+                ActionButton { label: "Raise priority"; enabled: root.task-refused == "" && root.task-chosen.nice > -20; clicked => { root.task-act("raise"); } }
+            }
+            if root.task-refused != "": Text { text: "Not available: " + root.task-refused; color: Palette.muted; font-size: 10px; wrap: word-wrap; }
+        }
+    }
+}

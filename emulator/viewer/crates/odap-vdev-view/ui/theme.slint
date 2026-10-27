@@ -1,0 +1,63 @@
+// The simulator window's palette and the data the window shows (main.rs fills them).
+
+export struct Key {
+    role: string,
+    // Where the key is in the drawn front, in logical px, to press it there.
+    x: length,
+    y: length,
+    w: length,
+    h: length,
+    pressed: bool,
+    // A key of the case, drawn alone under the front: where it sits, and how far (signed) it
+    // slides towards the case when pressed. Without one (a faceplate's own control), pressing
+    // darkens it in place.
+    sprite: image,
+    has-sprite: bool,
+    sx: length,
+    sy: length,
+    sw: length,
+    sh: length,
+    travel: length,
+}
+
+export global Palette {
+    in property <color> body: #1d2125;
+    in property <color> bezel: #0b0c0e;
+    in property <color> action: #ff6a2a;
+    in property <color> key: #aab0b6;
+    out property <color> page: #111315;
+    out property <color> panel: #181b1e;
+    out property <color> line: #2a2e33;
+    out property <color> text: #f5f6f4;
+    out property <color> muted: #9aa0a6;
+}
+
+// One channel's level: the bar is the RMS, the tick the held peak, both as positions from
+// -60 dBFS (0) to full scale (1).
+export struct MeterBar {
+    label: string,
+    rms: float,
+    peak: float,
+    value: string,
+    clipped: bool,
+}
+
+// A signal a layer declares for the simulator to observe (VD-010), and what it reads now.
+export struct ProbeRow {
+    name: string,
+    what: string,
+    value: string,
+}
+
+// A process in the Tasks tab.
+export struct TaskRow {
+    pid: int,
+    name: string,
+    user: string,
+    state: string,
+    nice: int,
+    cpu: string,
+    mem: string,
+    busy: float,
+    kernel: bool,
+}

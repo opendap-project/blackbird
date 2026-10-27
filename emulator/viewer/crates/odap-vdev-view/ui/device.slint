@@ -1,0 +1,90 @@
+// The device in the window: its drawn front, the live display in it (the pointer is a finger),
+// the case's keys to press, and the status LED.
+
+import { Palette, Key } from "theme.slint";
+
+export component Device inherits Rectangle {
+    in property <bool> framed;
+    in property <image> front;
+    in property <length> front-h;
+    in property <length> front-w;
+    callback key(string, bool);
+    in-out property <[Key]> keys;
+    in property <color> led;
+    in property <length> led-d;
+    in property <length> led-x;
+    in property <length> led-y;
+    in property <image> screen;
+    in property <length> screen-h;
+    callback screen-pointer(string, length, length);
+    in property <length> screen-w;
+    in property <length> screen-x;
+    in property <length> screen-y;
+    width: root.framed ? root.front-w : root.screen-w;
+    height: root.framed ? root.front-h : root.screen-h;
+    // The case's keys, under the front: pressed, a key slides sideways into the case, as
+    // on the hardware, and the body covers what goes in.
+    if root.framed: Rectangle {
+        for k in root.keys: Image {
+            visible: k.has-sprite;
+            x: k.sx + (k.pressed ? k.travel : 0);
+            y: k.sy;
+            width: k.sw;
+            height: k.sh;
+            source: k.sprite;
+            animate x { duration: 40ms; easing: ease-out; }
+        }
+    }
+    if root.framed: Image {
+        x: 0;
+        y: 0;
+        width: root.front-w;
+        height: root.front-h;
+        source: root.front;
+    }
+    if root.framed: Rectangle {
+        for k in root.keys: Rectangle {
+            x: k.x;
+            y: k.y;
+            width: k.w;
+            height: k.h;
+            border-radius: 3px;
+            // A case key moves when pressed (above); a faceplate control darkens in place.
+            // Hovered: a faint light on it.
+            background: k.pressed && !k.has-sprite ? #00000070 : (key-touch.has-hover ? #ffffff18 : transparent);
+            key-touch := TouchArea {
+                mouse-cursor: pointer;
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down { root.key(k.role, true); }
+                    if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.key(k.role, false); }
+                }
+            }
+        }
+    }
+    if root.framed && root.led != transparent: Rectangle {
+        x: root.led-x - root.led-d / 2;
+        y: root.led-y - root.led-d / 2;
+        width: root.led-d;
+        height: root.led-d;
+        border-radius: self.width / 2;
+        background: root.led;
+        drop-shadow-blur: 10px;
+        drop-shadow-color: root.led;
+    }
+    // The display: the guest's frame, 1:1 in panel pixels; the pointer is a finger.
+    Image {
+        x: root.framed ? root.screen-x : 0;
+        y: root.framed ? root.screen-y : 0;
+        width: root.screen-w;
+        height: root.screen-h;
+        source: root.screen;
+        image-rendering: pixelated;
+        TouchArea {
+            pointer-event(e) => {
+                if e.kind == PointerEventKind.down { root.screen-pointer("down", self.mouse-x, self.mouse-y); }
+                if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.screen-pointer("up", self.mouse-x, self.mouse-y); }
+                if e.kind == PointerEventKind.move { root.screen-pointer("move", self.mouse-x, self.mouse-y); }
+            }
+        }
+    }
+}

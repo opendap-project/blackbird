@@ -1,0 +1,173 @@
+// The sidebar's Controls page: the device's system actions, buttons, power, sensors and storage.
+
+import { Slider, ComboBox } from "std-widgets.slint";
+import { Palette, Key } from "theme.slint";
+import { Section, Pill, Toggle, Tool, Keycap, Binding, HeaderButton, Tabs, Choice } from "widgets.slint";
+
+export component ControlsPage inherits Flickable {
+    callback action(string);
+    in property <bool> action-down;
+    callback attach(string, bool);
+    in-out property <float> battery;
+    in-out property <bool> battery-dragging;
+    in property <bool> battery-known;
+    callback battery-set(float);
+    in property <int> charger;
+    callback combo(bool);
+    in property <bool> debug-reboot;
+    in property <int> debug-ui;
+    callback key(string, bool);
+    in-out property <float> light;
+    in property <bool> light-known;
+    callback light-set(float);
+    in property <bool> main-down;
+    in property <bool> mic-live;
+    in property <int> phase;
+    in property <bool> saving;
+    in property <int> sd;
+    callback set-debug-ui(bool);
+    in property <int> usb-dac;
+    in property <int> usb-disk;
+    in property <bool> volume-down-down;
+    in property <bool> volume-up-down;
+    // Hands the keyboard back to the window after a control takes a click.
+    callback refocus();
+    content-height: groups.preferred-height;
+    interactive: true;
+    groups := VerticalLayout {
+        width: parent.width;
+        padding: 12px;
+        padding-top: 8px;
+        spacing: 20px;
+        alignment: start;
+
+        Section {
+            title: "SYSTEM";
+            HorizontalLayout {
+                spacing: 6px;
+                // Restarts and power-off take a ready device, once: the one in flight
+                // shows it, the others wait for it.
+                Tool { icon: @image-url("icons/screenshot.svg"); label: "Save PNG"; busy: root.saving; busy-label: "Saving…"; width: (parent.width - 18px) / 4; clicked => { root.action("screenshot"); } }
+                Tool { icon: @image-url("icons/restart.svg"); label: "Reboot"; enabled: root.phase == 2; busy: root.phase == 3 && !root.debug-reboot; busy-label: "Restarting…"; spin: true; width: (parent.width - 18px) / 4; clicked => { root.action("reboot"); } }
+                Tool { icon: @image-url("icons/developer.svg"); label: "Debug"; enabled: root.phase == 2; busy: root.phase == 3 && root.debug-reboot; busy-label: "Restarting…"; width: (parent.width - 18px) / 4; clicked => { root.action("reboot-debug"); } }
+                Tool { icon: @image-url("icons/power.svg"); label: "Power off"; enabled: root.phase == 2; busy: root.phase == 4; busy-label: "Powering off…"; width: (parent.width - 18px) / 4; danger: true; clicked => { root.action("poweroff"); } }
+            }
+        }
+
+        Section {
+            title: "BUTTONS";
+            GridLayout {
+                spacing: 6px;
+                width: parent.width;
+                Row {
+                    Pill { glyph: "●"; nudge: 2px; label: "Action"; accent: true; active: root.action-down; down => { root.key("action", true); } up => { root.key("action", false); } }
+                    Pill { icon: @image-url("icons/power.svg"); nudge: 2px; label: "Main"; active: root.main-down; down => { root.key("main", true); } up => { root.key("main", false); } }
+                }
+                Row {
+                    Pill { glyph: "+"; label: "Volume"; active: root.volume-up-down; down => { root.key("volume-up", true); } up => { root.key("volume-up", false); } }
+                    Pill { glyph: "−"; label: "Volume"; active: root.volume-down-down; down => { root.key("volume-down", true); } up => { root.key("volume-down", false); } }
+                }
+                Row {
+                    Pill { colspan: 2; icon: @image-url("icons/screenshot.svg"); label: "Screenshot"; active: root.main-down && root.volume-down-down; detail: "Main + Vol − · hold: power menu"; down => { root.combo(true); } up => { root.combo(false); } }
+                }
+            }
+        }
+
+        Section {
+            title: "POWER";
+            HorizontalLayout {
+                spacing: 8px;
+                Image { source: @image-url("icons/battery.svg"); colorize: Palette.text; width: 16px; height: 16px; y: (parent.height - self.height) / 2; }
+                Text { text: root.battery-known ? round(root.battery) + " %" : "– %"; color: Palette.text; font-size: 12px; vertical-alignment: center; min-width: 34px; }
+                Slider {
+                    minimum: 0;
+                    maximum: 100;
+                    // Fire and forget: every change is sent as it is made, never waiting for
+                    // the last; the worker applies the latest (device.rs).
+                    enabled: root.battery-known;
+                    value <=> root.battery;
+                    changed => { root.battery-dragging = true; root.battery-set(root.battery); }
+                    released => { root.battery-dragging = false; root.battery-set(root.battery); root.refocus(); }
+                }
+            }
+            // The battery and charger are the board's battery model, on the device: they
+            // take changes once it runs.
+            Toggle {
+                icon: @image-url("icons/battery-charging.svg");
+                label: "Charger on USB-C";
+                state: root.charger;
+                enabled: root.battery-known;
+                why: "Once the device runs";
+                attaching: "Connecting…";
+                detaching: "Disconnecting…";
+                toggled(on) => { root.attach("charger", on); }
+            }
+        }
+
+        Section {
+            title: "SENSORS";
+            // The light that falls on the faceplate's sensor, which the device reads as an
+            // IIO illuminance (odap-vdev-hw); fire and forget, as the battery.
+            HorizontalLayout {
+                spacing: 8px;
+                Image { source: @image-url("icons/light.svg"); colorize: Palette.text; width: 16px; height: 16px; y: (parent.height - self.height) / 2; }
+                Text {
+                    text: !root.light-known ? "– lx" : (root.light >= 4 ? round((pow(10, root.light) - 1) / 1000) + " klx" : round(pow(10, root.light) - 1) + " lx");
+                    color: Palette.text; font-size: 12px; vertical-alignment: center; min-width: 52px;
+                }
+                Slider {
+                    minimum: 0;
+                    maximum: 5;
+                    enabled: root.light-known;
+                    value <=> root.light;
+                    changed => { root.light-set(root.light); }
+                    released => { root.light-set(root.light); root.refocus(); }
+                }
+            }
+            // The microphone: live while the device records (its privacy light), never
+            // switched from here: the light follows the hardware.
+            HorizontalLayout {
+                spacing: 8px;
+                height: 22px;
+                Rectangle {
+                    width: 16px;
+                    Rectangle {
+                        width: 8px;
+                        height: 8px;
+                        x: 4px;
+                        y: (parent.height - self.height) / 2;
+                        border-radius: 4px;
+                        background: root.mic-live ? #ff9f0a : transparent;
+                        border-width: 1px;
+                        border-color: root.mic-live ? #ff9f0a : Palette.muted;
+                    }
+                }
+                Text { text: "Microphone"; color: Palette.text; font-size: 12px; vertical-alignment: center; horizontal-stretch: 1; }
+                Text { text: root.mic-live ? "Live" : "Off"; color: root.mic-live ? Palette.text : Palette.muted; font-size: 12px; vertical-alignment: center; }
+            }
+        }
+
+        Section {
+            title: "STORAGE";
+            // The hardware takes these at any time, booting or not, as a real socket does.
+            Toggle { icon: @image-url("icons/microsd.svg"); label: "microSD card"; state: root.sd; attaching: "Inserting…"; detaching: "Ejecting…"; toggled(on) => { root.attach("microsd", on); } }
+            Toggle { icon: @image-url("icons/usb.svg"); label: "USB disk"; state: root.usb-disk; attaching: "Plugging in…"; detaching: "Unplugging…"; toggled(on) => { root.attach("usb-storage", on); } }
+            Toggle { icon: @image-url("icons/dac.svg"); label: "USB DAC"; state: root.usb-dac; attaching: "Plugging in…"; detaching: "Unplugging…"; toggled(on) => { root.attach("usb-audio", on); } }
+        }
+
+        // Development options of the device's interface.
+        Section {
+            title: "DEBUG";
+            Toggle {
+                icon: @image-url("icons/developer.svg");
+                label: "Blueprint mode";
+                state: root.debug-ui;
+                enabled: root.phase == 2;
+                why: "Once the device runs";
+                attaching: "Turning on";
+                detaching: "Turning off";
+                toggled(on) => { root.set-debug-ui(on); }
+            }
+        }
+    }
+}
