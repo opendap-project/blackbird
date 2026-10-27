@@ -8,8 +8,12 @@ outer contours clockwise and counters counter-clockwise (the same result under e
 and a viewBox fitted to the visible outline with its origin at 0,0.
 
   mark.py OUT.svg [--fill HEX|currentColor] [--grid]
+
+Colours come from the design tokens (colours.py).
 """
 import argparse, math
+
+import colours
 
 STROKE = 28                                    # stem, u
 SIDE = 8 * STROKE // 7                         # sloped stroke, measured vertically: 32 u
@@ -112,21 +116,23 @@ def svg(fill):
 def construction(u=4):
     """Construction drawing on the grid (a document, not a logo asset)."""
     W, H, pad = 2 * (DEPTH - APEX_IN) + GAP, STEM + 2 * GAP, 21
+    tok = colours.token
+    minor = "#22272C"                          # the minor grid, between graphite.850 and graphite.800: no token
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad * u} {-pad * u} {(W + 2 * pad) * u} {(H + 2 * pad) * u}">',
            '<title>OpenDAP mark: construction</title>',
-           f'<rect x="{-pad * u}" y="{-pad * u}" width="{(W + 2 * pad) * u}" height="{(H + 2 * pad) * u}" fill="#111315"/>']
-    for step, colour, width in ((1, "#22272C", 0.04), (7, "#3A4148", 0.12)):
+           f'<rect x="{-pad * u}" y="{-pad * u}" width="{(W + 2 * pad) * u}" height="{(H + 2 * pad) * u}" fill="{tok('color.graphite.950')}"/>']
+    for step, colour, width in ((1, minor, 0.04), (7, tok("color.graphite.700"), 0.12)):
         g = [f'<line x1="{x * u}" y1="{-pad * u}" x2="{x * u}" y2="{(H + pad) * u}"/>' for x in range(0, W + 1, step)]
         g += [f'<line x1="{-pad * u}" y1="{y * u}" x2="{(W + pad) * u}" y2="{y * u}"/>' for y in range(0, H + 1, step)]
         out.append(f'<g stroke="{colour}" stroke-width="{u * width}">' + "".join(g) + '</g>')
-    out.append(f'<path fill="#F5F6F4" opacity="0.85" d="{path_data(contours(), scale=u)}"/>')
+    out.append(f'<path fill="{tok("color.white.base")}" opacity="0.85" d="{path_data(contours(), scale=u)}"/>')
     pts = lambda ps: " ".join(f"{x * u},{y * u}" for x, y in ps)
     frames = [lambda ps: [(DEPTH - APEX_IN - x, STEM - y + 2 * GAP) for x, y in ps],
               lambda ps: [(x + DEPTH + GAP - APEX_IN, y) for x, y in ps]]
     polys = "".join(f'<polygon points="{pts(f(p))}"/>' for f in frames for p in (TRI, COUNTER))
-    out.append(f'<g fill="none" stroke="#FF6A2A" stroke-width="{u * 0.12}" stroke-dasharray="{u * 0.5},{u * 0.3}">{polys}</g>')
+    out.append(f'<g fill="none" stroke="{tok("color.orange.500")}" stroke-width="{u * 0.12}" stroke-dasharray="{u * 0.5},{u * 0.3}">{polys}</g>')
     x0 = DEPTH + GAP - APEX_IN
-    out.append(f'<polygon fill="none" stroke="#69BFFF" stroke-width="{u * 0.12}" points="{pts([(x0, 0), (x0 + 28, 16), (x0, 16)])}"/>')
+    out.append(f'<polygon fill="none" stroke="{tok("semantic.state.info")}" stroke-width="{u * 0.12}" points="{pts([(x0, 0), (x0 + 28, 16), (x0, 16)])}"/>')
     out.append('</svg>')
     return "\n".join(out) + "\n"
 
@@ -134,7 +140,7 @@ def construction(u=4):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
-    ap.add_argument("--fill", default="#F5F6F4")
+    ap.add_argument("--fill", default=colours.LOGO["light"])
     ap.add_argument("--grid", action="store_true", help="write the construction drawing instead")
     a = ap.parse_args()
     open(a.out, "w").write(construction() if a.grid else svg(a.fill))

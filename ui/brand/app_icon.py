@@ -14,6 +14,7 @@ import argparse, math, pathlib, shutil, subprocess, sys, tempfile
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
+import colours  # noqa: E402
 import mark  # noqa: E402
 
 CANVAS = 1024
@@ -21,9 +22,9 @@ BODY = 824                                    # Apple's icon grid
 SQUIRCLE_N = 5.0                              # superellipse exponent, close to Apple's continuous corners
 MARK_SHARE = 0.56                             # the mark's width in the body, as the avatar's lockup
 SS = 4                                        # supersampling
-LIGHT = (0xF5, 0xF6, 0xF4)                    # color.white
-BASE = ((0x1D, 0x21, 0x25), (0x15, 0x18, 0x1B), (0x0D, 0x0F, 0x11))   # the avatar's backdrop
-POOL = (0xAA, 0xB9, 0xCD)
+LIGHT = colours.rgb(colours.LOGO["light"])    # the light mark
+BASE = tuple(colours.rgb(c) for c in colours.BACKDROP["stops"])   # the avatar's backdrop (backdrop.toml)
+POOL = colours.rgb(colours.BACKDROP["pool"])
 
 
 def flatten(segs, steps=24):

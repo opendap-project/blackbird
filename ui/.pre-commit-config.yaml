@@ -37,6 +37,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^tokens/
+      - id: brand-goldens
+        name: brand generators byte-identical to the committed files (brand/test_goldens.py)
+        entry: python3 -m unittest brand/test_goldens.py
+        language: system
+        pass_filenames: false
+        files: ^(brand/|export/brand/|tokens/opendap\.tokens\.json$)
       - id: icons-current
         name: icons generated (icons/icons.py --check)
         entry: python3 icons/icons.py --check
