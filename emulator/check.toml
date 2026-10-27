@@ -1,0 +1,36 @@
+# The lifecycle checks of this repository (schema opendap.check/v1, toolkit-host docs/specs/workspace-schemas.md).
+# Two Rust workspaces: viewer (runs on the host) and board (runs in the guest).
+schema = "opendap.check/v1"
+
+[[stage.fast]]
+name = "rustfmt-viewer"
+run = ["cargo", "fmt", "--manifest-path", "viewer/Cargo.toml", "--all", "--check"]
+
+[[stage.fast]]
+name = "rustfmt-board"
+run = ["cargo", "fmt", "--manifest-path", "board/Cargo.toml", "--all", "--check"]
+
+[[stage.fast]]
+name = "python-tests"
+run = ["python3", "-m", "unittest", "discover", "-s", "tests", "-q"]
+
+[[stage.full]]
+name = "clippy-viewer"
+run = ["cargo", "clippy", "--manifest-path", "viewer/Cargo.toml", "--workspace", "--all-targets", "--", "-D", "warnings"]
+
+[[stage.full]]
+name = "clippy-board"
+run = ["cargo", "clippy", "--manifest-path", "board/Cargo.toml", "--workspace", "--all-targets", "--", "-D", "warnings"]
+
+[[stage.full]]
+name = "test-viewer"
+run = ["cargo", "test", "--manifest-path", "viewer/Cargo.toml", "--workspace"]
+
+[[stage.full]]
+name = "test-board"
+run = ["cargo", "test", "--manifest-path", "board/Cargo.toml", "--workspace"]
+
+# Last: keep the build outputs out of the Spotlight index (skips while any build runs).
+[[stage.full]]
+name = "noindex"
+run = ["odapkit", "noindex", "--apply"]

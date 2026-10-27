@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""sound-soak: the virtual T1's sound, played and recorded continuously for minutes, checked for
+continuity and memory (virtual-devices ADR 0003; T1-046, T1-047).
+
+Usage: tests/sound-soak [--minutes M] [--out DIR]
+
+Needs the device running with its simulator window on its Instruments page, the input set to the
+test tone, both Measure switches on, so the window does all its work meanwhile, and
+"Play on this computer" off: the output reference is full-scale noise, never for ears or
+speakers.
+
+  output   a random full-range 48 kHz 16-bit stereo reference of M minutes, played in the guest
+           (aplay on the sound card) while odap-vdev-audio records the guest's output: the capture
+           must carry it bit for bit, every frame.
+  input    the guest records the window's test tone (arecord, stereo) for the same minutes:
+           analysed one second at a time, no block may stand out (a dropout, a click or a phase
+           jump raises its THD+N) and no run of exact zeros may last a millisecond; and the
+           window records what it gave the guest, which the guest's file must carry bit for bit.
+  memory   the window's and QEMU's resident memory, every 30 s: after the first minute it must
+           not grow (more than 4 MiB from the first to the last third's median).
+
+Prints a summary (JSON) and exits non-zero on any failure. Leaves its files in --out.
+"""
+
+# SPDX-FileCopyrightText: 2026 The OpenDAP Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import argparse
+import json
+import os
+import statistics
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import wave
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+VDEV = ROOT / "bin/odap-vdev"
+AUDIO = ROOT / "viewer/target/release/odap-vdev-audio"
+STATE = Path.home() / ".local/state/opendap/vdev/virtual-t1"
+
+
+def vdev(*args, **kw):
+    return subprocess.run([str(VDEV), *args], capture_output=True, text=True, **kw)
+
+
+def ssh(cmd, **kw):
+    return subprocess.run([str(VDEV), "ssh", "--", cmd], capture_output=True, **kw)
+
+
+def rss_mib(pid):
+    out = subprocess.run(["ps", "-o", "rss=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
+    return int(out) / 1024 if out else None
+
+
+def pid_of(pattern):
+    out = subprocess.run(["pgrep", "-f", pattern], capture_output=True, text=True).stdout.split()
+    return int(out[0]) if out else None
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--minutes", type=float, default=10)
+    p.add_argument("--out", type=Path, default=Path(tempfile.mkdtemp(prefix="sound-soak-")))
+    a = p.parse_args()
+    a.out.mkdir(parents=True, exist_ok=True)
+    seconds = int(a.minutes * 60)
+    status = vdev("status")
+    qmp = next((l.split()[1] for l in status.stdout.splitlines() if l.strip().startswith("qmp:")), None)
+    view, qemu = pid_of("MacOS/odap-vdev-view"), pid_of("qemu-system-aarch64")
+    if not (qmp and view and qemu):
+        sys.exit("sound-soak: the device and its window must be running")
+    prefs = json.loads((STATE / "view.json").read_text()) if (STATE / "view.json").exists() else {}
+    if prefs.get("in_source") != "tone" or not (prefs.get("out_analyze") and prefs.get("in_analyze")) or prefs.get("tab") != 1:
+        sys.exit("sound-soak: show the window's Instruments page, its input set to the test tone and both Measure switches on")
+    if prefs.get("out_play") is not False:
+        sys.exit("sound-soak: turn \"Play on this computer\" off first: the reference is full-scale noise")
+    if not AUDIO.exists():
+        subprocess.run(["cargo", "build", "--release", "-q", "-p", "odap-vdev-audio", "--manifest-path", str(ROOT / "viewer/Cargo.toml")], check=True)
+
+    # The reference: random full-range samples (urandom), M minutes of 48 kHz 16-bit stereo.
+    ref = a.out / "reference.wav"
+    with wave.open(str(ref), "wb") as w:
+        w.setnchannels(2), w.setsampwidth(2), w.setframerate(48000)
+        for _ in range(seconds):
+            w.writeframes(os.urandom(48000 * 4))
+    with open(ref, "rb") as f:
+        if ssh("cat > /tmp/soak-reference.wav", stdin=f).returncode:
+            sys.exit("sound-soak: could not copy the reference to the device")
+
+    samples, stop = [], threading.Event()
+
+    def guest_used():
+        # The guest's own use (total less available), so QEMU's growth can be told from the
+        # guest touching memory it had not yet.
+        out = ssh("awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{print (t-a)/1024}' /proc/meminfo").stdout
+        try:
+            return float(out.strip())
+        except ValueError:
+            return None
+
+    def sample():
+        t0 = time.monotonic()
+        while not stop.wait(30 if samples else 0):
+            samples.append((round(time.monotonic() - t0), rss_mib(view), rss_mib(qemu), guest_used()))
+
+    sampler = threading.Thread(target=sample, daemon=True)
+    sampler.start()
+    # The input, recorded by the guest at the same time as the output plays.
+    rec_in = subprocess.Popen([str(VDEV), "ssh", "--", f"arecord -q -D hw:0,0 -f S16_LE -r 48000 -c 2 -d {seconds} /tmp/soak-input.wav; echo xruns: $?"],
+                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    given = a.out / "given.wav"
+    rec_given = subprocess.Popen([str(AUDIO), "record", "--qmp", qmp, "--direction", "in", "--seconds", str(seconds - 2), "--wait", "30", "--out", str(given)],
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    capture = a.out / "output.wav"
+    rec_out = subprocess.run([str(AUDIO), "record", "--qmp", qmp, "--seconds", str(seconds + 1), "--wait", "30",
+                              "--run", f"{VDEV} ssh -- aplay -q -D hw:0,0 /tmp/soak-reference.wav", "--out", str(capture)],
+                             capture_output=True, text=True)
+    in_log = rec_in.communicate()[0]
+    given_log = rec_given.communicate()[0]
+    stop.set()
+    sampler.join()
+    with open(a.out / "input.wav", "wb") as f:
+        f.write(ssh("cat /tmp/soak-input.wav").stdout)
+    ssh("rm -f /tmp/soak-reference.wav /tmp/soak-input.wav")
+
+    bad = []
+    cmp = json.loads(subprocess.run([str(AUDIO), "compare", str(ref), str(capture), "--json"], capture_output=True, text=True).stdout or "{}")
+    # A stream's last partial block, held back by QEMU and played at the start of the next one
+    # (ADR 0003), may come before the reference: a known limit, reported apart.
+    held = cmp.get("leading_frames", 0)
+    if not cmp.get("exact"):
+        bad.append(f"output not bit-exact: {cmp or rec_out.stderr.strip()}")
+    elif cmp.get("compared_frames", 0) + held < (seconds - 1) * 48000:
+        bad.append(f"output: only {cmp.get('compared_frames')} of {seconds * 48000} frames carried")
+    cmp_in = json.loads(subprocess.run([str(AUDIO), "compare", str(given), str(a.out / "input.wav"), "--json"], capture_output=True, text=True).stdout or "{}")
+    if not cmp_in.get("exact"):
+        bad.append(f"input not bit-exact against what the window gave: {cmp_in or given_log.strip()}")
+    ana = json.loads(subprocess.run([str(AUDIO), "analyze", str(a.out / "input.wav"), "--blocks", "1", "--json"], capture_output=True, text=True).stdout or "{}")
+    blocks = ana.get("blocks", {}).get("channels", [])
+    for i, c in enumerate(blocks):
+        if c["blocks_without_a_sine"] or c["worst_thd_n_db"] is None or c["worst_thd_n_db"] > c["best_thd_n_db"] + 3:
+            bad.append(f"input channel {i + 1}: a block stands out: {c}")
+        if c["longest_zero_run_ms"] >= 1:
+            bad.append(f"input channel {i + 1}: {c['longest_zero_run_ms']:.2f} ms of zeros")
+    if not blocks or ana.get("seconds", 0) < seconds - 1:
+        bad.append(f"input: {ana.get('seconds', 0):.1f} s recorded of {seconds} ({in_log.strip()[-200:]})")
+    if "overrun" in in_log or "underrun" in in_log:
+        bad.append("the guest reported xruns: " + in_log.strip()[-200:])
+    warm = [s for s in samples if s[0] >= 60]
+    growth = {}
+    if len(warm) >= 3:
+        third = max(1, len(warm) // 3)
+        for name, k in (("window", 1), ("qemu", 2), ("guest", 3)):
+            first = statistics.median(s[k] or 0 for s in warm[:third])
+            last = statistics.median(s[k] or 0 for s in warm[-third:])
+            growth[name] = round(last - first, 2)
+            if last - first > 4:
+                bad.append(f"{name}'s memory grew {last - first:.1f} MiB")
+    summary = {
+        "minutes": a.minutes,
+        "output": cmp,
+        "known_limits": {"previous_stream_tail_frames": held} if held else {},
+        "input": blocks,
+        "input_transport": cmp_in,
+        "memory_mib": [{"s": s[0], "window": round(s[1] or 0, 1), "qemu": round(s[2] or 0, 1), "guest_used": round(s[3] or 0, 1)} for s in samples],
+        "memory_growth_mib": growth,
+        "failures": bad,
+        "files": str(a.out),
+    }
+    print(json.dumps(summary, indent=2))
+    sys.exit(1 if bad else 0)
+
+
+if __name__ == "__main__":
+    main()
