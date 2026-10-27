@@ -3,8 +3,6 @@
 
 use super::*;
 
-use crate::forward::KEY_TAB;
-
 /// A held focus step's repeat accelerates exponentially and stops where it is released, with no
 /// inertia (SYS-073): after Android's
 /// key-repeat delay, the first step comes after REPEAT_FIRST, and each next interval is
@@ -16,21 +14,20 @@ pub(super) const REPEAT_FIRST: f64 = opendap_input::thresholds::REPEAT_FIRST_MS;
 pub(super) const REPEAT_FACTOR: f64 = opendap_input::thresholds::REPEAT_FACTOR;
 pub(super) const REPEAT_FASTEST: f64 = opendap_input::thresholds::REPEAT_FASTEST_MS;
 
-/// One more Tab while a volume button is held in focus navigation: Tab released and pressed
-/// again, Shift (for Volume +) still down.
-pub(super) fn step_again(composer: &mut Composer) {
-    let Some(keyboard) = composer.seat.get_keyboard() else {
+/// One more focus step while a volume button is held: the keys its press sent, released and
+/// pressed again (crate::forward::step_again), so Volume + is Shift+Tab every time.
+pub(super) fn step_again(composer: &mut Composer, role: opendap_device::Role) {
+    let Some(&keys) = composer.keys.forwarded.get(&role) else {
         return;
     };
-    for state in [KeyState::Released, KeyState::Pressed] {
-        keyboard.input::<(), _>(
-            composer,
-            Keycode::new(KEY_TAB + 8),
-            state,
-            SERIAL_COUNTER.next_serial(),
-            smithay::backend::input::InputTime::now(),
-            |_, _, _| FilterResult::Forward,
-        );
+    let time = smithay::backend::input::InputTime::now();
+    for (code, pressed) in crate::forward::step_again(keys) {
+        let state = if pressed {
+            KeyState::Pressed
+        } else {
+            KeyState::Released
+        };
+        send_key(composer, code, state, time);
     }
 }
 
@@ -130,7 +127,7 @@ fn repeat_held(
             match meaning {
                 Semantic::VolumeUp | Semantic::VolumeDown => info!(?role, "volume step, held"),
                 _ => {
-                    step_again(composer);
+                    step_again(composer, role);
                     debug!(interval_ms = interval as u64, "focus step, held");
                 }
             }

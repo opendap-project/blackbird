@@ -691,6 +691,38 @@ def status_bar_battery(d):
                   f"echo {capacity} > {POWER}/battery_capacity")
     return bad
 
+
+def repeat_direction(d):
+    """ctl-repeat-direction: held, each volume button keeps moving the focus its own way and stops
+    at its end (T1 controls spec §1.3, input events §3.7), in the UI primitives activity's list:
+    Volume + held past the first line stays there, Volume − held runs to the last line and stays,
+    and Volume + held from there moves up. Where the ring is on the display says which line has
+    the focus only at the list's ends; between them the view scrolls with it."""
+    d.keyboard("esc")
+    d.keyboard("esc")
+    time.sleep(0.5)
+    d.press("volume-up")  # shows the focus, on the list's first line
+    first = d.ring("dir-first")
+    if first is None:
+        return ["the focus did not show on the list"]
+    bad = []
+    d.press("volume-down", 4)
+    d.hold("volume-up", 5.0)
+    top = d.ring("dir-top", settle=0.6)
+    if top != first:
+        bad.append(f"Volume + held past the first line did not stay there: {first} -> {top}")
+    d.hold("volume-down", 8.0)
+    last = d.ring("dir-last", settle=0.6)
+    d.hold("volume-down", 2.0)
+    still = d.ring("dir-last-still", settle=0.6)
+    if last is None or still != last:
+        bad.append(f"Volume − held past the last line did not stay there: {last} -> {still}")
+    d.hold("volume-up", 1.0)
+    up = d.ring("dir-up", settle=0.6)
+    if up is None or last is None or up[1] >= last[1]:
+        bad.append(f"Volume + held from the last line did not move up: {last} -> {up}")
+    return bad
+
 ALL = [
     ("nav_entry", nav_entry, ["nav-entry-20"]),
     ("hidden_first_key", hidden_first_key, ["nav-hidden-action"]),
@@ -706,6 +738,7 @@ ALL = [
     ("hang_input", hang_input, ["ctl-hang-input"]),
     ("layers_touch", layers_touch, ["nav-popover-touch", "blur-backdrop"]),
     ("repeat", repeat, ["ctl-repeat"]),
+    ("repeat_direction", repeat_direction, ["ctl-repeat-direction"]),
     ("turns", turns, ["turns-dial"]),
     ("status_bar_owner", status_bar_owner, ["gest-bar-owner"]),
     ("status_bar_battery", status_bar_battery, ["sb-battery"]),

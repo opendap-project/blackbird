@@ -15,7 +15,7 @@ Every combination of a primitive with the conditions it meets (input source, foc
 | gestures | 15 |  |  |  | 1 |  | 16 |
 | layers | 6 |  |  |  |  |  | 6 |
 | layout | 6 |  |  |  |  |  | 6 |
-| controls | 7 |  |  |  |  |  | 7 |
+| controls | 8 |  |  |  |  |  | 8 |
 | navigation | 19 | 1 |  |  |  |  | 20 |
 | large content | 8 |  |  |  |  |  | 8 |
 | motion | 9 |  |  |  | 1 |  | 10 |
@@ -29,18 +29,18 @@ Every combination of a primitive with the conditions it meets (input source, foc
 | media | 2 |  |  |  |  |  | 2 |
 | spaces | 1 |  |  |  |  |  | 1 |
 | OS Shell drafts |  |  |  |  |  | 1 | 1 |
-| **All** | **99** | **3** | **0** | **0** | **2** | **1** | **105** |
+| **All** | **100** | **3** | **0** | **0** | **2** | **1** | **106** |
 
 ### By level
 
-Of the 102 cases verified or covered by tests:
+Of the 103 cases verified or covered by tests:
 
 | Level | Cases |
 |---|---|
-| L0 | 54 |
+| L0 | 55 |
 | L1 | 47 |
 | L2 | 32 |
-| L3 | 40 |
+| L3 | 41 |
 | L4 | 0 |
 | L3m | 74 |
 
@@ -94,6 +94,7 @@ Of the 102 cases verified or covered by tests:
 | Id | Primitive | Conditions | Case | Expected | Observed | Evidence | Status | Levels |
 |---|---|---|---|---|---|---|---|---|
 | ctl-repeat | repeat | buttons | Volume held in a virtual list | accelerating repeat, stops on release | 139 albums in 8 s on the shelf | testbed Navigation | verified (2026-10-26) | L3 L3m |
+| ctl-repeat-direction | repeat | buttons | Volume + and Volume − held past the ends of a list | each moves its own way and stays at its end | Volume + held past the first line stays there (it ran to the last before: each step leaned on a Shift the screen's end stop had let go; each step now sends the whole chord) | testbed list | verified (2026-10-27) | L0 L3 |
 | ctl-hang-input | input during a hang | buttons | Volume pressed while the activity hangs 5 s | dropped (decided 2026-10-24) | dropped; the focus stays; the next press after recovery acts | system (this commit): ping 100 ms after a key, xdg_wm_base | verified (2026-10-25) | L3 L3m |
 | ctl-vol-long | repeat | buttons | Volume held while it is the volume | the volume keeps stepping, accelerating, never the track (T1-062 amended 2026-10-26) | held 1.5 s with sound playing: one step on down, then 9 held steps at the focus repeat's timing; no track; the focus kept | tests/e2e volume_buttons; the composer journal; opendap-input double (L0) and double_properties (L1) | verified (2026-10-26) | L0 L3 |
 | ctl-vol-double | double press | buttons | Volume pressed twice within 300 ms while it is the volume | the first step taken back, the next / previous track; the single press not delayed | one step on the first down, then undone and one track at the second down (190 ms apart) | tests/e2e volume_buttons; the composer journal; opendap-input double (L0) and double_properties (L1) | verified (2026-10-26) | L0 L1 L3 |

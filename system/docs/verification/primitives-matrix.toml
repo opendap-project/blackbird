@@ -326,6 +326,21 @@ checks = ["e2e/repeat"]
 date = "2026-10-26"
 
 [[case]]
+id = "ctl-repeat-direction"
+area = "controls"
+primitive = "repeat"
+conditions = ["buttons"]
+case = "Volume + and Volume − held past the ends of a list"
+expected = "each moves its own way and stays at its end"
+observed = "Volume + held past the first line stays there (it ran to the last before: each step leaned on a Shift the screen's end stop had let go; each step now sends the whole chord)"
+evidence = "testbed list"
+status = "verified"
+levels = ["L0", "L3"]
+verifies = ["T1-062"]
+checks = ["e2e/repeat_direction"]
+date = "2026-10-27"
+
+[[case]]
 id = "ctl-hang-input"
 area = "controls"
 primitive = "input during a hang"

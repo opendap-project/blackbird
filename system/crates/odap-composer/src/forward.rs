@@ -94,6 +94,15 @@ pub fn release(role: Role, volume: &mut [DoublePress; 2], now_ms: u64) {
     }
 }
 
+/// One more step of a held focus step, as the keys go (code, pressed): the press's whole chord
+/// released, in reverse, and pressed again, as a person tapping Shift+Tab again would. No step
+/// leans on a modifier the activity saw earlier: an activity that let Shift go meanwhile (a
+/// screen's end stop does, Blackbird UI) would otherwise take Volume + for Volume −.
+pub fn step_again(keys: &[u32]) -> impl Iterator<Item = (u32, bool)> + '_ {
+    let up = keys.iter().rev().map(|&k| (k, false));
+    up.chain(keys.iter().map(|&k| (k, true)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,6 +120,24 @@ mod tests {
         );
         let prev = at(Role::VolumeUp, true, false).unwrap();
         assert_eq!(prev.keys, &[KEY_LEFTSHIFT, KEY_TAB][..]);
+    }
+
+    #[test]
+    fn a_held_step_again_is_the_whole_chord_again() {
+        let prev = at(Role::VolumeUp, true, false).unwrap();
+        let steps: Vec<_> = step_again(prev.keys).collect();
+        assert_eq!(
+            steps,
+            [
+                (KEY_TAB, false),
+                (KEY_LEFTSHIFT, false),
+                (KEY_LEFTSHIFT, true),
+                (KEY_TAB, true)
+            ]
+        );
+        let next = at(Role::VolumeDown, true, false).unwrap();
+        let steps: Vec<_> = step_again(next.keys).collect();
+        assert_eq!(steps, [(KEY_TAB, false), (KEY_TAB, true)]);
     }
 
     #[test]
