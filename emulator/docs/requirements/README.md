@@ -7,7 +7,7 @@ Requirements for the virtual OpenDAP devices that run on a developer host.
 | VD-001 | A virtual device shall mimic its hardware as closely as possible: display, controls, touch, audio output, battery and charging, storage, microSD, USB in host and device mode, networking, and the coprocessor and HAT presence where they can be emulated. | must | Confirmed |
 | VD-002 | A virtual device shall work with the `opendap` CLI and OpenDAP Desktop running on the host, as the hardware would. | must | Confirmed |
 | VD-003 | A virtual device shall have network access, to the local network and to the internet. | must | Confirmed |
-| VD-004 | Virtual devices shall live in their own repository, separate from the toolkit and from the operating system. | must | Confirmed |
+| VD-004 | Virtual devices shall be their own module, with their own requirements, separate from the toolkit and from the operating system: `blackbird/emulator` in the Blackbird root. | must | Confirmed |
 | VD-005 | A virtual device shall be organised by its hardware: a combination of hardware layers (SoC, board, components, faceplate, HATs), with the device model defined on top of that combination. | must | Confirmed |
 | VD-006 | Everything that lets a device be emulated on the host during development shall be provided, for every requirement, as far as possible; what cannot be emulated is shown by the toolkit (cli TK-018). | must | Confirmed |
 | VD-007 | The window of a virtual device shall always open at the right size, and keep it while the device boots. | must | Confirmed |
@@ -23,4 +23,5 @@ Requirements for the virtual OpenDAP devices that run on a developer host.
 - VD-007: "the right size" is the panel's pixels at 1:1, so the picture stays crisp; on a 34-inch 3440 × 1440 monitor that is already larger than the T1's panel (about 74 mm against 49 mm wide).
 - VD-008 to VD-011: debugging sound in the simulator with the same analysis used for motion, above all the output, to audit its audiophile qualities; the inputs selectable among all the host's sources once a real input is bridged; instrumentation of any signal, the hardware's as well as the system's (for example the music that leaves the SoC for the DAC by its own interface); a task manager as its own tab, as on Windows or a typical Linux. How the sound reaches the window: [ADR 0003](../adr/0003-sound-over-dbus.md).
 - An audio file as an input source (the guest records a file played into its microphone) was raised as an idea; not built.
+- VD-004 was reworded on 2026-10-27 by [RFC 0017](https://github.com/opendap-project/rfcs/blob/main/text/0017-naming-and-topology.md): it required virtual devices in their own repository; under one repository per root they are a module of the Blackbird root, kept apart as a module.
 - Specification: [virtual devices](../specs/virtual-devices.md).
