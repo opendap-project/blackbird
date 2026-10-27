@@ -30,8 +30,8 @@ Requirements for the official UI components and design system of Blackbird OS.
 ## Context
 
 - DS-022: the UI and design system must not assume one hardware's characteristics as the only valid ones, while seeking the best optimisation for each (SYS-068, system ADR 0013). Design system §18.2.
-- DS-021: an icon library of OpenDAP's own, a fork of another or at least the ability to customise. Then: an existing complete family close to the look, complemented only where something is missing. Built as OpenDAP Icons over Tabler Icons, used as upstream draws them, with OpenDAP's own glyphs only where Tabler has none ([ADR 0001](../adr/0001-tabler-icons-as-the-base-family.md), [`icons/`](../../icons/README.md)); replacement by name covers customisation.
+- DS-021: built as OpenDAP Icons over Tabler Icons, used as upstream draws them, with OpenDAP's own glyphs only where Tabler has none ([ADR 0001](../adr/0001-tabler-icons-as-the-base-family.md), [`icons/`](../../icons/README.md)); replacement by name covers customisation.
 - DS-015 to DS-020: values in the [design system](../specs/design-system.md) §8.3, §9.3, §9.6, §9.7, §10.1 and §15.
 - DS-014: a 3.5" screen is not a phone; the values are in the design system §8.3.
-- DS-008 to DS-012: from the maintainers' design direction, reconciled with the decisions already taken (Slint renderer, 166 ppi panel, 60 fps budget, status LED colours, five shipped languages). Draft until the maintainers confirm the wording.
+- DS-008 to DS-012: from the maintainers' design direction, reconciled with the decisions already taken (Slint renderer, 166 ppi panel, 60 fps budget, status LED colours, five shipped languages).
 - DS-013: the T1's Volume + / Volume − pair (T1-059) is the reference instance; on screen it covers button groups and segmented controls such as gain, filter, output or mode selectors.
