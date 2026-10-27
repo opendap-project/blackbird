@@ -101,7 +101,7 @@ One bar per device, split by category: Music, Podcasts, Audiobooks, Recordings, 
 
 ## 9. Names of the interface
 
-One name per part, the same in the interface, the docs, the code and its identifiers. "Status bar" is the maintainers' (2026-10-24); the others are the names the specs already use.
+One name per part, the same in the interface, the docs, the code and its identifiers. "Status bar" is the maintainers' (SYS-038); the others are the names the specs already use.
 
 | Name | Is | Never |
 |---|---|---|
@@ -114,6 +114,6 @@ One name per part, the same in the interface, the docs, the code and its identif
 
 ## 10. Still to verify
 
-- Status LED: the T1's code already follows IEC 60073 colours; the device-to-device states (eject first, pairing, activity) were added on 2026-10-23 in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md) §2.2. Consumer conventions (amber charging, blue pairing) are consistent with it but remain **UNVERIFIED** against vendor sources.
+- Status LED: the T1's code already follows IEC 60073 colours; the device-to-device states (eject first, pairing, activity) are in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md) §2.2 (T1-044). Consumer conventions (amber charging, blue pairing) are consistent with it but remain **UNVERIFIED** against vendor sources.
 - Folder behaviour of current portable players over USB. **UNVERIFIED**.
 - The iTunes / Music `Library.xml` import, and the iCloud Drive and Google Drive status wording. **UNVERIFIED**.

@@ -64,7 +64,7 @@ pub fn press(role: Role, ctx: Context) -> Semantic {
 }
 
 /// A long press of `role` in `ctx`: held, a volume button keeps its short press's meaning and
-/// repeats it ([`repeats`]), the volume as the focus (T1-062, amended 2026-10-26); Action's long
+/// repeats it ([`repeats`]), the volume as the focus (T1-062); Action's long
 /// press is the user's choice, none by default.
 pub fn long_press(role: Role, ctx: Context) -> Semantic {
     match role {

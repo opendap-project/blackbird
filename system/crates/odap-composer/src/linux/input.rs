@@ -686,8 +686,8 @@ fn forward(
         }
         // The volume: a step as the button goes down, repeated while it is held (as the focus
         // is); a second press within the double-press time takes the first one's step back and
-        // changes the track (Volume + next, Volume − previous: T1-062, T1-063 as amended
-        // 2026-10-26), as media keys to the activity until the audio engine takes them. No press
+        // changes the track (Volume + next, Volume − previous: T1-062, T1-063), as media keys
+        // to the activity until the audio engine takes them. No press
         // waits for another.
         Semantic::VolumeUp | Semantic::VolumeDown => {
             let up = meaning == Semantic::VolumeUp;
@@ -718,7 +718,7 @@ fn forward(
     composer.forwarded.insert(role, keys);
     // Held, a volume button keeps its meaning: the focus keeps moving, the volume keeps
     // stepping, after REPEAT_DELAY, accelerating down to REPEAT_FASTEST, until it is released
-    // (maintainers, 2026-10-23 and 2026-10-26). Action never repeats.
+    // (T1-062). Action never repeats.
     if semantic::repeats(input_role, ctx) {
         composer.repeat_gen += 1;
         let generation = composer.repeat_gen;

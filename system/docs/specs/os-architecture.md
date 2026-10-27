@@ -392,7 +392,7 @@ The verification checks this spec adds:
 | Device capabilities | With NFC, haptics or TPM absent on the virtual T1, the features show disabled with their reasons |
 | Accessibility | Every template's AT-SPI tree has roles and names; `odap-voice` reads a scripted flow |
 
-## 12. Resolved points (2026-10-23)
+## 12. Resolved points
 
 Resolved from the project's rules and earlier decisions:
 

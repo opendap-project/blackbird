@@ -174,7 +174,7 @@ The buttons give one axis: Volume moves, Action takes. One axis cannot walk a lo
 - **← → at any time.** A keyboard's arrows change a focused adjustable without engaging it, and walk a stop's children from the side they point to (← enters at the far end); they mirror right to left, Volume never does.
 - **What releases.** Action again, Escape, moving the focus away, a touch outside the engaged node (a touch inside keeps the levels it is in), the focus hiding, the display going off, a layer opening over it, the engaged node leaving the tree. The focus stays where the buttons can continue: on the stop, when it was inside one.
 - **Layers.** Opening one releases the levels below, puts the focus on its primary action (else its first stop) and remembers the opener; closing it gives the focus back to the opener. A modal traps (Volume wraps, nothing outside is reachable); a popover does not wrap; toasts and the status bar never take the focus. The status panel is a modal.
-- **Disabled is skipped** (maintainers, 2026-10-24, amending ADR 0003): it keeps its place and its reason shows, but neither the buttons nor a touch give it the focus, and a disabled container's children are skipped with it; a disabled primary action is not landed on at entry. An element disabled while it has the focus keeps it (Action does nothing) until the buttons move on from its place, as Android does.
+- **Disabled is skipped** ([blackbird-ui ADR 0003](https://github.com/opendap-project/blackbird-ui/blob/main/docs/adr/0003-screen-states.md)): it keeps its place and its reason shows, but neither the buttons nor a touch give it the focus, and a disabled container's children are skipped with it; a disabled primary action is not landed on at entry. An element disabled while it has the focus keeps it (Action does nothing) until the buttons move on from its place, as Android does.
 - **Ends.** Every sequence the buttons, the arrows or a hand walks (a screen, a navigation level, a list, a shelf, a pager, a value stepped through its options) takes what happens past its ends from one primitive, `opendap-input::ends`: **stop** or **cycle**.
   - **Stop is the default.** The end is information: the library, the queue, the settings are all seen. Wrapping would hide it and, in a long list, throw the focus thousands of items away with one press; no platform's lists wrap (iOS, Android; tvOS and Android TV focus). Volume past the first or the last element of a screen stays there (a boundary cue may show it); past an engaged stop's ends the focus comes back to the stop, released; past a list's ends it goes on to what follows.
   - **Cycle** where the content has no first and no last: hours, minutes, days of the week, months, an angle, a hue (as iOS's and Android's time pickers do), declared on the stop, the list or the pager that holds it. And where the focus cannot leave: a modal traps, so it cycles. A sequence whose end is not known yet (pages still arriving) stops.
@@ -199,7 +199,7 @@ The buttons give one axis: Volume moves, Action takes. One axis cannot walk a lo
 
 ### 3.8 Text, fields and the keyboard
 
-Fields are built on the same primitives as everything else, one layer on top of another, so the system keyboard, the OS Shell's own fields, every activity's form and a keyboard someone else writes (in the simulator or a custom image) share them (`opendap-forms`; `zwp_input_method_v2` and `text-input-v3` for the protocols). Decided 2026-10-24: primitives at every layer, from raw input to the domain and the activity's own.
+Fields are built on the same primitives as everything else, one layer on top of another, so the system keyboard, the OS Shell's own fields, every activity's form and a keyboard someone else writes (in the simulator or a custom image) share them (`opendap-forms`; `zwp_input_method_v2` and `text-input-v3` for the protocols). Primitives at every layer, from raw input to the domain and the activity's own ([ADR 0014](../adr/0014-composition-and-test-levels.md)).
 
 | Layer | What | Primitive |
 |---|---|---|
@@ -390,7 +390,7 @@ Every node an event goes through has a kind and a name, and an address from the 
 
 ### 6.5 The catalogue, by layer
 
-Every primitive, directive and modifier the composer's domain needs, layer by layer, so the OS Shell and then each activity built with the SDK extend it rather than invent beside it (maintainers, 2026-10-24: primitives first, across every layer). **Built** is in `opendap-input` with tests; **Specified** is defined here and comes with the layer that needs it. The lessons from SwiftUI, Flutter and Compose are named where they apply.
+Every primitive, directive and modifier the composer's domain needs, layer by layer, so the OS Shell and then each activity built with the SDK extend it rather than invent beside it (primitives first, across every layer: [ADR 0014](../adr/0014-composition-and-test-levels.md)). **Built** is in `opendap-input` with tests; **Specified** is defined here and comes with the layer that needs it. The lessons from SwiftUI, Flutter and Compose are named where they apply.
 
 | Layer | Primitives | Directives and modifiers | State |
 |---|---|---|---|

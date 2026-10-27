@@ -57,7 +57,7 @@ pub struct NavNode {
     /// The header's way back: reached by moving to it, never landed on at entry.
     pub way_back: bool,
     /// Disabled keeps its place and shows its reason, but navigation skips it, and a disabled
-    /// container's children with it (maintainers, 2026-10-24).
+    /// container's children with it (blackbird-ui ADR 0003).
     pub enabled: bool,
     /// On its way out (an exit animation): no longer reachable, though still drawn.
     pub leaving: bool,
