@@ -17,6 +17,7 @@ This repository follows the [REUSE](https://reuse.software) layout: license text
 - Default: **Mozilla Public License 2.0** (`MPL-2.0`)
 - Markdown files: **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`)
 - `docs/`: **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`)
+- `brand/` and `export/brand/` (the OpenDAP mark, wordmark, avatar, app icon and the Blackbird OS lockups): **Creative Commons Attribution-ShareAlike 4.0** (`CC-BY-SA-4.0`); their generators `brand/*.py`: **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`)
 - `export/fonts/`: IBM Plex under the **SIL Open Font License 1.1** (`OFL-1.1`), © IBM Corp.
 
 Copyright © 2026 The OpenDAP Project.

@@ -25,6 +25,18 @@ SPDX-FileCopyrightText = "2026 The OpenDAP Project"
 SPDX-License-Identifier = "CC-BY-SA-4.0"
 
 [[annotations]]
+path = ["brand/**", "export/brand/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 The OpenDAP Project"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "brand/*.py"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 The OpenDAP Project"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
 path = ["export/fonts/*.ttf", "export/fonts/*.otf", "export/fonts/OFL.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "2017 IBM Corp."
