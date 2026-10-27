@@ -44,25 +44,16 @@ Requirements for the Blackbird OS distribution.
 
 - OS-018, OS-033, OS-034 moved to the [virtual-devices](https://github.com/opendap-project/virtual-devices) repository (VD-001 to VD-003), with the virtual devices themselves.
 - OS-035: like any product in production. The debug boot mode is the image's "debug" boot entry (a UKI profile on the virtual board, with consoles and full messages); a product boot is quiet, with no console on the screen or the serial port.
-- OS-021, first pass. The maintainers' rule: leave out only what serves nothing in this project, without over-trimming. What went:
+- OS-021: leave out only what serves nothing in this project, without over-trimming. Left out of the default image:
   - documentation, manual pages and translations of system tools (copyright files stay);
   - Debian's kernel copies on the ESP, which the unified kernel image already carries;
   - kernel modules no OpenDAP device, HAT or peripheral can use: datacenter fabrics and adapters, cluster file systems, hypervisor guests, datacenter network cards, PC graphics cards. About 19 MB of 80 MB; every other module stays.
   - On the virtual board only (its support package): other boards' devicetrees, and an initrd limited to mkosi-initrd's default set plus the board's drivers.
 
-  Measured on the virtual T1:
+  Measured on the virtual T1, before and after these removals (image sizes and time to the splash screen): [`results/virtual-t1/os-021-image-size.json`](../../results/virtual-t1/os-021-image-size.json). LLVM with z3 (about 145 MB) is the largest part left. It stays until an OpenDAP build of Mesa without LLVM exists (OS-023, see Image size below), because Debian's Mesa needs it, and the virtual board renders with llvmpipe.
 
-  | Measure | Before | After |
-  |---|---|---|
-  | Root file system used | 675 MB | 483 MB |
-  | ESP used | 209 MB | 87 MB |
-  | Unified kernel image | 162 MB | 87 MB |
-  | Image compressed with zstd | 379 MB | 241 MB |
-
-  The splash screen now appears 1.97 s after power-on, down from about 3.7 s, because the initrd is smaller. LLVM with z3 (about 145 MB) is the largest part left. It stays until an OpenDAP build of Mesa without LLVM exists (OS-023, see Image size below), because Debian's Mesa needs it, and the virtual board renders with llvmpipe.
-
-- OS-004: reworded so that tuning lives in board support packages, not in the OS (SYS-067, system ADR 0013). The T1 stays the reference board.
-- OS-030, OS-031: confirmed. User-facing forms in the [conventions spec](https://github.com/opendap-project/system/blob/main/docs/specs/user-facing-conventions.md) §7.
+- OS-004: tuning lives in board support packages, not in the OS (SYS-067, system ADR 0013); the T1 is the reference board.
+- OS-030, OS-031: user-facing forms in the [conventions spec](https://github.com/opendap-project/system/blob/main/docs/specs/user-facing-conventions.md) §7.
 - OS-032: keystore always, TEE when available. Today the RK3566 has no mainline OP-TEE, so the keystore starts on protected filesystem storage ([ADR 0013](../adr/0013-usb-device-mode-and-keystore.md)).
 - OS-029: the computer, when present, can prepare the index, artwork at display size and the rest, and the T1 receives them ready; when no client exists, the T1 indexes and prepares what it needs as it needs it (T1-046, T1-052).
 - OS-028: custom distributions based on Blackbird OS (themes, drivers and so on) are expected if the project grows; the repository has to be ready for them. Guide: [`derivatives.md`](../derivatives.md); decision: [ADR 0012](../adr/0012-derivable-image-definition.md).
@@ -73,11 +64,7 @@ Requirements for the Blackbird OS distribution.
 - The virtual T1 emulates the battery with the kernel's `test_power` module, built at image time against the image's own kernel headers (qemu profile only, [ADR 0007](../adr/0007-kernel-modules-through-dkms.md)): `test_battery`, `test_ac` and `test_usb` appear in `/sys/class/power_supply`, driven through `/sys/module/test_power/parameters/` (capacity, status, AC/USB online, voltage, current).
 - Audio direction: PipeWire processes audio as 32-bit float, so bit-perfect 32-bit PCM and DSD need a playback engine with exclusive, direct ALSA access, next to PipeWire for shared use.
 - Image size: acceptable as long as it works well and is not excessive for the device; reduce further only if needed. Dropping LLVM by default may require an OpenDAP build of Mesa limited to Panfrost, because Debian's Mesa depends on LLVM.
-- **T1 hardware needs from board BOM v1.1, updated for BOM v1.5** (`board/docs/specs/bom-v1.md`), to carry into the image:
-  - DKMS modules ([ADR 0007](../adr/0007-kernel-modules-through-dkms.md)): `cs43130` (CS43198 DACs), `bq27xxx_battery` with its I2C front end (`BATTERY_BQ27XXX_I2C`, not set in Debian's arm64 kernel) for the BQ28Z610-R1 fuel gauge, `bq257xx` (MFD and charger; `MFD_BQ257XX` and `CHARGER_BQ257XX` not set in Debian) for the BQ25798 charger with its device ID added until upstream accepts it (board BOM v1.5, [board ADR 0014](https://github.com/opendap-project/board/blob/main/docs/adr/0014-two-cell-battery.md), OS-023), `nxpwifi` and `btnxpuart` (IW612), and `panel-ilitek-ili9488` for the touch faceplate display until Debian ships a kernel ≥ 7.3.
-  - BQ25798 charger (board BOM v1.5; replaces the BQ25895): the mainline `bq257xx` charger init disables the charger watchdog (REG10 = 0), so settings persist if Linux hangs and there is no fallback to the power-on defaults; the board reviews this under BRD-049. The device tree must not describe the charger's OTG output.
-  - INA236 current monitors power up converting continuously; they are configured at boot.
-  - RP2354A coprocessor firmware must select 1.8 V I/O (`VOLTAGE_SELECT = 1`).
+- The T1's needs from the image (DKMS modules, charger and current-monitor settings, coprocessor I/O voltage) are in the T1 [OS support spec](https://github.com/opendap-project/t1/blob/main/docs/specs/os-support.md).
 - OS-020 scope: on the on-board outputs, bit-perfect PCM up to 192 kHz, native DSD up to DSD256 and DoP up to DSD64, the limits of the SoC's I2S block and the CS43198; over USB, bit-perfect up to the external DAC's limit; anything above on-board is converted and labelled ([ADR 0006](../adr/0006-native-dsd-through-upstream-driver-work.md)).
 
 ## Open items
