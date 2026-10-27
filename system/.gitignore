@@ -18,3 +18,6 @@ __pycache__/
 *-backups/
 *.kicad_prl
 fp-info-cache
+
+# Run evidence: odapkit verify collect writes it locally from check results; never committed.
+*.collected.json
