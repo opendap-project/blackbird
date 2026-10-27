@@ -1,0 +1,59 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/opendap-workspace",
+    "crates/opendap-device",
+    "crates/opendap-platform",
+    "crates/opendap-input",
+    "crates/opendap-layout",
+    "crates/opendap-media",
+    "crates/opendap-audio-analysis",
+    "crates/opendap-motion",
+    "crates/opendap-forms",
+    "crates/opendap-splash",
+    "crates/odap-boot",
+    "crates/odap-composer",
+    "crates/odap-product",
+    "crates/odap-testbed",
+    "crates/odap-statusled",
+]
+
+# What toolkit-image odapkit-deploy puts on a running device by default, and what it restarts.
+[workspace.metadata.odap]
+deploy = ["odap-boot", "odap-composer", "odap-product", "odap-testbed", "odap-statusled"]
+restart = ["odap-composer.service", "odap-statusled.service"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.99"
+license = "GPL-3.0-or-later"
+
+[workspace.dependencies]
+opendap-workspace = { path = "crates/opendap-workspace" }
+opendap-device = { path = "crates/opendap-device" }
+opendap-platform = { path = "crates/opendap-platform" }
+opendap-input = { path = "crates/opendap-input" }
+opendap-layout = { path = "crates/opendap-layout" }
+opendap-media = { path = "crates/opendap-media" }
+opendap-audio-analysis = { path = "crates/opendap-audio-analysis" }
+opendap-motion = { path = "crates/opendap-motion" }
+opendap-forms = { path = "crates/opendap-forms" }
+opendap-splash = { path = "crates/opendap-splash" }
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.21"
+toml = "1.1.8"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+tracing-journald = "0.3.2"
+# Real-input FFT for the audio measurements (opendap-audio-analysis), on rustfft.
+realfft = "3.5.0"
+slint = { version = "1.18.1", default-features = false }
+slint-build = "1.18.1"
+# Property tests (dev): invariants over generated combinations (ADR 0014, L1).
+proptest = "1.12.0"
+# Benchmarks only (dev): the baselines the optimisations are measured against (ADR 0008
+# dependency set: criterion), without its parallel runner and plots.
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
+# A pinned revision of master until a release carries the input-method and presentation protocols
+# (ADR 0008 O2, composer and UI runtime spec §2). Upgraded deliberately.
+smithay = { git = "https://github.com/Smithay/smithay.git", rev = "24647fc8d00131eb7f388efed26e35ea316b0018", default-features = false }

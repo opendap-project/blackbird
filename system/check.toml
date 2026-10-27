@@ -1,0 +1,23 @@
+# The lifecycle checks of this repository (schema opendap.check/v1, toolkit-host docs/specs/workspace-schemas.md).
+schema = "opendap.check/v1"
+
+[[stage.fast]]
+name = "rustfmt"
+run = ["cargo", "fmt", "--all", "--check"]
+
+[[stage.full]]
+name = "clippy"
+run = ["cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"]
+
+[[stage.full]]
+name = "test"
+run = ["cargo", "test", "--workspace"]
+
+[[stage.full]]
+name = "clippy-device"
+run = ["odapkit", "cross", "clippy", "-p", "odap-composer", "--", "-D", "warnings"]
+
+# Last: keep the build outputs out of the Spotlight index (skips while any build runs).
+[[stage.full]]
+name = "noindex"
+run = ["odapkit", "noindex", "--apply"]

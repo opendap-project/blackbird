@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc d332dce57452f5118575aa20d721da6b3fee1684af6321431855b23cc05cd462 # shrinks to f = Frame { origin: (0.0, 0.0), size: (200.0, 200.0), unit: 1.0, rtl: false, zone: 20.0, top_zone: 20.0 }, down = (0.0, 0.0), ax = Free, immediate = false, steps = [], e = Up(0.0, 41.61142, 1)

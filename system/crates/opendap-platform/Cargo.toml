@@ -1,0 +1,13 @@
+[package]
+name = "opendap-platform"
+version = "0.0.1"
+description = "The platform contract of Blackbird OS programs: where runtime state lives (the run directory and its markers), one name per path"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
