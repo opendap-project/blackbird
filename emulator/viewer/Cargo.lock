@@ -3272,9 +3272,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "opendap-bus-model"
+version = "0.1.0"
+source = "git+https://github.com/opendap-project/system?rev=f39aaced380392e5e3ca338a7cc1f6bf642e23e7#f39aaced380392e5e3ca338a7cc1f6bf642e23e7"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "opendap-core"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=d0e0051#d0e00517cfdeaccc821be2307a8685378c963b45"
+source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
 dependencies = [
  "opendap-model",
  "serde_json",
@@ -3283,7 +3291,7 @@ dependencies = [
 [[package]]
 name = "opendap-host"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=d0e0051#d0e00517cfdeaccc821be2307a8685378c963b45"
+source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
 dependencies = [
  "opendap-core",
  "opendap-model",
@@ -3292,8 +3300,9 @@ dependencies = [
 [[package]]
 name = "opendap-model"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=d0e0051#d0e00517cfdeaccc821be2307a8685378c963b45"
+source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
 dependencies = [
+ "opendap-bus-model",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -3311,7 +3320,7 @@ dependencies = [
 [[package]]
 name = "opendap-transport-ssh"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=d0e0051#d0e00517cfdeaccc821be2307a8685378c963b45"
+source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
 dependencies = [
  "opendap-core",
  "opendap-host",
@@ -3321,7 +3330,7 @@ dependencies = [
 [[package]]
 name = "opendap-transport-vm"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=d0e0051#d0e00517cfdeaccc821be2307a8685378c963b45"
+source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
 dependencies = [
  "opendap-core",
  "opendap-host",

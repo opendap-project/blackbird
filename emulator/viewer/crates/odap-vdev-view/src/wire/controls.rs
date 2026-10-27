@@ -17,7 +17,15 @@ pub(crate) fn sender(
             qmp,
             qcode_of
                 .iter()
-                .map(|(r, q)| (Role::from(r.as_str()), q.clone()))
+                // The model's controls name roles of the shared vocabulary (RFC 0020); a name that
+                // is not one cannot be sent, and says so.
+                .filter_map(|(r, q)| match r.parse::<Role>() {
+                    Ok(role) => Some((role, q.clone())),
+                    Err(e) => {
+                        eprintln!("odap-vdev-view: {e}");
+                        None
+                    }
+                })
                 .collect(),
         );
         std::thread::spawn(move || {
@@ -51,11 +59,13 @@ pub(crate) fn press(
         if same {
             return;
         }
-        let role = Role::from(role);
+        let Ok(role) = role.parse::<Role>() else {
+            return;
+        };
         let _ = key_tx.send(if down {
-            InputEvent::KeyDown { role: role.clone() }
+            InputEvent::KeyDown { role }
         } else {
-            InputEvent::KeyUp { role: role.clone() }
+            InputEvent::KeyUp { role }
         });
         let role = role.as_str();
         if let Some(ui) = weak.upgrade() {
