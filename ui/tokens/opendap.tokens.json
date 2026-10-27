@@ -1,0 +1,1158 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "$description": "Engineered Matter (the OpenDAP design system) tokens, official theme. Draft (2026-10-22): starting values from the maintainers' design direction, to be validated on the prototype display. Spec: docs/specs/design-system.md. Slint and CSS outputs are generated from this file.",
+  "$extensions": {
+    "org.opendap.theme": {
+      "id": "opendap-official",
+      "name": "OpenDAP",
+      "status": "draft",
+      "version": "0.1.0"
+    }
+  },
+  "color": {
+    "$type": "color",
+    "$description": "Primitive palette. Interface code uses the semantic tokens, not these.",
+    "graphite": {
+      "950": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0667,
+            0.0745,
+            0.0824
+          ],
+          "hex": "#111315"
+        },
+        "$description": "Primary dark background"
+      },
+      "900": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.098,
+            0.1098,
+            0.1216
+          ],
+          "hex": "#191C1F"
+        },
+        "$description": "Main surfaces"
+      },
+      "850": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1255,
+            0.1412,
+            0.1569
+          ],
+          "hex": "#202428"
+        },
+        "$description": "Raised panels"
+      },
+      "800": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1608,
+            0.1804,
+            0.2
+          ],
+          "hex": "#292E33"
+        },
+        "$description": "Secondary controls"
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2275,
+            0.2549,
+            0.2824
+          ],
+          "hex": "#3A4148"
+        },
+        "$description": "Separators (core palette; the semantic border uses #343A40, open question)"
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.451,
+            0.4863,
+            0.5216
+          ],
+          "hex": "#737C85"
+        },
+        "$description": "Muted icons and large labels only: 4.4:1 on graphite.950, below AA for small text"
+      }
+    },
+    "white": {
+      "base": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9608,
+            0.9647,
+            0.9569
+          ],
+          "hex": "#F5F6F4"
+        },
+        "$description": "Primary text and high-contrast details"
+      },
+      "muted": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.7765,
+            0.7961,
+            0.8157
+          ],
+          "hex": "#C6CBD0"
+        },
+        "$description": "Secondary text"
+      }
+    },
+    "orange": {
+      "400": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.5294,
+            0.302
+          ],
+          "hex": "#FF874D"
+        },
+        "$description": "Hover, active highlight and focus"
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.4157,
+            0.1647
+          ],
+          "hex": "#FF6A2A"
+        },
+        "$description": "Brand accent. Foreground on it must be dark (graphite.950, 6.5:1)"
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.7843,
+            0.2784,
+            0.098
+          ],
+          "hex": "#C84719"
+        },
+        "$description": "Pressed state and gradient transitions"
+      }
+    }
+  },
+  "semantic": {
+    "$type": "color",
+    "$description": "Roles used by components. Community themes may change values, never meanings or contrast minimums.",
+    "bg": {
+      "$value": "{color.graphite.950}"
+    },
+    "surface": {
+      "base": {
+        "$value": "{color.graphite.900}"
+      },
+      "raised": {
+        "$value": "{color.graphite.850}"
+      },
+      "active": {
+        "$value": "{color.graphite.800}"
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "{color.white.base}"
+      },
+      "secondary": {
+        "$value": "{color.white.muted}"
+      },
+      "muted": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5765,
+            0.6078,
+            0.6392
+          ],
+          "hex": "#939BA3"
+        },
+        "$description": "Muted but readable text: 6.6:1 on bg, 4.9:1 on surface.active"
+      },
+      "on-brand": {
+        "$value": "{color.graphite.950}",
+        "$description": "Text and icons on an orange fill"
+      }
+    },
+    "brand": {
+      "base": {
+        "$value": "{color.orange.500}"
+      },
+      "hover": {
+        "$value": "{color.orange.400}"
+      },
+      "pressed": {
+        "$value": "{color.orange.700}"
+      }
+    },
+    "state": {
+      "success": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.3922,
+            0.8392,
+            0.6314
+          ],
+          "hex": "#64D6A1"
+        },
+        "$description": "Success, normal. Status LED: green (IEC 60073)"
+      },
+      "warning": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9529,
+            0.7765,
+            0.4196
+          ],
+          "hex": "#F3C66B"
+        },
+        "$description": "Warning, attention required. Status LED: amber"
+      },
+      "error": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.3647,
+            0.3961
+          ],
+          "hex": "#FF5D65"
+        },
+        "$description": "Error, fault, critical. Status LED: red"
+      },
+      "info": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.4118,
+            0.749,
+            1.0
+          ],
+          "hex": "#69BFFF"
+        },
+        "$description": "Information asking for attention or action; system activity. Status LED: blue"
+      },
+      "processing": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.6627,
+            0.5843,
+            1.0
+          ],
+          "hex": "#A995FF"
+        },
+        "$description": "Processing or computational activity. No status LED counterpart (open question)"
+      }
+    },
+    "border": {
+      "base": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2039,
+            0.2275,
+            0.251
+          ],
+          "hex": "#343A40"
+        },
+        "$description": "Low-contrast separator (1.6:1 on bg): never the only cue that identifies a control"
+      },
+      "strong": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.3176,
+            0.3529,
+            0.3882
+          ],
+          "hex": "#515A63"
+        },
+        "$description": "Active elements (2.7:1 on bg)"
+      },
+      "group-divider": {
+        "$value": "{semantic.border.base}",
+        "$description": "Divider between segments of a button group"
+      }
+    },
+    "focus": {
+      "$value": "{color.orange.400}",
+      "$description": "Focus indicator (7.8:1 on bg)"
+    }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "ui": {
+        "$value": [
+          "IBM Plex Sans",
+          "IBM Plex Sans Arabic",
+          "IBM Plex Sans Devanagari",
+          "IBM Plex Sans SC",
+          "system-ui",
+          "sans-serif"
+        ],
+        "$description": "Interface text. Script companions resolve per locale; fallbacks apply to web and Desktop only"
+      },
+      "mono": {
+        "$value": [
+          "IBM Plex Mono",
+          "ui-monospace",
+          "monospace"
+        ],
+        "$description": "Technical values, timestamps, identifiers, diagnostics. Latin only: technical values use Western digits in every locale (decided 2026-10-23)"
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "display": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "headline": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "title": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "body-large": {
+        "$value": {
+          "value": 17,
+          "unit": "px"
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 15,
+          "unit": "px"
+        }
+      },
+      "label": {
+        "$value": {
+          "value": 13,
+          "unit": "px"
+        }
+      },
+      "caption": {
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$description": "The minimum text size"
+      }
+    },
+    "line-height": {
+      "$type": "dimension",
+      "display": {
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      },
+      "headline": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "title": {
+        "$value": {
+          "value": 28,
+          "unit": "px"
+        }
+      },
+      "body-large": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "body": {
+        "$value": {
+          "value": 22,
+          "unit": "px"
+        }
+      },
+      "label": {
+        "$value": {
+          "value": 18,
+          "unit": "px"
+        }
+      },
+      "caption": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "$description": "4 px base. On the T1, 1 px is one panel pixel (0.153 mm at about 166 ppi; scale factor 1).",
+    "1": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "2": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "3": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "4": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "5": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
+    "6": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "8": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "10": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    },
+    "12": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      }
+    },
+    "group-gap": {
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      },
+      "$description": "Gap between segments of a button group when a gap is used instead of a divider"
+    },
+    "target-gap": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      },
+      "$description": "Minimum gap between touch hit areas: 1.2 mm on the T1 panel"
+    },
+    "margin": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$description": "Side margin of the T1 screen (2.4 mm), design system §8.3"
+    },
+    "unit": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      },
+      "$description": "Space within one unit (title and artist, label and value), §10.1"
+    },
+    "group": {
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      },
+      "$description": "Space within a group, §10.1"
+    },
+    "section": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$description": "Space between groups, §10.1"
+    }
+  },
+  "size": {
+    "$type": "dimension",
+    "group-divider": {
+      "$value": {
+        "value": 1,
+        "unit": "px"
+      },
+      "$description": "Divider stroke between segments of a button group"
+    },
+    "target-min": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      },
+      "$description": "Minimum touch target: 7.4 mm on the T1 panel. The on-screen keyboard (32 x 46 px keys) is a documented exception"
+    },
+    "target-primary": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      },
+      "$description": "The screen's primary action (for example play/pause): 9.8 mm on the T1 panel"
+    },
+    "target-frequent": {
+      "$value": {
+        "value": 52,
+        "unit": "px"
+      },
+      "$description": "Frequent actions (skip, back, like): 7.9 mm on the T1 panel"
+    },
+    "row": {
+      "$value": {
+        "value": 52,
+        "unit": "px"
+      },
+      "$description": "One-line list row, §8.3"
+    },
+    "row-two": {
+      "$value": {
+        "value": 60,
+        "unit": "px"
+      },
+      "$description": "Two-line list row, §8.3"
+    },
+    "status-bar": {
+      "$value": {
+        "value": 28,
+        "unit": "px"
+      },
+      "$description": "The status bar's height (system SYS-038, composer spec §2)"
+    },
+    "icon-status": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$description": "The status bar's icons: the status set, drawn with a 1 px stroke at 16 px (design system, icons)"
+    },
+    "header": {
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      },
+      "$description": "A screen's header: the way back, the title and its actions"
+    },
+    "playing-strip": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      },
+      "$description": "The playing strip that keeps Now Playing one tap away"
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Digital radii. Physical radii are set by industrial design and manufacturing.",
+    "control": {
+      "$value": {
+        "value": 10,
+        "unit": "px"
+      }
+    },
+    "card": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "panel": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
+    "device": {
+      "$value": {
+        "value": 28,
+        "unit": "px"
+      }
+    },
+    "pill": {
+      "$value": {
+        "value": 999,
+        "unit": "px"
+      }
+    },
+    "group-outer": {
+      "$value": "{radius.pill}",
+      "$description": "Outer ends of a button group (segmented capsule); inner edges are square"
+    },
+    "round": {
+      "$type": "number",
+      "$value": 0.5,
+      "$description": "A circle: fraction of the element's size. Generated as 50% in CSS and min(width, height) / 2 in Slint"
+    }
+  },
+  "opacity": {
+    "$type": "number",
+    "disabled": {
+      "$value": 0.45,
+      "$description": "A disabled or off element, as a fraction of full opacity (design system, states: Disabled)"
+    }
+  },
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "fast": {
+        "$value": {
+          "value": 120,
+          "unit": "ms"
+        },
+        "$description": "Press states, small toggles"
+      },
+      "standard": {
+        "$value": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "$description": "Most transitions"
+      },
+      "slow": {
+        "$value": {
+          "value": 320,
+          "unit": "ms"
+        },
+        "$description": "Large surface changes"
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "standard": {
+        "$value": [
+          0.2,
+          0,
+          0,
+          1
+        ]
+      }
+    }
+  },
+  "effect": {
+    "$type": "shadow",
+    "shadow-subtle": {
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hex": "#000000",
+          "alpha": 0.18
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 4,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 16,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      }
+    },
+    "glow-brand": {
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.4157,
+            0.1647
+          ],
+          "hex": "#FF6A2A",
+          "alpha": 0.18
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 0,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 18,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      },
+      "$description": "Only on actually luminous elements"
+    }
+  },
+  "plasma": {
+    "$description": "Special visual mode (DS-009): never on routine screens; disabled as a group by the reduced-effects mode.",
+    "color": {
+      "$type": "color",
+      "core": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.9686,
+            0.9294
+          ],
+          "hex": "#FFF7ED"
+        }
+      },
+      "white": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.9922,
+            0.9765
+          ],
+          "hex": "#FFFDF9"
+        }
+      },
+      "orange": {
+        "$value": "{color.orange.500}"
+      },
+      "amber": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.6941,
+            0.3608
+          ],
+          "hex": "#FFB15C"
+        }
+      },
+      "magenta": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.8627,
+            0.4196,
+            1.0
+          ],
+          "hex": "#DC6BFF"
+        }
+      },
+      "violet": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.4667,
+            0.3608,
+            1.0
+          ],
+          "hex": "#775CFF"
+        }
+      },
+      "cyan": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.3569,
+            0.8627,
+            1.0
+          ],
+          "hex": "#5BDCFF"
+        }
+      }
+    },
+    "gradient": {
+      "$type": "gradient",
+      "field": {
+        "$value": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.9922,
+                0.9765
+              ],
+              "hex": "#FFFDF9",
+              "alpha": 0.98
+            },
+            "position": 0
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.6941,
+                0.3608
+              ],
+              "hex": "#FFB15C",
+              "alpha": 0.92
+            },
+            "position": 0.07
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.4157,
+                0.1647
+              ],
+              "hex": "#FF6A2A",
+              "alpha": 0.82
+            },
+            "position": 0.19
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.8627,
+                0.4196,
+                1.0
+              ],
+              "hex": "#DC6BFF",
+              "alpha": 0.43
+            },
+            "position": 0.39
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4667,
+                0.3608,
+                1.0
+              ],
+              "hex": "#775CFF",
+              "alpha": 0.23
+            },
+            "position": 0.54
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.3569,
+                0.8627,
+                1.0
+              ],
+              "hex": "#5BDCFF",
+              "alpha": 0.12
+            },
+            "position": 0.68
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "hex": "#000000",
+              "alpha": 0
+            },
+            "position": 0.78
+          }
+        ],
+        "$description": "Reference plasma gradient (radial)",
+        "$extensions": {
+          "org.opendap.radial": {
+            "shape": "ellipse",
+            "center": [
+              0.46,
+              0.54
+            ]
+          }
+        }
+      },
+      "glow": {
+        "$value": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.9686,
+                0.9294
+              ],
+              "hex": "#FFF7ED",
+              "alpha": 0.95
+            },
+            "position": 0
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.4157,
+                0.1647
+              ],
+              "hex": "#FF6A2A",
+              "alpha": 0.72
+            },
+            "position": 0.15
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.8627,
+                0.4196,
+                1.0
+              ],
+              "hex": "#DC6BFF",
+              "alpha": 0.28
+            },
+            "position": 0.38
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.3569,
+                0.8627,
+                1.0
+              ],
+              "hex": "#5BDCFF",
+              "alpha": 0.12
+            },
+            "position": 0.58
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "hex": "#000000",
+              "alpha": 0
+            },
+            "position": 0.75
+          }
+        ],
+        "$description": "Plasma glow layer (radial), drawn blurred behind content",
+        "$extensions": {
+          "org.opendap.radial": {
+            "shape": "ellipse",
+            "center": [
+              0.48,
+              0.5
+            ]
+          },
+          "org.opendap.layer": {
+            "inset": 0.08,
+            "blur": {
+              "value": 22,
+              "unit": "px"
+            },
+            "opacity": 0.82
+          }
+        }
+      }
+    },
+    "thermal": {
+      "$description": "Atmospheric layer of thermal refraction: three radial fields, blurred. Not optical displacement.",
+      "blur": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "inset": {
+        "$type": "number",
+        "$value": -0.12
+      },
+      "field-warm": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.4157,
+                0.1647
+              ],
+              "hex": "#FF6A2A",
+              "alpha": 0.19
+            },
+            "position": 0
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                0.4157,
+                0.1647
+              ],
+              "hex": "#FF6A2A",
+              "alpha": 0
+            },
+            "position": 0.43
+          }
+        ],
+        "$extensions": {
+          "org.opendap.radial": {
+            "shape": "ellipse",
+            "center": [
+              0.35,
+              0.55
+            ]
+          }
+        }
+      },
+      "field-violet": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4667,
+                0.3608,
+                1.0
+              ],
+              "hex": "#775CFF",
+              "alpha": 0.13
+            },
+            "position": 0
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.4667,
+                0.3608,
+                1.0
+              ],
+              "hex": "#775CFF",
+              "alpha": 0
+            },
+            "position": 0.48
+          }
+        ],
+        "$extensions": {
+          "org.opendap.radial": {
+            "shape": "ellipse",
+            "center": [
+              0.67,
+              0.38
+            ]
+          }
+        }
+      },
+      "field-cyan": {
+        "$type": "gradient",
+        "$value": [
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.3569,
+                0.8627,
+                1.0
+              ],
+              "hex": "#5BDCFF",
+              "alpha": 0.08
+            },
+            "position": 0
+          },
+          {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.3569,
+                0.8627,
+                1.0
+              ],
+              "hex": "#5BDCFF",
+              "alpha": 0
+            },
+            "position": 0.42
+          }
+        ],
+        "$extensions": {
+          "org.opendap.radial": {
+            "shape": "ellipse",
+            "center": [
+              0.6,
+              0.72
+            ]
+          }
+        }
+      }
+    }
+  }
+}

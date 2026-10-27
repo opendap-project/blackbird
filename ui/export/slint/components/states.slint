@@ -1,0 +1,85 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Screen states (ADR 0003): the toast, the empty state and the error state.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint } from "../blueprint.slint";
+import { Layout, DirRow, Ink } from "foundation.slint";
+import { Label } from "text.slint";
+import { Button } from "buttons.slint";
+
+// A short bar that leaves by itself, with an optional action (Undo) (composer spec §2, conventions
+// §5). The caller removes it after its time.
+export component Toast inherits Rectangle {
+    in property <string> text;
+    in property <string> action;
+    in property <float> unit: 1.0;
+    callback acted();
+    height: 48px;
+    border-radius: Blueprint.on ? 0 : Tokens.radius-control;
+    background: Blueprint.on ? Blueprint.paper.with-alpha(0.94) : Tokens.surface-raised;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: Tokens.state-info.with-alpha(0.7);
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+    DirRow {
+        padding-left: Layout.rtl && root.action != "" ? 0 : Tokens.space-margin;
+        padding-right: !Layout.rtl && root.action != "" ? 0 : Tokens.space-margin;
+        Label { role: "body"; text: root.text; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
+        if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } border-width: 0; quiet: true; }
+    }
+}
+
+// The empty state (ADR 0003): what is empty, how to fill it, at most one action.
+export component EmptyState inherits VerticalLayout {
+    in property <image> icon;
+    in property <string> title;
+    in property <string> hint;
+    in property <string> action;
+    in property <float> unit: 1.0;
+    callback acted();
+    spacing: Tokens.space-unit;
+    alignment: start;
+    // A fixed-width icon in a row aligned to the start: alone in the column it would cap the
+    // column's width (ui-model §6).
+    DirRow { justify: start; Image { source: root.icon; width: 32px; height: 32px; colorize: Ink.muted; } }
+    Rectangle { height: Tokens.space-unit; }
+    Text { text: root.title; font-family: Tokens.font-family-ui; font-size: Tokens.font-size-body-large; color: Ink.text; wrap: word-wrap; }
+    Label { role: "body"; muted: true; text: root.hint; }
+    if root.action != "": Rectangle { height: Tokens.space-group; }
+    // Its action takes the focus on entry (always present, so the focus can be forwarded to it;
+    // without an action it has no size and is skipped).
+    forward-focus: action-button;
+    action-button := Button {
+        label: root.action;
+        unit: root.unit;
+        visible: root.action != "";
+        enabled: root.action != "";
+        height: root.action != "" ? Tokens.size-target-min : 0;
+        clicked => { root.acted(); }
+    }
+}
+
+// The error state (ADR 0003): icon and words (never colour alone), what failed and why, the
+// next step and one action that takes it. It replaces the content, so it never looks like loading.
+export component ErrorState inherits VerticalLayout {
+    in property <string> title;
+    in property <string> reason;
+    in property <string> action: "Try again";
+    in property <float> unit: 1.0;
+    callback acted();
+    spacing: Tokens.space-unit;
+    alignment: start;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.title + ". " + root.reason;
+    // A fixed-width icon in a row aligned to the start: alone in the column it would cap the
+    // column's width (ui-model §6).
+    DirRow { justify: start; Image { source: @image-url("../../icons/24/error.svg"); width: 32px; height: 32px; colorize: Tokens.state-error; } }
+    Rectangle { height: Tokens.space-unit; }
+    Text { text: root.title; font-family: Tokens.font-family-ui; font-size: Tokens.font-size-body-large; color: Ink.text; wrap: word-wrap; }
+    Label { role: "body"; muted: true; text: root.reason; }
+    if root.action != "": Rectangle { height: Tokens.space-group; }
+    if root.action != "": Button { label: root.action; unit: root.unit; clicked => { root.acted(); } }
+}

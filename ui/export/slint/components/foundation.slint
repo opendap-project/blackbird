@@ -1,0 +1,46 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// The globals and the primitive every component builds on: reduce motion, the layout's
+// direction, the colours that follow the mode, and the row that follows the direction.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint } from "../blueprint.slint";
+
+// Reduce motion (DS-012): durations become zero, springs settle at once; the application sets it
+// from the system's setting.
+export global Motion {
+    in-out property <bool> reduce;
+}
+
+// The layout's direction (§9.5): right to left mirrors start and end, arrows and chevrons;
+// transport, the seek bar and the volume do not mirror (physical order).
+export global Layout {
+    in-out property <bool> rtl;
+}
+
+// A row whose start and end follow the layout's direction (§9.5): `FlexboxLayout` reversed right
+// to left, on one line, stretching as `HorizontalLayout` does. The focus still moves in
+// declaration order, which is reading order either way (start to end).
+//
+//
+// Where the items sit along the row is `justify`, in reading order: Slint's `start` and `end` follow
+// the reversed row as CSS's do, but `stretch` (the default) leaves the free space on the physical
+// right when nothing grows. A row of items that do not grow says `start` (or `end`, `center`), so
+// the free space falls on the side reading order leaves it.
+export component DirRow inherits FlexboxLayout {
+    in property <LayoutAlignment> justify: stretch;
+    flex-direction: Layout.rtl ? FlexboxLayoutDirection.row-reverse : FlexboxLayoutDirection.row;
+    flex-wrap: FlexboxLayoutWrap.no-wrap;
+    alignment: root.justify;
+}
+
+// Colours that follow the mode: the product's, or the blueprint's ink at an opacity level.
+export global Ink {
+    out property <color> text: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+    out property <color> secondary: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.secondary) : Tokens.text-secondary;
+    out property <color> muted: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.text-muted;
+    out property <color> line: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.border-base;
+    out property <color> ground: Blueprint.on ? Blueprint.paper : Tokens.bg;
+}

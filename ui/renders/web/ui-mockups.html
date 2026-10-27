@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!-- SPDX-FileCopyrightText: 2026 The OpenDAP Project -->
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T1 interface mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mockups.css">
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>T1 interface mockups</h1>
+  <p>The T1's interface at the panel's real size (320 × 480, one CSS pixel per panel pixel), drawn beside the body's physical controls at their real height (left edge: Action, Volume +, Volume −; right edge: Main). Engineered Matter tokens, with the type scale and spacing proposed for a 35 cm reading distance. Draft, 2026-10-23, for reference: to be confirmed on the virtual T1. Library content is illustrative; artwork is a placeholder. Devices and sync: <a href="devices-and-sync.html">devices-and-sync.html</a>.</p>
+</header>
+
+<h2 class="group">Principles</h2>
+<p class="group">A dedicated player, not a small phone (SYS-017). Familiar patterns are used where they help, and each one is chosen and shaped for this device, not copied.</p>
+<div class="principles">
+  <div><b>One instrument</b>The screen and the four buttons are one interface. What a button does is drawn beside it: volume appears next to the volume keys, power next to Main (natural mapping).</div>
+  <div><b>Music is the home</b>The T1 wakes where it left off, in Now Playing. The library lies below it and the queue to its right: one spatial model, no tab bar (T1-051, SYS-039).</div>
+  <div><b>Content, not chrome</b>Type, artwork and hairlines carry the structure. No cards inside cards, no floating buttons, no hamburger; 16 px margins, so the 3.5" panel is used for content.</div>
+  <div><b>Engineered clarity</b>Technical values in Plex Mono, aligned like an instrument's readout; the sound drawn as its signal chain, the way an engineer draws it (design system §1, SYS-041).</div>
+  <div><b>Eyes-free first</b>What matters while walking is on a button; the screen confirms it. Primary actions sit in the lower half, and nothing important depends on a gesture alone (E14).</div>
+  <div><b>Proximity, deliberately</b>Spacing says what belongs together: 0–4 px inside a unit (title and artist), 8–12 px inside a group, 16–24 px between groups. Never one gap for everything.</div>
+</div>
+<div id="groups"></div>
+</div>
+
+
+
+<script src="mockups.js"></script>
+<script>
+const G=[];
+
+G.push(['The instrument','The body and the screen working as one: the physical controls are drawn at their real height beside each panel.',[
+S('Now Playing','Where the T1 wakes. Title, then artist and album as one unit; the format and signal state in one mono line; the seek bar; five transport controls in the thumb zone, the orange one shared with the Action button. Down to the library, right to the queue, up for more.',
+ 'Von Restorff (one orange control on screen, one on the body); Fitts (68 px play/pause at the bottom); Hick (three primary controls, two secondary); glance budget (title, artist and state in one glance, NHTSA 2 s).',
+ player()),
+S('Volume, beside its keys','A volume press draws the level on the left edge, between Volume + and Volume −, where the finger is: the value large, its semantic state in words. It leaves after a second.',
+ 'Natural mapping (the indicator sits at the keys); feedback within 50 ms (T1-057); colour never alone; calm (no modal).',
+ `${player().replace('<span class="vol" style="display:inline-flex;gap:3px;align-items:center" aria-label="Volume 38">','<span class="vol" style="display:inline-flex;gap:3px;align-items:center;color:var(--warning)" aria-label="Volume 64">').replace('</svg>38</span>','</svg>64</span>')}<div style="position:absolute;inset:28px 0 0;background:rgba(17,19,21,.6);z-index:4"></div>
+  <div class="meter" style="top:calc(var(--y-volup) - 34px);height:calc(var(--y-voldn) - var(--y-volup) + 68px)"><i style="height:64%;background:var(--warning)"></i></div>
+  <div style="position:absolute;left:var(--m);top:calc(var(--y-volup) - 30px);z-index:5" role="status" aria-label="Volume 64, above the safe level">
+   <div class="mono" style="font-size:var(--fs-display);line-height:var(--lh-display);color:var(--warning)">64</div>
+   <div style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--text2)">Above the safe level for HD 800 S</div>
+   <div style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted);margin-top:var(--group)">Weekly dose 38% · about 6 h at this level</div>
+  </div>`),
+S('Power, beside Main','A long press of Main opens the power choices next to Main itself; pressing Main again powers off, so the confirmation is the same physical gesture. Touch choices remain.',
+ 'Natural mapping; error prevention (a second, deliberate press); Fitts (choices at the right edge, under the thumb); destructive and safe choices apart.',
+ `${sb()}<div style="position:absolute;inset:28px 0 0;background:#0C0D0F;z-index:2"></div>
+  <div style="position:absolute;right:0;left:64px;top:calc(var(--y-main) - 28px);z-index:3;border-top:1px solid var(--border)">
+   ${['Power off','Restart','Restart to recovery'].map((t,i)=>`<div role="button" style="height:56px;display:flex;align-items:center;justify-content:flex-end;padding-right:var(--m);border-bottom:1px solid var(--border);font-size:var(--fs-bl);${i==0?'color:var(--text);font-weight:600':'color:var(--text2)'}">${t}</div>`).join('')}
+   <div style="padding:var(--group) var(--m) 0;text-align:right;font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted)">Press Main again to power off</div>
+  </div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px;z-index:3"><div class="btn ghost" role="button">Cancel</div></div>`),
+S('Paused: headphones unplugged','Unplugging pauses and never moves music to the speaker (T1-053). The state is said in words, on the format line, and Play resumes on the same output when it is back.',
+ 'Error prevention; visibility of system status; the primary action stays where the thumb expects it.',
+ player({paused:true,line1:'Headphones unplugged · paused',line2:''})),
+]]);
+
+G.push(['The library','Below Now Playing: the way people browse their own records. Covers first, then names; four browse tabs at the top instead of a bottom tab bar; the playing strip keeps the music one tap away.',[
+S('Library: albums','The title, then tabs for the four ways to browse (Albums, Artists, Playlists, More): this is navigation, so tabs with an underline, not a button group; a two-column wall of covers at 138 px. Search is the only header action; settings live in the status panel, where device state is.',
+ 'Recognition over recall (covers); Hick (four browse views); tabs for navigation, button groups only for actions and values (design system §15); Jakob (a cover wall is how a record shelf looks).',
+ `${sb()}${head('Library',false,ib(I.search,'Search'),'big')}
+  <div class="tabs" role="tablist"><span class="on" role="tab" aria-selected="true">Albums</span><span role="tab">Artists</span><span role="tab">Playlists</span><span role="tab">More</span></div>
+  <div style="padding:var(--group) var(--m) 0;display:grid;grid-template-columns:138px 138px;gap:var(--group) 12px">
+  ${[['First Impressions of Earth','The Strokes'],['In Rainbows','Radiohead'],['Is This It','The Strokes'],['AM','Arctic Monkeys']].map(([t,a],k)=>`<div role="button" style="display:flex;flex-direction:column">${art(k,138)}<div style="margin-top:6px;font-size:var(--fs-body);line-height:var(--lh-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</div><div class="t2">${a}</div></div>`).join('')}
+  </div>${strip()}`),
+S('Library: artists','One column of 52 px lines with hairlines and album counts; an A–Z index on the trailing edge for a 100,000-track library, excluded from the edge gesture.',
+ 'Fitts (jump, not fling); chunking by letter; consistency (one line pattern across the library).',
+ `${sb()}${head('Library',false,ib(I.search,'Search'),'big')}
+  <div class="tabs" role="tablist"><span role="tab">Albums</span><span class="on" role="tab" aria-selected="true">Artists</span><span role="tab">Playlists</span><span role="tab">More</span></div>
+  <div style="padding-right:20px">
+   <div class="sec">A</div><div style="border-top:1px solid var(--border)">${ln('Arcade Fire','','<span class="v">5</span>')}${ln('Arctic Monkeys','','<span class="v">7</span>')}</div>
+   <div class="sec">B</div><div style="border-top:1px solid var(--border)">${ln('Beach House','','<span class="v">8</span>')}${ln('Big Thief','','<span class="v">6</span>')}${ln('Bon Iver','','<span class="v">4</span>')}</div>
+  </div>
+  <div class="idx" aria-label="Index">${'ABCDEFGHIJKLMNOPRSTW#'.split('').map(c=>`<span>${c}</span>`).join('')}</div>${strip()}`),
+S('Album','The cover leads, the track list is the body, and Play with Shuffle sits at the bottom, in the thumb zone, as the screen\'s primary action (also on Action).',
+ 'Fitts (Play where the thumb rests, not under the title); Von Restorff; progressive disclosure (credits and format detail in More).',
+ `${sb()}${head('',true,ib(I.heart,'Like album'))}
+  <div class="pad" style="display:flex;gap:var(--group);align-items:flex-end">${art(0,112,112,8)}<span style="min-width:0"><div style="font-size:var(--fs-title);line-height:var(--lh-title);font-weight:600">First Impressions of Earth</div><div style="color:var(--text2)">The Strokes · 2006</div><div class="mono" style="font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--muted);margin-top:var(--unit)">FLAC 16/44.1 · 52 min</div></span></div>
+  <div style="margin-top:var(--group);border-top:1px solid var(--border)">${[['1','You Only Live Once'],['2','Juicebox'],['3','Heart in a Cage'],['4','Razorblade'],['5','On the Other Side'],['6','Vision of Division']].map(([n,t])=>`<div class="ln" style="min-height:48px"><span class="v" style="width:16px;text-align:left;color:var(--muted)">${n}</span><span class="t"><div class="t1" style="font-size:var(--fs-body);line-height:var(--lh-body)">${t}</div></span></div>`).join('')}</div>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(rgba(17,19,21,0),var(--bg) 40%);z-index:2"></div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px;display:flex;gap:var(--group);align-items:center;z-index:3"><div class="btn primary" style="flex:1" role="button">${F.play} Play</div><span role="button" aria-label="Shuffle" style="width:64px;height:64px;border-radius:50%;background:var(--active);display:grid;place-items:center;color:var(--text)">${I.shuffle}</span></div>`),
+S('Search','Results by kind from the first letter, with artwork; the mini QWERTY keyboard (32 × 46 px keys, the documented exception) with word candidates above it.',
+ 'Doherty (results per keystroke); recognition (artwork beside results); Jakob (QWERTY).',
+ `${sb()}<div class="head back">${ib(I.back,'Back')}<div style="flex:1;height:40px;border-bottom:2px solid var(--text2);display:flex;align-items:center;font-size:var(--fs-bl);color:var(--text);margin-right:var(--m)">stro<span style="width:1px;height:20px;background:var(--focus);margin-left:1px"></span></div></div>
+  <div class="sec">Artists</div>
+  <div class="ln two" style="border-top:1px solid var(--border)">${art(0,40,40,20)}<span class="t"><div class="t1">The Strokes</div><div class="t2">3 albums</div></span></div>
+  <div class="sec" style="padding-top:var(--unit)">Albums</div>
+  <div class="ln two" style="border-top:1px solid var(--border)">${art(2,40)}<span class="t"><div class="t1">Is This It</div><div class="t2">The Strokes · 2001</div></span></div>
+  <div class="kb" aria-label="Keyboard">
+   <div class="cand"><span>strokes</span><span>strobe</span><span>strong</span></div>
+   ${['qwertyuiop','asdfghjkl','zxcvbnm'].map((r,i)=>`<div class="kr">${i==2?'<span class="k w" style="width:48px"><span>⇧</span></span>':''}${r.split('').map(c=>`<span class="k"><span>${c}</span></span>`).join('')}${i==2?'<span class="k w" style="width:48px"><span>⌫</span></span>':''}</div>`).join('')}
+   <div class="kr"><span class="k w" style="width:64px"><span style="font-size:13px">123</span></span><span class="k w" style="width:160px"><span style="width:152px;font-size:13px;color:var(--muted)">English</span></span><span class="k w" style="width:96px"><span style="background:var(--text);color:var(--on-brand);font-size:13px;font-weight:600">Search</span></span></div>
+  </div>`),
+S('Audiobook','Spoken word has its own transport: back 15 s, forward 30 s, speed, chapters; it resumes a few seconds before where it stopped. The volume keys still change volume.',
+ 'Jakob (spoken-word conventions); Fitts; forgiveness (rewind on resume).',
+ `${sb()}<div class="head" style="justify-content:space-between;padding:0">${ib(I.down,'Library')}${ib(I.queue,'Chapters')}</div>
+  <div style="display:flex;justify-content:center">${art(4,184,184,10)}</div>
+  <div class="pad" style="margin-top:var(--group)"><div style="font-size:var(--fs-title);line-height:var(--lh-title);font-weight:600">Chapter 7: The harbour</div><div style="color:var(--text2)">The Sea, The Sea</div></div>
+  <div class="pad" style="margin-top:var(--group)"><div style="height:3px;border-radius:2px;background:var(--active)"><div style="width:58%;height:3px;background:var(--text);border-radius:2px"></div></div><div class="mono" style="display:flex;justify-content:space-between;font-size:var(--fs-cap);color:var(--muted);margin-top:6px"><span>18:04</span><span>1.0×</span><span>−13:10</span></div></div>
+  <div style="position:absolute;left:0;right:0;bottom:18px;display:flex;justify-content:center;align-items:center;gap:24px"><span class="sk" role="button" aria-label="Back 15 seconds">${I.rew}<span class="mono" style="font-size:11px;line-height:11px;color:var(--text2)">15</span></span><span class="pp" role="button" aria-label="Pause">${F.pause}</span><span class="sk" role="button" aria-label="Forward 30 seconds">${I.fwd}<span class="mono" style="font-size:11px;line-height:11px;color:var(--text2)">30</span></span></div>`),
+]]);
+
+G.push(['Around the player','Companions of Now Playing, placed by the spatial model: the queue enters from the trailing edge, details rise from the bottom.',[
+S('Queue','A panel from the trailing edge; the player stays visible at the left, so the listener knows where they are and how to go back.',
+ 'Spatial continuity (the panel enters from the side of its control); common region; forgiveness (removal shows Undo).',
+ `${player()}<div style="position:absolute;top:28px;bottom:0;left:0;width:36px;background:linear-gradient(90deg,rgba(17,19,21,.55),rgba(17,19,21,.97));backdrop-filter:blur(6px);z-index:4"></div><div style="position:absolute;top:28px;bottom:0;left:36px;right:0;background:var(--bg);z-index:4;border-left:1px solid var(--border);box-shadow:-12px 0 24px rgba(0,0,0,.4)">
+   <div class="head"><h2>Queue</h2></div>
+   <div class="sec" style="padding-top:0">Now</div>
+   <div class="ln two" style="border-top:1px solid var(--border)">${art(0,36)}<span class="t"><div class="t1">You Only Live Once</div><div class="t2">The Strokes</div></span></div>
+   <div class="sec">Next · First Impressions of Earth</div>
+   <div style="border-top:1px solid var(--border)">${['Juicebox','Heart in a Cage','Razorblade','On the Other Side','Vision of Division'].map(t=>`<div class="ln" style="padding-right:0"><span class="t"><div class="t1" style="font-size:var(--fs-body);line-height:var(--lh-body)">${t}</div></span><span class="ib" role="button" aria-label="Reorder ${t}" style="color:var(--muted)">${I.handle}</span></div>`).join('')}</div>
+  </div>`),
+S('More: the signal path','Swipe up or the More control: the signal chain drawn as an engineer draws it, every stage with its value, and whether the path is bit-perfect (SYS-041, audio profiles spec §3).',
+ 'Progressive disclosure; intimate knowledge (psychological ownership); engineered identity (technical drawing).',
+ `${sb()}${head('Signal path',true)}
+  <div class="pad" style="display:flex;gap:8px;align-items:center;font-size:var(--fs-label);line-height:var(--lh-label);color:var(--success);padding-bottom:var(--unit)"><span style="width:8px;height:8px;border-radius:4px;background:var(--success)"></span>Bit-perfect: nothing changes the samples</div>
+  <div class="chain" style="border-top:1px solid var(--border)">
+   ${[['Source','FLAC 16 bit · 44.1 kHz',1],['Decoder','PCM, untouched',1],['Processing','Off · profile Direct',0],['Volume','In the DAC · −18.5 dB',1],['DAC','CS43198 · fast roll-off',1],['Output','4.4 mm balanced · HD 800 S',1]].map(([a,b,on])=>`<div class="node${on?' on':''}" role="button"><span class="t"><div class="t2">${a}</div><div class="mono" style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--text)">${b}</div></span><span style="padding-right:12px;display:flex">${I.chev}</span></div>`).join('')}
+  </div>`),
+]]);
+
+G.push(['Sound','The sound as a chain the listener can see and shape, and the profiles laid out on the axis they belong to, from enjoying to analysing (SYS-041).',[
+S('Profiles on the axis','Four kinds of profile on one axis, from enjoying music to analysing it; the selected stop is described in words. Direct is the default; switching is instant and glitch-free.',
+ 'Mental model made visible (the SYS-041 axis); Hick (four stops); recognition (each stop said in words).',
+ `${sb()}${head('Profile',true,ib(I.plus,'New profile'))}
+  <div class="axis" role="radiogroup" aria-label="Profile">
+   <div class="line"></div>
+   ${[['Personal',11],['Direct',37,1],['Calibrated',63],['Monitor',89]].map(([t,x,on])=>`<div class="stop${on?' on':''}" style="left:${x}%" role="radio" aria-checked="${on?'true':'false'}"><span>${t}</span><i></i></div>`).join('')}
+   <div style="position:absolute;left:0;right:0;top:80px;display:flex;justify-content:space-between;font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--muted)"><span>Enjoy</span><span>Analyse</span></div>
+  </div>
+  <div class="pad"><div style="font-size:var(--fs-title);line-height:var(--lh-title);font-weight:600">Direct</div><div style="color:var(--text2)">The music as recorded. Nothing processes the signal; volume is set inside the DAC.</div>
+  <div class="mono" style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--success);margin-top:var(--unit)">Bit-perfect</div></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--border)">${ln('For HD 800 S','Calibrated available · Harman target',I.chev,'style="border-bottom:0"')}</div>`),
+S('Personal: colour and texture','Tone in words over a parametric EQ that stays one step away. Each control shows its exact value in mono; label and value sit tight above their slider.',
+ 'Mental model (words, not bands); proximity (label, value and slider one unit); Fitts (48 px hit rows, 20 px thumbs).',
+ `${sb()}${head('Warm evening',true)}
+  <div class="pad">
+   ${[['Temperature','warm','30%'],['Bass extension','+2.0 dB','62%'],['Bass texture','full','58%'],['Presence','0.0 dB','50%'],['Air','−1.0 dB','44%']].map(([a,v,p],i)=>`<div style="margin-top:${i?'var(--group)':'0'}"><div style="display:flex;justify-content:space-between;font-size:var(--fs-label);line-height:var(--lh-label)"><span style="color:var(--text2)">${a}</span><span class="mono" style="color:var(--muted)">${v}</span></div><div class="slider" role="slider" aria-label="${a}"><div class="trk"><i style="width:${p}"></i><b style="left:${p}"></b></div></div></div>`).join('')}
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--border)">${ln('Show the EQ','10 bands, parametric',I.chev,'style="border-bottom:0"')}</div>`),
+S('A/B, on the Action button','Two profiles at matched loudness. The Action button switches A and B, so a comparison can be done with eyes closed; blind mode hides which is which.',
+ 'Natural mapping (one button, one toggle); level matching and blinding against bias (Toole and Olive 1994); feedback under 50 ms.',
+ `${sb()}${head('Compare',true)}${actionLabel('A / B')}
+  <div class="pad" style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted)">The Action button switches A and B. Level-matched to <span class="mono">−18.0 LUFS</span>, without a gap.</div>
+  <div class="pad" style="margin-top:var(--group);display:flex;gap:2px">
+   <div role="button" style="flex:1;height:156px;border-radius:24px 0 0 24px;background:var(--active);display:flex;flex-direction:column;align-items:center;justify-content:center"><span class="mono" style="font-size:var(--fs-display);line-height:var(--lh-display);color:var(--text)">A</span><span style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--text)">Direct</span><span style="font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--text2)">playing</span></div>
+   <div role="button" style="flex:1;height:156px;border-radius:0 24px 24px 0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center"><span class="mono" style="font-size:var(--fs-display);line-height:var(--lh-display);color:var(--muted)">B</span><span style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted)">Calibrated</span></div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;border-top:1px solid var(--border)">${ln('Blind','Hide A and B until you pick','<span class="v">off</span>')}${ln('Meters','Loudness and true peak','<span class="v">on</span>','style="border-bottom:0"')}</div>`),
+S('Hearing','The weekly dose (SYS-012, rolling 7 days) as a readout with what it means, per headphone; never a silent cap.',
+ 'Calibrated trust; colour plus words; calm (no nagging).',
+ `${sb()}${head('Hearing',true)}
+  <div class="pad"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:var(--fs-bl);line-height:var(--lh-bl)">This week</span><span class="mono" style="font-size:var(--fs-headline);line-height:var(--lh-headline);color:var(--success)">38%</span></div>
+  <div style="margin-top:var(--unit);height:6px;border-radius:3px;background:var(--active)"><div style="width:38%;height:6px;border-radius:3px;background:var(--success)"></div></div>
+  <div style="margin-top:var(--unit);font-size:var(--fs-label);line-height:var(--lh-label);color:var(--text2)">Within the safe weekly dose. It counts the last 7 days, so it eases day by day.</div></div>
+  <div style="margin-top:var(--section);border-top:1px solid var(--border)">${ln('HD 800 S','Sensitivity from its profile',I.chev)}${ln('Warnings','At 80% and 100%','<span class="v">on</span>')}${ln('Volume limit','Optional','<span class="v">off</span>')}</div>`),
+]]);
+
+G.push(['Device','State lives where it is shown: pulling down the status bar unfolds each of its items into its own line, in the same order. Settings is an index of the device\'s parts.',[
+S('Status, unfolded','The status bar pulled down: every item becomes its line in the same order (time, card, volume; Bluetooth, Wi-Fi, battery), each with its detail and its control. Brightness follows; the sync line and notifications continue below, by scrolling.',
+ 'Continuity (what was glanced at grows into its control); recognition (same order as the bar); calm (no tile grid, no colour fill for "on").',
+ `${sb()}<div style="border-top:1px solid var(--border)">
+   ${[['10:42','Sleep timer','off'],['microSD','318 of 512 GB',''],['Volume 38','4.4 mm · Direct · dose 38%',''],['Bluetooth','WH-1000XM5 · LDAC','on'],['Wi-Fi','Home','on'],['Battery 82%','About 9 h of listening','']].map(([a,b,v])=>`<div class="ln two" role="button"><span class="t"><div class="t2">${a}</div><div style="font-size:var(--fs-body);line-height:var(--lh-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b}</div></span>${v?`<span class="v">${v}</span>`:I.chev}</div>`).join('')}
+  </div>
+  <div class="pad"><div class="slider" role="slider" aria-label="Brightness" style="height:48px"><span style="color:var(--muted);display:flex">${I.sun}</span><div class="trk"><i style="width:55%"></i><b style="left:55%"></b></div></div></div>`),
+S('Settings: the device\'s parts','An index of what the T1 is and does, in the order people need it. Nothing is locked: every setting the hardware supports is reachable (T1-045).',
+ 'Hick (one short index); serial position (Sound first); mental model (parts of a device, not app categories).',
+ `${sb()}${head('This T1',true,ib(I.search,'Search settings'))}
+  <div style="border-top:1px solid var(--border)">${[['Sound','Profile, outputs, hearing'],['Library','Folders, sorting, indexing'],['Buttons and screen','Action long press, brightness'],['Devices','3 paired'],['Storage','318 of 512 GB'],['Accessibility','Text size, voice guidance']].map(([a,b])=>ln(a,b,I.chev)).join('')}</div>`),
+S('First run: language','One question, in each language\'s own name and script, before anything else; everything else waits until after the first sound.',
+ 'Hick (one choice); recognition (endonyms); goal-gradient (step 1 of 2).',
+ `${sb()}<div class="pad" style="padding-top:var(--section)"><div class="mono" style="font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--muted)">1 / 2</div><div style="font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600">Language</div></div>
+  <div style="margin-top:var(--group);border-top:1px solid var(--border)">${ln('English','',I.check.replace('class="i"','class="i" style="color:var(--text)"'))}${ln('Español','')}${ln('中文（简体）','')}${ln('हिन्दी','')}<div dir="rtl">${ln('العربية','')}</div></div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px"><div class="btn primary" role="button">Continue</div></div>`),
+S('First run: ready','The music on the card is found and playable at once while indexing continues (T1-052). The safe starting level is said once (SYS-012).',
+ 'Doherty (play now, index later); peak-end (the first sound is the peak); calm (progress in the periphery).',
+ `${sb()}<div class="pad" style="padding-top:var(--section)"><div class="mono" style="font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--muted)">2 / 2</div><div style="font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600">Your music is here</div>
+  <div style="margin-top:var(--unit);color:var(--text2)">12,480 tracks on the microSD card. You can play while the T1 finishes indexing.</div>
+  <div class="mono" style="margin-top:var(--section);display:flex;justify-content:space-between;font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted)"><span>Indexing</span><span>4,120 / 12,480</span></div>
+  <div style="margin-top:var(--unit);height:3px;background:var(--active)"><div style="width:33%;height:3px;background:var(--text2)"></div></div>
+  <div style="margin-top:var(--section);font-size:var(--fs-label);line-height:var(--lh-label);color:var(--text2)">Volume starts at a safe level for every new headphone.</div></div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px"><div class="btn primary" role="button">${F.play} Play something</div></div>`),
+]]);
+
+renderGroups(G);
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+# Where each OpenDAP icon comes from (icons README, "Sources").
+#
+# OpenDAP Icons are semantic names over Tabler Icons (MIT), vendored at a pinned version in
+# vendor/tabler-icons/ and used as upstream draws them (ADR 0001). A name not listed here is drawn
+# by OpenDAP in icons.py, only where Tabler has no glyph.
+#
+# A theme or a derivative can replace single icons (icons.py --check), or this whole mapping to
+# take its base glyphs from another family.
+
+[base]
+family = "tabler"
+version = "3.49.0"
+
+# name = [style, tabler glyph]
+[icons]
+# transport (filled: learned, stateful controls)
+play = ["filled", "player-play"]
+pause = ["filled", "player-pause"]
+previous = ["filled", "player-skip-back"]
+next = ["filled", "player-skip-forward"]
+stop = ["filled", "player-stop"]
+eject = ["filled", "player-eject"]
+shuffle = ["outline", "arrows-shuffle"]
+repeat = ["outline", "repeat"]
+repeat-one = ["outline", "repeat-once"]
+back-15 = ["outline", "rewind-backward-15"]
+forward-30 = ["outline", "rewind-forward-30"]
+
+# library
+album = ["outline", "album"]
+artist = ["outline", "microphone-2"]
+song = ["outline", "music"]
+playlist = ["outline", "playlist"]
+folder = ["outline", "folder"]
+audiobook = ["outline", "book"]
+recording = ["outline", "microphone"]
+like = ["outline", "heart"]
+like-filled = ["filled", "heart"]
+queue = ["outline", "list-numbers"]
+podcast = ["outline", "broadcast"]
+lyrics = ["outline", "quote"]
+library = ["outline", "books"]
+history = ["outline", "history"]
+index = ["outline", "sort-a-z"]
+add-to-queue = ["outline", "playlist-add"]
+
+# sound
+volume = ["outline", "volume"]
+volume-muted = ["outline", "volume-off"]
+headphones = ["outline", "headphones"]
+speaker = ["outline", "device-speaker"]
+tone = ["outline", "adjustments-horizontal"]
+hearing = ["outline", "ear"]
+meters = ["outline", "chart-bar"]
+waveform = ["outline", "wave-sine"]
+signal-path = ["outline", "route"]
+dac = ["outline", "cpu"]
+compare = ["outline", "arrows-exchange"]
+profile = ["outline", "adjustments-alt"]
+
+# device
+devices = ["outline", "devices"]
+this-device = ["outline", "device-mobile"]
+hat = ["outline", "stack-2"]
+computer = ["outline", "device-laptop"]
+phone = ["outline", "device-mobile"]
+bluetooth = ["outline", "bluetooth"]
+wifi = ["outline", "wifi"]
+usb = ["outline", "usb"]
+pair = ["outline", "link"]
+nfc = ["outline", "nfc"]
+qr-code = ["outline", "qrcode"]
+sync = ["outline", "refresh"]
+sync-error = ["outline", "refresh-alert"]
+microsd = ["outline", "device-sd-card"]
+storage = ["outline", "database"]
+battery = ["outline", "battery-3"]
+battery-charging = ["outline", "battery-charging"]
+battery-low = ["outline", "battery-1"]
+power = ["outline", "power"]
+restart = ["outline", "rotate-clockwise"]
+lock = ["outline", "lock"]
+unlock = ["outline", "lock-open"]
+brightness = ["outline", "sun"]
+sleep = ["outline", "moon"]
+update = ["outline", "download"]
+recovery = ["outline", "lifebuoy"]
+household = ["outline", "users"]
+member = ["outline", "user"]
+settings = ["outline", "settings"]
+notifications = ["outline", "bell"]
+language = ["outline", "language"]
+keyboard = ["outline", "keyboard"]
+theme = ["outline", "palette"]
+capability = ["outline", "puzzle"]
+developer = ["outline", "terminal-2"]
+screenshot = ["outline", "screenshot"]
+
+# action
+back = ["outline", "chevron-left"]
+forward = ["outline", "chevron-right"]
+down = ["outline", "chevron-down"]
+up = ["outline", "chevron-up"]
+search = ["outline", "search"]
+add = ["outline", "plus"]
+close = ["outline", "x"]
+done = ["outline", "check"]
+more = ["outline", "dots"]
+reorder = ["outline", "grip-horizontal"]
+delete = ["outline", "trash"]
+undo = ["outline", "arrow-back-up"]
+edit = ["outline", "pencil"]
+restore = ["outline", "restore"]
+
+# state
+waiting = ["outline", "clock"]
+error = ["outline", "circle-x"]
+warning = ["outline", "alert-triangle"]
+info = ["outline", "info-circle"]
+loading = ["outline", "loader-2"]
+
+# Status bar: Tabler outline glyphs at 16 px (icons.py draws them with a 1 px stroke).
+[status]
+status-microsd = "device-sd-card"
+status-volume = "volume"
+status-bluetooth = "bluetooth"
+status-wifi = "wifi"
+status-battery-0 = "battery"
+status-battery-1 = "battery-1"
+status-battery-2 = "battery-2"
+status-battery-3 = "battery-3"
+status-battery-4 = "battery-4"
+status-charging = "battery-charging"

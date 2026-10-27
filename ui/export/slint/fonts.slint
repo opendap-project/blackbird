@@ -1,0 +1,15 @@
+// The design system's type (§9), embedded: IBM Plex Sans and Mono, the faces every screen draws
+// with, so each build lays text out the same way (the interface tests measure with them).
+//
+// The script companions of §9.4 (SC, Arabic, Devanagari) are not embedded: Slint falls back only to
+// fonts it loads at run time (`SLINT_FONT_PATH`), never to embedded ones, and SC alone is 14 MB, so
+// the image installs them once (/usr/share/fonts/opendap) for every process that draws text. An
+// application imports `Fonts` from here.
+import "../fonts/IBMPlexSans-Variable.ttf";
+import "../fonts/IBMPlexMono-Regular.ttf";
+import "../fonts/IBMPlexMono-Medium.ttf";
+
+export global Fonts {
+    out property <string> sans: "IBM Plex Sans";
+    out property <string> mono: "IBM Plex Mono";
+}

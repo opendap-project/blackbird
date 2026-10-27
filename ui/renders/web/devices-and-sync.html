@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!-- SPDX-FileCopyrightText: 2026 The OpenDAP Project -->
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T1 devices and sync screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mockups.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Devices and sync on the T1</h1>
+  <p>Screens of the <a href="https://github.com/opendap-project/system/blob/main/docs/specs/devices-and-sync-ui.md">devices and sync UI spec</a>, at the panel's real size beside the body's physical controls, with the same principles and components as the <a href="ui-mockups.html">interface mockups</a>. Draft, 2026-10-23, for reference: to be confirmed on the virtual T1. Content is illustrative.</p>
+</header>
+<div id="groups"></div>
+</div>
+<script src="mockups.js"></script>
+<script>
+const st=(c,t)=>`<span style="color:${c}">${t}</span>`;
+const G=[];
+G.push(['Where music plays','The devices control in Now Playing lists every place music can play, and playback moves with its position and queue (SYS-042). When another of the owner\'s devices plays, the T1 shows it live and can take it over.',[
+S('Play on','The devices control opens one list: this T1, the owner\'s other devices, Bluetooth outputs, network renderers. The current one is marked; choosing moves playback at once and settles when the other side confirms.',
+ 'Jakob (the Spotify Connect pattern, shaped as full-width lines); Hick (one list, current first); feedback before the round trip (E13).',
+ `${sb()}${head('Play on',true)}
+  <div style="border-top:1px solid var(--border)">
+   ${ln('This T1','FLAC 16/44.1 · 4.4 mm · bit-perfect',I.check.replace('class="i"','class="i" style="color:var(--text)"'))}
+   ${ln('MacBook','OpenDAP Desktop','')}
+   ${ln('Second T1','Last seen 3 days ago · not reachable','<span class="v" style="color:var(--muted)">away</span>')}
+   ${ln('WH-1000XM5','Bluetooth · LDAC 990 kbps','')}
+   ${ln('Living room','Network renderer','')}
+  </div>`),
+S('Playing on MacBook','Another of the owner\'s devices is playing. The T1 shows its live state and its buttons control it; Play here, beside the state, takes playback over in one action.',
+ 'Visibility of system status; continuity (the same screen, another renderer); one action to take over.',
+ player({line1:'Playing on MacBook',line2:''}).replace('<span>Playing on MacBook</span>','<span style="color:var(--info)">Playing on MacBook</span>').replace('<span style="color:var(--text2)"></span></div>','<span role="button" style="color:var(--focus);font-family:var(--sans);font-weight:600;font-size:var(--fs-label);padding:16px 0 16px 16px;margin:-16px 0">Play here</span></div>')),
+]]);
+
+G.push(['Pairing','Once per device, by looking at both screens, with no account (SYS-047, SYS-056). Granted only on the T1.',[
+S('Pairing: the code','Devices → Pair a device. A QR code and a short code that expires (the RFC 8628 shape); the other side scans or types it. The LED blinks blue fast.',
+ 'Jakob (a TV-style code with a QR shortcut); recognition (the T1\'s name shown as the other side will see it); security (the code feeds SPAKE2, RFC 0004).',
+ `${sb()}${head('Pair a device',true)}
+  <div class="pad" style="text-align:center">
+   <div id="qr" style="width:176px;height:176px;margin:4px auto 0;background:var(--text);border-radius:10px;padding:10px"></div>
+   <div class="mono" style="margin-top:var(--section);font-size:var(--fs-headline);line-height:var(--lh-headline);letter-spacing:.04em">K7QD-M2XP</div>
+   <div style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted);margin-top:var(--unit)">Shown as “Diana’s T1” · expires in <span class="mono">9:41</span></div>
+   <div style="margin-top:var(--group);color:var(--text2)">Scan it, or type it, in OpenDAP Desktop.</div>
+  </div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px"><div class="btn ghost" role="button">Cancel</div></div>`),
+S('Pairing: confirm on the T1','The T1 shows who is asking and what it will be allowed to do. Pair is the primary action, also on the Action button; Cancel stands apart.',
+ 'Error prevention (consequences said before granting); Von Restorff; separation of opposite actions (16 px).',
+ `${sb()}${head('Pair a device',true)}
+  <div class="pad" style="padding-top:var(--section)">
+   <div style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted)">OpenDAP Desktop</div>
+   <div style="font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600">MacBook</div>
+   <div style="color:var(--text2);margin-top:var(--unit)">wants to pair with this T1.</div>
+  </div>
+  <div style="margin-top:var(--section);border-top:1px solid var(--border)">${ln('Sync','Library, playlists, profiles, settings','')}${ln('Control','Play, pause, queue, volume','')}</div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px;display:flex;flex-direction:column;gap:16px"><div class="btn ghost" role="button">Cancel</div><div class="btn primary" role="button">Pair</div></div>`),
+S('Devices','Paired devices with when they were last seen and their sync state; tap one for links, permissions and Remove. Household members are opt-in (SYS-044); Bluetooth gear is listed with its codec.',
+ 'Recognition (state in words beside each device); consistency (the same lines as everywhere); forgiveness (Remove reversible by pairing again).',
+ `${sb()}${head('Devices',true,ib(I.plus,'Pair a device'))}
+  <div class="sec" style="padding-top:0">This device</div>
+  <div style="border-top:1px solid var(--border)">${ln('Diana’s T1','Owner · household off','')}</div>
+  <div class="sec">Paired</div>
+  <div style="border-top:1px solid var(--border)">${ln('MacBook','Last seen now · '+st('var(--success)','synced'),I.chev)}${ln('Second T1','Last seen 3 days ago · '+st('var(--muted)','waiting'),I.chev)}</div>
+  <div class="sec">Bluetooth</div>
+  <div style="border-top:1px solid var(--border)">${ln('WH-1000XM5','Connected · LDAC',I.chev)}</div>`),
+]]);
+
+G.push(['Sync and storage','Sync never asks for attention: its state is one line in the status panel, its detail one step down (SYS-051). Storage and deletion follow the conventions people know (SYS-050).',[
+S('Connected to a computer','With no OpenDAP client on the computer, the T1 hands over its music card (blackbird-os ADR 0013). Playback continues from the cache; Eject is the primary action, also on Action; the LED blinks blue slowly.',
+ 'Visibility of status; error prevention (eject before unplugging); natural mapping (Action ejects while this screen is open).',
+ `${sb()}<div class="pad" style="padding-top:56px">
+   <div style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--info)">USB storage</div>
+   <div style="font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600">Connected to a computer</div>
+   <div style="color:var(--text2);margin-top:var(--unit)">The music card is in use by the computer. Eject it there, or here, before unplugging.</div>
+   <div style="font-size:var(--fs-label);line-height:var(--lh-label);color:var(--muted);margin-top:var(--group)">Playing from the T1’s cache. Tracks not cached come back after ejecting.</div>
+  </div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px"><div class="btn primary" role="button">Eject</div></div>`),
+S('Sync','The state first, then what happened, grouped: arrived, failed with its reason and next step, a conflict kept and reported once. Pause and Sync now are two related actions, so they form a button group.',
+ 'Calibrated trust (what the system did and why); Miller (grouped outcomes); a button group for actions, not tabs (design system §15.2).',
+ `${sb()}${head('Sync',true)}
+  <div class="pad"><div style="font-size:var(--fs-bl);line-height:var(--lh-bl);color:var(--text)">${st('var(--success)','Synced')} 2 min ago</div><div class="t2">MacBook · over USB</div></div>
+  <div style="margin-top:var(--group);border-top:1px solid var(--border)">
+   ${ln('24 tracks arrived','2 albums, 1 playlist','')}
+   ${ln(st('var(--error)','1 album couldn’t sync'),'Not enough space: <span class="mono">2.1 GB</span> needed',I.chev)}
+   ${ln('“Running” edited twice','Both versions kept · choose later',I.chev)}
+  </div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px" class="seg"><span role="button" style="height:52px;font-size:var(--fs-body)">Pause</span><span role="button" style="height:52px;font-size:var(--fs-body)">Sync now</span></div>`),
+S('Storage','One bar by category, as phones and computers show it, with each value beside its name; Recently Deleted keeps items 30 days on every device; quick removals show Undo.',
+ 'Jakob (storage screens people know); proximity (each value beside its category); forgiveness (30 days, Undo).',
+ `${sb()}${head('Storage',true)}
+  <div class="pad"><div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:var(--fs-bl);line-height:var(--lh-bl)">microSD</span><span class="mono" style="font-size:var(--fs-label);color:var(--text2)">318 / 512 GB</span></div>
+  <div style="margin-top:var(--unit);height:10px;border-radius:5px;overflow:hidden;display:flex;gap:2px;background:var(--active)"><span style="width:53%;background:var(--text2)"></span><span style="width:3.5%;background:var(--muted)"></span><span style="width:2.7%;background:var(--g500)"></span><span style="width:1.8%;background:var(--border-strong)"></span></div></div>
+  <div style="margin-top:var(--group);border-top:1px solid var(--border)">${[['Music','271 GB','var(--text2)'],['Podcasts','18 GB','var(--muted)'],['Audiobooks','14 GB','var(--g500)'],['Recordings','9 GB','var(--border-strong)']].map(([a,b,c])=>ln(`<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c};margin-right:10px"></span>${a}`,'',`<span class="v">${b}</span>`)).join('')}</div>
+  <div>${ln('Recently Deleted','3 items · removed after 30 days',I.chev)}</div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px;height:52px;border-radius:10px;background:var(--active);display:flex;align-items:center;padding:0 4px 0 14px;z-index:5" role="status">Removed from Running<span role="button" style="margin-left:auto;height:48px;min-width:48px;padding:0 12px;display:flex;align-items:center;color:var(--focus);font-weight:600">Undo</span></div>`),
+S('Software Update','The version, what changed in plain words, and when it installs: by default tonight while charging, never during playback. The previous version stays one action away (OS-030).',
+ 'Jakob (the phone update screen, kept); calibrated trust (notes in plain words); forgiveness (return to the previous version).',
+ `${sb()}${head('Software Update',true)}
+  <div class="pad"><div style="font-size:var(--fs-bl);line-height:var(--lh-bl);font-weight:600">Blackbird OS <span class="mono" style="font-weight:500">0.4.1</span></div><div class="t2">Installed <span class="mono">0.4.0</span> · <span class="mono">212 MB</span></div>
+  <div style="margin-top:var(--group);color:var(--text2)">Fixed: a short gap when switching from 44.1 to 96 kHz in shuffle. Changed: faster first sync with large libraries.</div>
+  <div style="margin-top:var(--unit);font-size:var(--fs-label);color:var(--focus)">Full changelog</div></div>
+  <div style="margin-top:var(--group);border-top:1px solid var(--border)">${ln('Install','Tonight while charging','<span class="v">auto</span>')}${ln('Previous version','Return to <span class="mono">0.4.0</span> anytime',I.chev)}</div>
+  <div style="position:absolute;left:var(--m);right:var(--m);bottom:12px"><div class="btn primary" role="button">Install now</div></div>`),
+]]);
+renderGroups(G);
+try{
+  const q=qrcode(0,'M'); q.addData('odap://pair?c=K7QD-M2XP'); q.make();
+  const n=q.getModuleCount(), el=document.getElementById('qr');
+  let svg=`<svg viewBox="0 0 ${n} ${n}" width="156" height="156" shape-rendering="crispEdges" aria-label="Pairing QR code"><path fill="#111315" d="`;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))svg+=`M${c} ${r}h1v1h-1z`;
+  el.innerHTML=svg+'"/></svg>';
+}catch(e){}
+</script>
+</body>
+</html>
