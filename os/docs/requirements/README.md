@@ -71,7 +71,6 @@ Requirements for the Blackbird OS distribution.
 - Base distribution: Debian trixie with the backports kernel ([ADR 0002](../adr/0002-debian-trixie-with-backports-kernel.md)).
 - Name and versions ([ADR 0011](../adr/0011-blackbird-os.md)): the system is Blackbird OS; releases are identified by version number, with no codenames.
 - The virtual T1 emulates the battery with the kernel's `test_power` module, built at image time against the image's own kernel headers (qemu profile only, [ADR 0007](../adr/0007-kernel-modules-through-dkms.md)): `test_battery`, `test_ac` and `test_usb` appear in `/sys/class/power_supply`, driven through `/sys/module/test_power/parameters/` (capacity, status, AC/USB online, voltage, current).
-- Pending: deep suspend (suspend-to-RAM) on the RK3566 depends on mainline TF-A support, not verified yet. Not a priority for now, but must be revisited.
 - Audio direction: PipeWire processes audio as 32-bit float, so bit-perfect 32-bit PCM and DSD need a playback engine with exclusive, direct ALSA access, next to PipeWire for shared use.
 - Image size: acceptable as long as it works well and is not excessive for the device; reduce further only if needed. Dropping LLVM by default may require an OpenDAP build of Mesa limited to Panfrost, because Debian's Mesa depends on LLVM.
 - **T1 hardware needs from board BOM v1.1, updated for BOM v1.5** (`board/docs/specs/bom-v1.md`), to carry into the image:
@@ -80,3 +79,7 @@ Requirements for the Blackbird OS distribution.
   - INA236 current monitors power up converting continuously; they are configured at boot.
   - RP2354A coprocessor firmware must select 1.8 V I/O (`VOLTAGE_SELECT = 1`).
 - OS-020 scope: on the on-board outputs, bit-perfect PCM up to 192 kHz, native DSD up to DSD256 and DoP up to DSD64, the limits of the SoC's I2S block and the CS43198; over USB, bit-perfect up to the external DAC's limit; anything above on-board is converted and labelled ([ADR 0006](../adr/0006-native-dsd-through-upstream-driver-work.md)).
+
+## Open items
+
+- **OS-OI-1** Deep suspend (suspend-to-RAM) on the RK3566 depends on mainline TF-A support, which is not verified. It is not a priority, but it must be revisited.

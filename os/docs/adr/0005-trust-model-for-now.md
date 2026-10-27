@@ -1,4 +1,4 @@
-# ADR 0005: Trust model for now
+# ADR 0005: Interim trust model
 
 - **Status:** Accepted
 - **Date:** 2026-10-21
@@ -10,6 +10,6 @@ Signing and verification are part of the lifecycle (OS-011, HCS-010), but the tr
 ## Decision
 
 - Devices stay **unlocked**: the maintainers controls the keys, and nothing is burned into the SoC's one-time-programmable memory.
-- **Every third-party HAT is trusted** for now, including device tree overlays that are not part of the signed image.
+- **Every third-party HAT is trusted**, including device tree overlays that are not part of the signed image.
 
 Both will be revisited.
