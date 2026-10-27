@@ -37,42 +37,11 @@ pub(super) fn host_thread(rx: mpsc::Receiver<Cmd>) {
                 reply,
             } => {
                 output = None;
-                let Some(device) = host.default_output_device() else {
-                    let _ = reply.send(Err("no output on this computer".into()));
-                    continue;
-                };
-                let play = |config: cpal::StreamConfig| {
-                    let ring = ring.clone();
-                    device.build_output_stream::<f32, _, _>(
-                        config,
-                        move |data, _| ring.lock().unwrap_or_else(|p| p.into_inner()).pull(data),
-                        |e| eprintln!("odap-vdev-view: sound out: {e}"),
-                        None,
-                    )
-                };
-                // The guest's own rate and channels first; the device's default otherwise.
-                let exact = cpal::StreamConfig {
-                    channels,
-                    sample_rate: rate,
-                    buffer_size: cpal::BufferSize::Default,
-                };
-                let opened = play(exact).map(|s| (s, exact)).or_else(|_| {
-                    let config = device
-                        .default_output_config()
-                        .map_err(|e| e.to_string())?
-                        .config();
-                    play(config).map(|s| (s, config)).map_err(|e| e.to_string())
-                });
-                match opened {
-                    Ok((stream, config)) => {
-                        let _ = stream.play();
-                        output = Some(stream);
-                        let _ = reply.send(Ok((config.sample_rate, usize::from(config.channels))));
-                    }
-                    Err(e) => {
-                        let _ = reply.send(Err(e));
-                    }
-                }
+                let opened = open_output(&host, rate, channels, ring);
+                let _ = reply.send(opened.map(|(stream, plays)| {
+                    output = Some(stream);
+                    plays
+                }));
             }
             Cmd::CloseOutput => output = None,
             Cmd::Microphone {
@@ -83,57 +52,96 @@ pub(super) fn host_thread(rx: mpsc::Receiver<Cmd>) {
                 reply,
             } => {
                 microphone = None;
-                let opened = (|| -> Result<cpal::Stream, String> {
-                    let device = match &device {
-                        Some(id) => host
-                            .input_devices()
-                            .map_err(|e| e.to_string())?
-                            .find(|d| d.id().is_ok_and(|i| i.to_string() == *id))
-                            .ok_or("that input is gone")?,
-                        None => host
-                            .default_input_device()
-                            .ok_or("no input on this computer")?,
-                    };
-                    let config = device
-                        .default_input_config()
-                        .map_err(|e| e.to_string())?
-                        .config();
-                    let mut resampler = Resampler::new(
-                        config.sample_rate,
-                        usize::from(config.channels),
-                        rate,
-                        channels,
-                    );
-                    let mut converted = Vec::new();
-                    let stream = device
-                        .build_input_stream::<f32, _, _>(
-                            config,
-                            move |data, _| {
-                                converted.clear();
-                                resampler.process(data, &mut converted);
-                                ring.lock()
-                                    .unwrap_or_else(|p| p.into_inner())
-                                    .push(&converted);
-                            },
-                            |e| eprintln!("odap-vdev-view: sound in: {e}"),
-                            None,
-                        )
-                        .map_err(|e| e.to_string())?;
-                    stream.play().map_err(|e| e.to_string())?;
-                    Ok(stream)
-                })();
-                match opened {
-                    Ok(s) => {
-                        microphone = Some(s);
-                        let _ = reply.send(Ok(()));
-                    }
-                    Err(e) => {
-                        let _ = reply.send(Err(e));
-                    }
-                }
+                let opened = open_microphone(&host, device.as_deref(), rate, channels, ring);
+                let _ = reply.send(opened.map(|stream| microphone = Some(stream)));
             }
             Cmd::CloseMicrophone => microphone = None,
         }
     }
     drop((output, microphone));
+}
+
+/// The default output, playing what `ring` holds: at the guest's own rate and channels when the
+/// device takes them, at its default otherwise. The stream, and the rate and channels it plays.
+fn open_output(
+    host: &cpal::Host,
+    rate: u32,
+    channels: u16,
+    ring: Arc<Mutex<Ring>>,
+) -> Result<(cpal::Stream, (u32, usize)), String> {
+    let device = host
+        .default_output_device()
+        .ok_or("no output on this computer")?;
+    let play = |config: cpal::StreamConfig| {
+        let ring = ring.clone();
+        device.build_output_stream::<f32, _, _>(
+            config,
+            move |data, _| ring.lock().unwrap_or_else(|p| p.into_inner()).pull(data),
+            |e| eprintln!("odap-vdev-view: sound out: {e}"),
+            None,
+        )
+    };
+    // The guest's own rate and channels first; the device's default otherwise.
+    let exact = cpal::StreamConfig {
+        channels,
+        sample_rate: rate,
+        buffer_size: cpal::BufferSize::Default,
+    };
+    let (stream, config) = play(exact).map(|s| (s, exact)).or_else(|_| {
+        let config = device
+            .default_output_config()
+            .map_err(|e| e.to_string())?
+            .config();
+        play(config).map(|s| (s, config)).map_err(|e| e.to_string())
+    })?;
+    let _ = stream.play();
+    Ok((stream, (config.sample_rate, usize::from(config.channels))))
+}
+
+/// An input (by id; the default without one), its samples resampled to `rate` × `channels`
+/// into `ring`.
+fn open_microphone(
+    host: &cpal::Host,
+    device: Option<&str>,
+    rate: u32,
+    channels: usize,
+    ring: Arc<Mutex<Ring>>,
+) -> Result<cpal::Stream, String> {
+    let device = match device {
+        Some(id) => host
+            .input_devices()
+            .map_err(|e| e.to_string())?
+            .find(|d| d.id().is_ok_and(|i| i.to_string() == id))
+            .ok_or("that input is gone")?,
+        None => host
+            .default_input_device()
+            .ok_or("no input on this computer")?,
+    };
+    let config = device
+        .default_input_config()
+        .map_err(|e| e.to_string())?
+        .config();
+    let mut resampler = Resampler::new(
+        config.sample_rate,
+        usize::from(config.channels),
+        rate,
+        channels,
+    );
+    let mut converted = Vec::new();
+    let stream = device
+        .build_input_stream::<f32, _, _>(
+            config,
+            move |data, _| {
+                converted.clear();
+                resampler.process(data, &mut converted);
+                ring.lock()
+                    .unwrap_or_else(|p| p.into_inner())
+                    .push(&converted);
+            },
+            |e| eprintln!("odap-vdev-view: sound in: {e}"),
+            None,
+        )
+        .map_err(|e| e.to_string())?;
+    stream.play().map_err(|e| e.to_string())?;
+    Ok(stream)
 }

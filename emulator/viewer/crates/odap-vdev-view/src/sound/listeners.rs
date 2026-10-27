@@ -130,47 +130,9 @@ impl Source for InListener {
             (t.elapsed().as_secs_f64() * f64::from(f.rate)) as u64
         });
         let due = elapsed.saturating_sub(inp.given);
-        let mut frames = asked.min(due as usize);
-        let mut samples;
-        match inp.source {
-            InSource::Device(_) => {
-                let r = inp.microphone.as_ref().map(|ring| lock(ring));
-                frames = frames.min(r.as_ref().map_or(frames, |r| r.q.len() / ch));
-                samples = vec![0.0f32; frames * ch];
-                if let Some(mut r) = r {
-                    for s in samples.iter_mut() {
-                        *s = r.q.pop_front().unwrap_or(0.0);
-                    }
-                }
-            }
-            InSource::Tone => {
-                samples = vec![0.0f32; frames * ch];
-                let amp = 10f64.powf(TEST_TONE_DBFS / 20.0);
-                let w = 2.0 * std::f64::consts::PI * TEST_TONE_HZ / f64::from(f.rate);
-                for frame in samples.chunks_exact_mut(ch) {
-                    frame.fill((amp * inp.phase.sin()) as f32);
-                    inp.phase = (inp.phase + w) % (2.0 * std::f64::consts::PI);
-                }
-            }
-            InSource::Silence => samples = vec![0.0f32; frames * ch],
-        }
+        let (frames, mut samples) = from_source(inp, &f, asked.min(due as usize));
         inp.given += frames as u64;
-        let t = &mut inp.tally;
-        t.calls += 1;
-        t.asked += size as u64;
-        t.given += (frames * f.bytes_per_frame()) as u64;
-        if t.since
-            .is_none_or(|s| s.elapsed() >= Duration::from_secs(1))
-        {
-            trace(format_args!(
-                "in reads {} asked {} given {} (since start {} frames)",
-                t.calls, t.asked, t.given, inp.given
-            ));
-            *t = ReadTally {
-                since: Some(Instant::now()),
-                ..Default::default()
-            };
-        }
+        count(inp, size, frames * f.bytes_per_frame());
         // Through QEMU's mixing engine (stock QEMU 11.1, whose D-Bus input spins without it) a
         // mono sample is duplicated into both channels and summed back: a mono capture arrives
         // at twice its value, so a mono source gives half and the guest records the level it was
@@ -203,5 +165,54 @@ impl Source for InListener {
             ));
         }
         bytes
+    }
+}
+
+/// Up to `frames` frames from the input's source (an input gives what it has), as samples.
+fn from_source(inp: &mut In, f: &Format, frames: usize) -> (usize, Vec<f32>) {
+    let ch = usize::from(f.channels);
+    match inp.source {
+        InSource::Device(_) => {
+            let r = inp.microphone.as_ref().map(|ring| lock(ring));
+            let frames = frames.min(r.as_ref().map_or(frames, |r| r.q.len() / ch));
+            let mut samples = vec![0.0f32; frames * ch];
+            if let Some(mut r) = r {
+                for s in samples.iter_mut() {
+                    *s = r.q.pop_front().unwrap_or(0.0);
+                }
+            }
+            (frames, samples)
+        }
+        InSource::Tone => {
+            let mut samples = vec![0.0f32; frames * ch];
+            let amp = 10f64.powf(TEST_TONE_DBFS / 20.0);
+            let w = 2.0 * std::f64::consts::PI * TEST_TONE_HZ / f64::from(f.rate);
+            for frame in samples.chunks_exact_mut(ch) {
+                frame.fill((amp * inp.phase.sin()) as f32);
+                inp.phase = (inp.phase + w) % (2.0 * std::f64::consts::PI);
+            }
+            (frames, samples)
+        }
+        InSource::Silence => (frames, vec![0.0f32; frames * ch]),
+    }
+}
+
+/// The reads' tally, traced once a second (ODAP_VIEW_TRACE).
+fn count(inp: &mut In, asked: usize, given: usize) {
+    let t = &mut inp.tally;
+    t.calls += 1;
+    t.asked += asked as u64;
+    t.given += given as u64;
+    if t.since
+        .is_none_or(|s| s.elapsed() >= Duration::from_secs(1))
+    {
+        trace(format_args!(
+            "in reads {} asked {} given {} (since start {} frames)",
+            t.calls, t.asked, t.given, inp.given
+        ));
+        *t = ReadTally {
+            since: Some(Instant::now()),
+            ..Default::default()
+        };
     }
 }
