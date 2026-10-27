@@ -15,7 +15,8 @@ The Blackbird OS image definition, built with [mkosi](https://github.com/systemd
 
   The `t1` profile will share these until system packages provide them.
 - `mkosi.sandbox/`, `mkosi.extra/`: APT sources and pinning for trixie-backports, used at build time and kept in the image; the sandbox also holds the dpkg path filters, used at build time only.
-- `mkosi.extra/usr/bin/odap-reboot`: restarts into a boot mode of the device: `normal`, `debug` when the image has the debug entry, and whatever a board support package adds as `/usr/lib/opendap/boot-modes.d/<mode>` (`--list` names them). The `opendap` CLI and `odap-vdev` call it instead of imitating button combinations.
+- `mkosi.extra/usr/bin/odap-reboot`: restarts into a boot mode of the device: `normal`, `debug` when the image has the debug entry, and whatever a board support package adds as `/usr/lib/opendap/boot-modes.d/<mode>` (`--list` names them). The `opendap` CLI and `odap-vdev` call it instead of imitating button combinations. Its errors carry a stable code, a hint and a fix (`mode.unknown`, `input.invalid`, …); the `--serve` answers stay `ok`, the list or `error: …`.
+- `mkosi.profiles/*/scripts/*.chroot`: build scripts; when a step fails, each says on stderr which step and what to run.
 - `mkosi.env` and `mkosi.postinst.chroot`: the system's identity in every output ([ADR 0011](../docs/adr/0011-blackbird-os.md)). `mkosi.env` holds the `OS_*` values (name, ID, version, URLs); the script writes `/usr/lib/os-release` from them (`ID=blackbird`, `ID_LIKE=debian`, no codename), with Debian's file diverted so package upgrades keep it, plus `/etc/issue` and the login message in `/etc/motd` (with Debian's licence and warranty notice). A derivative sets its own values without changing these files ([guide](../docs/derivatives.md)).
 
 Build with toolkit-image `odapkit image build`; run with virtual-devices `odap-vdev start`.

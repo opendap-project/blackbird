@@ -36,3 +36,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^docs/requirements/
+  # The command-line contract of the image's commands and build scripts, on the host (no device, no build VM).
+  - repo: local
+    hooks:
+      - id: cli-contract
+        name: command-line contract (tests/cli.sh)
+        entry: tests/cli.sh
+        language: system
+        pass_filenames: false
+        files: ^(image/mkosi\.extra/usr/bin|image/mkosi\.profiles/[^/]+/scripts|tests)/

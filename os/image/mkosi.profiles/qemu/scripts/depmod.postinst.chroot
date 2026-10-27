@@ -1,4 +1,12 @@
 #!/bin/sh
 # Register modules added by the build scripts (test_power.ko).
 set -eu
+# On failure, one line on stderr: the step that failed and what to run (command standard §5, hooks).
+step=start
+on_exit() {
+  rc=$?
+  [ "$rc" = 0 ] || echo "depmod.postinst.chroot: $step failed (exit $rc); check the modules the build scripts installed, then rebuild: odapkit image build qemu" >&2
+}
+trap on_exit EXIT
+step="depmod"
 for dir in /usr/lib/modules/*; do depmod -a "${dir##*/}"; done

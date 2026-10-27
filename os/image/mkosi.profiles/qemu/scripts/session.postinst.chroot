@@ -1,9 +1,19 @@
 #!/bin/sh
 # The composer's session starts at boot; development system extensions merge before it.
 set -eu
+# On failure, one line on stderr: the step that failed and what to run (command standard §5, hooks).
+step=start
+on_exit() {
+  rc=$?
+  [ "$rc" = 0 ] || echo "session.postinst.chroot: $step failed (exit $rc); check that the image installs every unit named here, then rebuild: odapkit image build qemu" >&2
+}
+trap on_exit EXIT
+step="enabling the session's units"
 systemctl enable odap-composer.service odap-power.socket systemd-sysext.service opendap-virtual-device-description.service odap-statusled.service
+step="setting graphical.target"
 systemctl set-default graphical.target
 # The boot loader is updated with the system (OS-030), not on every boot: this unit delayed
 # sysinit by about 1 s each time.
+step="masking systemd-boot-update"
 systemctl mask systemd-boot-update.service
 mkdir -p /var/lib/extensions
