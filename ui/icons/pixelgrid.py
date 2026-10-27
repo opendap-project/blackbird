@@ -105,7 +105,7 @@ def report():
 
     _, _, status = icons.load_map()
     for name, _label in icons.STATUS:
-        text = (icons.VENDOR / "outline" / f"{status[name]}.svg").read_text()
+        text = (icons.VENDOR / "outline" / f"{icons.status_glyph(status[name])}.svg").read_text()
         paths = [d for d in re.findall(r'<path d="([^"]*)"', text) if d != "M0 0h24v24H0z"]
         dx, dy = offset(paths)
         found = [s for d in paths for s in strokes(d)]

@@ -197,15 +197,39 @@ def glyphs():
             assert name in OWN_24, f"{name}: no glyph (map it in map.toml)"
             out.append((24, name, category, label, OWN_24[name], "opendap"))
     for name, label in STATUS:
-        glyph = status[name]
+        entry = status[name]
+        glyph = status_glyph(entry)
         paths = tabler_paths("outline", glyph)
         # 1.5 units of the 24 grid are 1 px at 16 px: whole-pixel strokes in the status bar, moved
         # as a whole onto the pixel grid (pixelgrid.py), Tabler's geometry unchanged.
         dx, dy = pixelgrid.offset(re.findall(r'\bd="([^"]*)"', paths))
         move = f' transform="translate({dx:g} {dy:g})"' if (dx, dy) != (0, 0) else ""
-        out.append((16, name, "status", label, f"<g {OUTLINE.format(w=1.5)}{move}>{paths}</g>",
-                    f'{base["family"]}:outline/{glyph}@{base["version"]}'))
+        body = f"<g {OUTLINE.format(w=1.5)}{move}>{paths}</g>"
+        source = f'{base["family"]}:outline/{glyph}@{base["version"]}'
+        if isinstance(entry, dict):
+            body = badged(name, entry, paths, dx, dy)
+            source = f'{base["family"]}:outline/{glyph}+filled/{entry["badge"]}@{base["version"]}'
+        out.append((16, name, "status", label, body, source))
     return out
+
+
+def status_glyph(entry):
+    """The outline glyph a [status] entry draws: the name itself, or a badged glyph's base."""
+    return entry if isinstance(entry, str) else entry["glyph"]
+
+
+def badged(name, entry, paths, dx, dy):
+    """A status glyph with a solid Tabler badge inside it: the badge scaled about the centre, and
+    cut free of the outline by `gap` grid units (a mask), so the glyph stays one colour."""
+    k, gap = entry["scale"], entry["gap"]
+    badge = tabler_paths("filled", entry["badge"])
+    at = f"translate({dx:g} {dy:g}) translate(12 12) scale({k:g}) translate(-12 -12)"
+    cut = f"{name}-cut"
+    return (f'<defs><mask id="{cut}" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">'
+            f'<rect width="24" height="24" fill="white"/><g transform="{at}" fill="black" stroke="black" '
+            f'stroke-width="{2 * gap / k:g}" stroke-linejoin="round">{badge}</g></mask></defs>'
+            f'<g {OUTLINE.format(w=1.5)} transform="translate({dx:g} {dy:g})" mask="url(#{cut})">{paths}</g>'
+            f'<g transform="{at}" {FILLED}>{badge}</g>')
 
 
 def svg(grid, body, source):

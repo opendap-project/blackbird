@@ -130,4 +130,7 @@ status-battery-1 = "battery-1"
 status-battery-2 = "battery-2"
 status-battery-3 = "battery-3"
 status-battery-4 = "battery-4"
-status-charging = "bolt"
+# Charging: the empty battery with Tabler's solid bolt inside, cut free of the outline by a pixel;
+# the percentage beside it gives the level. Solid because an outlined bolt that small does not read
+# at 16 px.
+status-charging = { glyph = "battery", badge = "bolt", scale = 0.65, gap = 1.5 }
