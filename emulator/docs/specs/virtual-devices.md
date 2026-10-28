@@ -2,7 +2,7 @@
 
 - **Status:** Draft, 2026-10-23.
 - **Requirements:** VD-001 to VD-007; blackbird-os OS-016, OS-019 and OS-035; cli TK-018.
-- **Builds on:** the [hardware support spec](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) (layers H0–H5, device descriptions, adapters); the [development workflow](https://github.com/opendap-project/toolkit-host/blob/main/docs/specs/development-workflow.md).
+- **Builds on:** the [hardware support spec](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) (layers H0–H5, device descriptions, adapters); the [development workflow](https://github.com/opendap-project/tools/blob/main/host/docs/specs/development-workflow.md).
 
 ## 1. Summary
 
