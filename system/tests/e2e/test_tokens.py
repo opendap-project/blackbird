@@ -26,6 +26,21 @@ class Tokens(unittest.TestCase):
     def test_finds_repositories_through_the_workspace(self):
         self.assertTrue((tokens.repo("virtual-devices") / "lib").is_dir())
 
+    def test_finds_a_merged_repository_in_the_same_checkout(self):
+        with tempfile.TemporaryDirectory() as d:
+            top = pathlib.Path(d) / "blackbird"
+            for sub in (".git", "ui", "system/tests/e2e"):
+                (top / sub).mkdir(parents=True)
+            self.assertEqual(tokens.repo("blackbird-ui", top / "system/tests/e2e"), top / "ui")
+
+    def test_finds_a_merged_repository_through_its_root_row(self):
+        with tempfile.TemporaryDirectory() as d:
+            ws = pathlib.Path(d)
+            (ws / "public/blackbird/emulator").mkdir(parents=True)
+            (ws / "public/other").mkdir()
+            (ws / "repos.tsv").write_text("path\trepository\npublic/blackbird\topendap-project/blackbird\n")
+            self.assertEqual(tokens.repo("virtual-devices", ws / "public/other"), ws / "public/blackbird/emulator")
+
 
 if __name__ == "__main__":
     unittest.main()

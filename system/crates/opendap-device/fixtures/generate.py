@@ -3,7 +3,7 @@
 
 Usage: generate.py [--check]
 The description is what virtual-devices composes and hands to the guest (`odap-vdev describe`), found through
-ODAP_VIRTUAL_DEVICES_DIR or the workspace's repos.tsv. --check exits 1 when the committed fixture differs, and 0
+ODAP_VIRTUAL_DEVICES_DIR or the workspace's repos.tsv (since the blackbird cut, the root's emulator/ folder). --check exits 1 when the committed fixture differs, and 0
 with a notice when no virtual-devices checkout is available.
 """
 import os
@@ -19,17 +19,30 @@ HEADER = """\
 """
 
 
+def _row(tsv_dir, suffix):
+    for line in (tsv_dir / "repos.tsv").read_text().splitlines()[1:]:
+        path, _, repo = line.partition("\t")
+        if repo.endswith(suffix):
+            return tsv_dir / path
+    return None
+
+
 def virtual_devices():
+    """The virtual-devices checkout; since the blackbird cut (RFC 0017) the emulator/ folder of the same
+    checkout, of ODAP_BLACKBIRD_DIR or of the workspace's blackbird row."""
     env = os.environ.get("ODAP_VIRTUAL_DEVICES_DIR")
     if env:
         return pathlib.Path(env)
+    top = next((p for p in (HERE, *HERE.parents) if (p / ".git").exists()), None)
+    if top and (top / "emulator/bin/odap-vdev").is_file():
+        return top / "emulator"
+    if os.environ.get("ODAP_BLACKBIRD_DIR"):
+        return pathlib.Path(os.environ["ODAP_BLACKBIRD_DIR"]) / "emulator"
     for p in (HERE, *HERE.parents):
-        tsv = p / "repos.tsv"
-        if tsv.is_file():
-            for line in tsv.read_text().splitlines()[1:]:
-                path, _, repo = line.partition("\t")
-                if repo.endswith("/virtual-devices"):
-                    return p / path
+        if (p / "repos.tsv").is_file():
+            vd = _row(p, "/virtual-devices")
+            root = _row(p, "/blackbird")
+            return vd or (root / "emulator" if root else None)
     return None
 
 
