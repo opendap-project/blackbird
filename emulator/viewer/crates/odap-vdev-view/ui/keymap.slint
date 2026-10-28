@@ -1,0 +1,68 @@
+// The keyboard bindings, over the window: closed by its X or a click outside it.
+
+import { Palette } from "theme.slint";
+import { Section, Binding, HeaderButton } from "widgets.slint";
+
+export component KeymapDialog inherits Rectangle {
+    callback close();
+    background: #000000a0;
+    TouchArea { clicked => { root.close(); } }
+    Rectangle {
+        width: min(root.width - 32px, 560px);
+        height: min(root.height - 32px, body.preferred-height);
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        background: Palette.panel;
+        border-radius: 12px;
+        border-width: 1px;
+        border-color: Palette.line;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #00000080;
+        accessible-role: groupbox;
+        accessible-label: "Keyboard bindings";
+        // Clicks inside the dialog stay in it.
+        TouchArea { }
+        body := VerticalLayout {
+            padding: 16px;
+            spacing: 12px;
+            HorizontalLayout {
+                Text { text: "Keyboard"; color: Palette.text; font-size: 14px; font-weight: 600; vertical-alignment: center; horizontal-stretch: 1; }
+                HeaderButton { icon: @image-url("icons/x.svg"); label: "Close"; clicked => { root.close(); } }
+            }
+            // The two groups share the width (alignment: start gave each its preferred width,
+            // which a Section does not have: the dialog showed empty).
+            HorizontalLayout {
+                spacing: 24px;
+                Section {
+                    title: "DEVICE · held as long as the key";
+                    horizontal-stretch: 1;
+                    alignment: start;
+                    Binding { keys: ["Space", "Enter"]; does: "Action (either)"; }
+                    Binding { keys: ["P"]; does: "Main"; }
+                    Binding { keys: ["↑"]; does: "Volume + (the upper button)"; }
+                    Binding { keys: ["↓"]; does: "Volume − (the lower button)"; }
+                    Binding { keys: ["←", "→"]; does: "Keyboard arrows (a focused slider)"; }
+                    Binding { keys: ["S"]; does: "Screenshot (Main + Vol −)"; }
+                    Binding { keys: ["P", "↓"]; does: "The same, by hand"; }
+                }
+                Section {
+                    title: "SIMULATOR";
+                    horizontal-stretch: 1;
+                    alignment: start;
+                    Binding { keys: ["⌘", "S"]; does: "Save PNG"; }
+                    Binding { keys: ["⌘", "R"]; does: "Reboot"; }
+                    Binding { keys: ["⌘", "⇧", "R"]; does: "Reboot into debug"; }
+                    Binding { keys: ["⌘", "⇧", "P"]; does: "Power off"; }
+                    Binding { keys: ["⌘", "1"]; does: "microSD card in / out"; }
+                    Binding { keys: ["⌘", "2"]; does: "USB disk in / out"; }
+                    Binding { keys: ["⌘", "3"]; does: "USB DAC in / out"; }
+                    Binding { keys: ["⌘", "4"]; does: "Charger on / off"; }
+                    Binding { keys: ["⌘", "−"]; does: "Battery −5 %"; }
+                    Binding { keys: ["⌘", "="]; does: "Battery +5 %"; }
+                    Binding { keys: ["⌘", "\\"]; does: "Fold the sidebar"; }
+                    Binding { keys: ["⌘", "K"]; does: "These bindings"; }
+                }
+            }
+        }
+    }
+}

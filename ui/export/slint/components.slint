@@ -1,0 +1,27 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Blackbird UI's components for Slint (ADR 0002): the controls of the design system §15, from
+// its tokens, for every OpenDAP application (the product, activities, the OS Shell's layers). Each
+// job has its control (§15.2, DS-018). Each component draws itself in two ways on the same
+// geometry: as the product, and in the blueprint mode (blueprint.slint, SYS-070), as a technical
+// drawing of itself. Import with `import { Button, … } from "@blackbird/slint/components.slint";`.
+//
+// The components live in one file per family under `components/` (foundation, focus, text,
+// layout, surfaces, buttons, selection, sliders, progress, states, overlays); this index
+// re-exports every name, so an application imports from here only.
+
+import { Blueprint, Measure, BlueprintGrid, SnapLines } from "blueprint.slint";
+export { Blueprint, Measure, BlueprintGrid, SnapLines }
+
+export { Motion, Layout, DirRow, Ink } from "components/foundation.slint";
+export { FocusVisible, FocusReveal, FocusNav, FocusTarget, Adjustable, EndStop, TapArea } from "components/focus.slint";
+export { Label, SectionLabel, Readout, EdgeLabel } from "components/text.slint";
+export { Stack, Row, Wrap, AdaptivePair, AspectBox } from "components/layout.slint";
+export { Screen, Header, Panel, Group, Layer } from "components/surfaces.slint";
+export { Button, PrimaryButton, Segment, IconButton, Tab } from "components/buttons.slint";
+export { ListLine, Toggle, RadioStops, CheckLine } from "components/selection.slint";
+export { Slider, RangeSlider, SeekBar } from "components/sliders.slint";
+export { ProgressBar, LoadingLine, StatusIndicator } from "components/progress.slint";
+export { Toast, EmptyState, ErrorState } from "components/states.slint";
+export { Overlay, Backdrop, Scrim, Modal } from "components/overlays.slint";

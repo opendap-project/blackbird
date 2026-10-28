@@ -1,0 +1,164 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Focus and input (system input events §3): whether the focus shows, where it is, the direction
+// it moved in, the one focus target, the adjustable built on it, a scope's end stops and the tap
+// area.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Layout } from "foundation.slint";
+
+// Whether the focus is shown (CSS :focus-visible, Android's touch mode): the focus is always
+// somewhere (focus on entry), but its ring shows only once the buttons or a keyboard are used, and
+// hides again when the screen is touched. Touching an element gives it the focus (hidden), so the
+// buttons continue from where the finger was; a pointer hovering moves nothing. The first key
+// while the focus is hidden only reveals where it is; it neither moves nor takes it.
+export global FocusVisible {
+    in-out property <bool> on;
+}
+
+// Where the focused element is, in window coordinates, so a scrolled screen can bring it into
+// view when the buttons move the focus there (focus on entry and focus navigation, §8.4). A
+// screen binds `serial` and reveals `y` to `y + h` in its scroll area. `fixed`: the element is
+// outside any scroll area (the header), so nothing scrolls for it, wherever it is.
+export global FocusReveal {
+    in-out property <length> y;
+    in-out property <length> h;
+    in-out property <bool> fixed;
+    in-out property <int> serial;
+}
+
+// The direction the focus last moved in by the keys: Tab (Volume −) forward, Shift+Tab
+// (Volume +) backward. A control entered backward starts at its end (a range's high knob, a
+// list's last item); taken from the key, never guessed from positions (`Screen` and `Modal`
+// record it before the key reaches anything). `shift`: whether Shift was down with that key, and
+// still is: an end stop that sends the focus back with a plain Tab lets Shift go first, and puts
+// it back down after (the runtime reads it), or a held Shift+Tab would then go forward.
+export global FocusNav {
+    in-out property <bool> backward;
+    in-out property <bool> shift;
+}
+
+// The one focus target every control is built on (system ADR 0014: one behaviour, one
+// implementation). It holds what every focusable element does the same way, so a control only says
+// what its keys do:
+// - disabled is skipped by the buttons and a touch (input events §3.7): it keeps its place and its
+//   reason shows, but takes no focus (`live`);
+// - gaining the focus, it says where it is (`FocusReveal`), so a scrolled screen brings it into
+//   view and the next element knows from which side the focus came; `fixed` when it sits outside
+//   any scroll area (the header);
+// - while the focus is hidden, a navigation key only reveals it; Action and Escape go to the screen;
+// - `ring`: the focus is here and shown.
+export component FocusTarget inherits FocusScope {
+    in property <bool> live: true;
+    in property <bool> fixed;
+    out property <bool> ring: self.has-focus && FocusVisible.on;
+    // The keys, once the focus shows.
+    callback key(KeyEvent) -> EventResult;
+    callback gained();
+    callback lost();
+    // The focus arrived by the buttons (tab navigation), not by a touch, a program, or the window
+    // getting it back (the display turned on again): what depends on the side it came from goes
+    // here, not in `gained`.
+    callback arrived();
+    focus-gained(reason) => { if reason == FocusReason.tab-navigation { root.arrived(); } }
+    focus-on-tab-navigation: root.live;
+    focus-on-click: root.live;
+    // Says where it is again (a part of it took the focus, as a range's other knob).
+    public function report() {
+        FocusReveal.y = self.absolute-position.y;
+        FocusReveal.h = self.height;
+        FocusReveal.fixed = root.fixed;
+        FocusReveal.serial += 1;
+    }
+    changed has-focus => {
+        if self.has-focus {
+            root.gained();
+            root.report();
+        } else {
+            root.lost();
+        }
+    }
+    key-pressed(e) => {
+        if !FocusVisible.on {
+            if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; }
+            FocusVisible.on = true;
+            return accept;
+        }
+        root.key(e)
+    }
+}
+
+// An adjustable (input events §3.7): a control whose value the buttons change, built on the focus
+// target, one implementation for every slider, range and axis of stops (system ADR 0014).
+// - Action (Return, Space) locks it for adjustment and unlocks it; Escape unlocks; the focus
+//   leaving unlocks.
+// - ← → step it at any time (a keyboard's arrows, W3C's slider), mirrored right to left.
+// - Locked, the volume buttons (Tab, Shift+Tab from the composer) and ↑ ↓ (the same buttons by
+//   their place, design system §8.4) step it: Volume + up, Volume − down, never mirrored.
+// The control says what a step is (`step`, +1 more, −1 less); a key none of these takes goes to
+// `other-key` (a range walks its knobs).
+export component Adjustable inherits FocusTarget {
+    in-out property <bool> adjusting;
+    callback step(int);
+    callback other-key(KeyEvent) -> EventResult;
+    lost => { root.adjusting = false; }
+    key(e) => {
+        if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
+        if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
+        let less = Layout.rtl ? Key.RightArrow : Key.LeftArrow;
+        let more = Layout.rtl ? Key.LeftArrow : Key.RightArrow;
+        let up = e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift);
+        let down = e.text == Key.Tab && !e.modifiers.shift;
+        if e.text == less || (root.adjusting && (e.text == Key.DownArrow || down)) { root.step(-1); return accept; }
+        if e.text == more || (root.adjusting && (e.text == Key.UpArrow || up)) { root.step(1); return accept; }
+        root.other-key(e)
+    }
+}
+
+// An end of a focus scope (a screen, an overlay): Slint's focus chain wraps around the window, so
+// each scope puts one of these first and one last, and the buttons reaching one are past its end
+// (`reached`, with which end); the scope then sends the focus back (input events §3.7).
+export component EndStop inherits FocusScope {
+    in property <bool> end;
+    callback reached(bool);
+    width: 0;
+    height: 0;
+    focus-on-click: false;
+    focus-gained(reason) => { if reason == FocusReason.tab-navigation { root.reached(root.end); } }
+    // Shift let go while the focus waits here for the runtime to send it back.
+    key-released(e) => {
+        if e.text == Key.Shift || e.text == Key.ShiftR { FocusNav.shift = false; }
+        reject
+    }
+}
+
+// A touch area that follows the gesture rules (system input events §3.2), for every component
+// that acts on a tap: a tap is down and up within the slop before the long-press time; a long
+// press fires while the finger is still down and nothing follows on release; a contact that went
+// past the slop (a scroll, a drag) is never a tap, even if it comes back. A contact hides the
+// focus ring and gives the element the focus (`down`), so the buttons continue from there.
+export component TapArea inherits TouchArea {
+    // Logical pixels per design pixel, for the slop.
+    in property <float> unit: 1.0;
+    callback down();
+    callback tapped();
+    callback long-pressed();
+    property <bool> long;
+    property <bool> far;
+    pointer-event(e) => {
+        if e.kind == PointerEventKind.down { root.long = false; root.far = false; FocusVisible.on = false; root.down(); }
+        // The system took the contact (input events §5.1): nothing that started acts, and any
+        // lock ends with the ring.
+        if e.kind == PointerEventKind.cancel { root.long = true; FocusVisible.on = false; }
+    }
+    moved => {
+        if self.pressed && sqrt(pow((self.mouse-x - self.pressed-x) / 1px, 2) + pow((self.mouse-y - self.pressed-y) / 1px, 2)) >= 10 * root.unit { root.far = true; }
+    }
+    clicked => { if !root.long && !root.far { root.tapped(); } }
+    Timer {
+        interval: 500ms;
+        running: root.pressed && !root.long && !root.far;
+        triggered => { root.long = true; root.long-pressed(); }
+    }
+}

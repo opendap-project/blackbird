@@ -1,0 +1,29 @@
+// The Selection screen of the UI primitives activity (SYS-071).
+
+import { RadioStops, CheckLine } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component SelectionScreen inherits Body {
+    in-out property <int> language;
+    in-out property <int> stop;
+    in property <float> unit;
+
+    Group {
+        title: "Stops on an axis";
+        RadioStops {
+            stops: ["Enjoy", "Balanced", "Neutral", "Analyse"];
+            selected <=> root.stop;
+            description: root.stop == 0 ? "warm, relaxed" : (root.stop == 1 ? "a little colour" : (root.stop == 2 ? "as recorded" : "every detail, meters"));
+            unit: root.unit;
+            init => { self.focus(); }
+        }
+    }
+    Group {
+        title: "Pick one";
+        VerticalLayout {
+            CheckLine { label: "English"; checked: root.language == 0; unit: root.unit; clicked => { root.language = 0; } }
+            CheckLine { label: "Español"; checked: root.language == 1; unit: root.unit; clicked => { root.language = 1; } }
+            CheckLine { label: "中文"; checked: root.language == 2; unit: root.unit; clicked => { root.language = 2; } }
+        }
+    }
+}

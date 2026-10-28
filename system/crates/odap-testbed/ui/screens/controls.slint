@@ -1,0 +1,38 @@
+// The Controls screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Button, Toggle, Slider, RangeSlider, Segment, DirRow } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component ControlsScreen inherits Body {
+    in-out property <int> choice;
+    in-out property <float> level;
+    in-out property <float> range-high;
+    in-out property <float> range-low;
+    in-out property <bool> switch-a;
+    in-out property <bool> switch-b;
+    in property <float> unit;
+
+    Group {
+        title: "Slider: " + round(root.level);
+        Slider { label: "Level"; value <=> root.level; unit: root.unit; init => { self.focus(); } }
+    }
+    Group {
+        title: "Range: " + round(root.range-low) + " to " + round(root.range-high);
+        RangeSlider { label: "Range"; low <=> root.range-low; high <=> root.range-high; unit: root.unit; }
+    }
+    Group {
+        title: "Toggles";
+        Toggle { label: "Gapless playback"; on <=> root.switch-a; unit: root.unit; }
+        Toggle { label: "Blind comparison"; on <=> root.switch-b; unit: root.unit; }
+    }
+    Group {
+        title: "Button group";
+        DirRow {
+            spacing: Tokens.size-group-divider;
+            Segment { label: "Sharp"; first: true; selected: root.choice == 0; unit: root.unit; clicked => { root.choice = 0; } }
+            Segment { label: "Slow"; selected: root.choice == 1; unit: root.unit; clicked => { root.choice = 1; } }
+            Segment { label: "Short"; last: true; selected: root.choice == 2; unit: root.unit; clicked => { root.choice = 2; } }
+        }
+    }
+}

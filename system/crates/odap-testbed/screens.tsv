@@ -1,0 +1,24 @@
+# The UI primitives activity's screens, in the order its list shows them: the one source of that
+# order for the list (generated into the interface by build.rs), the library (odap_testbed::SCREENS),
+# its interface tests and the e2e scenarios (tests/e2e/device.py). Columns: name, detail.
+Calibration	Sizes from this hardware
+Targets	48 · 52 · 64, gap 8
+Gestures	Taps, presses, swipes, edges
+Controls	Sliders, toggles, a button group
+Actions	Primary, secondary, icon, edge label
+Navigation	Tabs, levels: stops and adjustables
+Selection	Stops on an axis, a pick list
+Status	Indicators, progress, readouts, a toast
+States	Empty, error, disabled with its reason
+Motion	Durations, the standard easing
+Opacity	10 → 100 %
+Layers	A disabled group, a popover, a dialog
+Layout	Wrap, a row that adapts, an aspect box
+Spaces	Frames, paths, motion in a scrolled list
+Turns	A dial's angle, a strip from its start edge
+Arena	One owner per contact, nested scrolling
+Virtual	100 000 rows, a window of slots
+Media	A spring, a waveform, decode sizes
+Exceptions	When the host fails
+Keyboard	A form above the on-screen keyboard
+Transitions	A pager, a morph, enter and exit

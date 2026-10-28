@@ -1,0 +1,440 @@
+// The UI primitives activity (SYS-071): a developer activity, included in Blackbird OS, that
+// exercises the UI primitives one screen at a time, built from Blackbird UI's components as any
+// activity is. It is not the debug UI mode (SYS-070): that mode draws over every activity,
+// this one included, as the system's flag turns it on (`Blueprint.on`, set by main.rs), and the
+// composer draws its regions, controls, touches and gestures above it.
+//
+// A list of the primitives; each opens its own screen, with a header and the way back.
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+// The design system's type, with the script companions (a language's own name, library metadata).
+import { Fonts } from "@blackbird/slint/fonts.slint";
+import { Blueprint, FocusReveal, FocusVisible, FocusNav, Motion, Layout, Screen, Header, Label, Button, PrimaryButton, ListLine, Backdrop, Overlay, Modal, Toggle, Slider, RangeSlider, Segment, IconButton, Tab, RadioStops, CheckLine, Panel, EmptyState, ErrorState, DirRow } from "@blackbird/slint/components.slint";
+
+import { ScreenList } from "@testbed/screens.slint";
+import { KeyboardPanel } from "keyboard.slint";
+import { Body, Group } from "parts.slint";
+import { NavView, TrBox, FieldView, NavTile, VRow } from "models.slint";
+// One file a screen (screens/), each wired to the window's properties below.
+import { ActionsScreen } from "screens/actions.slint";
+import { ArenaScreen } from "screens/arena.slint";
+import { CalibrationScreen } from "screens/calibration.slint";
+import { ControlsScreen } from "screens/controls.slint";
+import { ExceptionsScreen } from "screens/exceptions.slint";
+import { GesturesScreen } from "screens/gestures.slint";
+import { KeyboardScreen } from "screens/keyboard.slint";
+import { LayersScreen } from "screens/layers.slint";
+import { LayoutScreen } from "screens/layout.slint";
+import { MediaScreen } from "screens/media.slint";
+import { MotionScreen } from "screens/motion.slint";
+import { NavigationScreen } from "screens/navigation.slint";
+import { OpacityScreen } from "screens/opacity.slint";
+import { SelectionScreen } from "screens/selection.slint";
+import { SpacesScreen } from "screens/spaces.slint";
+import { StatesScreen } from "screens/states.slint";
+import { StatusScreen } from "screens/status.slint";
+import { TargetsScreen } from "screens/targets.slint";
+import { TransitionsScreen } from "screens/transitions.slint";
+import { TurnsScreen } from "screens/turns.slint";
+import { VirtualScreen } from "screens/virtual.slint";
+
+export { Blueprint, FocusReveal, FocusVisible, FocusNav, Motion, Layout }
+
+// The frosted backdrop's global, for the logic to fill when a dialog opens.
+export { Backdrop }
+
+// What the activity's logic hands the screens.
+export { NavView, TrBox, FieldView, NavTile, VRow }
+
+export component Testbed inherits Window {
+    // From the device description and the window (the logic).
+    in property <string> device;
+    in property <float> unit: 1.0;
+    in property <[string]> calibration;
+    in property <bool> calibration-off;
+    // The gesture pad: the gesture last recognised there (the logic classifies it).
+    in property <string> gesture;
+    in property <int> contacts;
+    callback pad(string, length, length, length, length);
+    // The Spaces screen (the logic answers through opendap-input): a list scrolled by its own pan,
+    // a dial and a strip; each reports its contact with its place in the surface.
+    callback spaces-list(string, length, length, length, length, length, length);
+    callback spaces-dial(string, length, length, length, length);
+    callback spaces-strip(length, length, bool);
+    in property <length> spaces-offset;
+    in property <[string]> spaces-lines;
+    // The row the buttons are on in the Spaces list (-1: none yet).
+    in property <int> spaces-focused: -1;
+    in property <string> dial-text;
+    in property <float> dial-angle;
+    in property <float> dial-turn;
+    in property <string> strip-text;
+    // The strip's direction is the layout's (Calibration's switch, or this screen's).
+    out property <bool> strip-rtl: Layout.rtl;
+    // The Arena screen: one owner per contact (opendap-input's arena), and nested scrolling by
+    // its own primitive (nested).
+    callback arena-pad(string, length, length);
+    in-out property <bool> arena-double;
+    in property <string> arena-text;
+    callback nested-pan(string, length, length, bool);
+    in property <length> nested-outer;
+    in property <length> nested-inner;
+    in property <string> nested-text;
+    // The Virtual screen (opendap-layout): a hundred thousand rows, only a window of slots built.
+    in property <[VRow]> vrows;
+    in property <string> vtext;
+    // The pinned section header (opendap-layout's sticky): where it sits, and its text.
+    in property <length> vband-y;
+    in property <string> vband-text;
+    // Reduce motion, read by the logic's animations.
+    out property <bool> reduce-motion: Motion.reduce;
+    // The setting changed (Calibration's switch, standing for the system's): the logic hands it to
+    // opendap-motion, which every animation reads.
+    callback reduce-motion-set(bool);
+    changed reduce-motion => { root.reduce-motion-set(self.reduce-motion); }
+    callback vpan(string, length, length);
+    // The buttons in the virtual list: "next", "prev", "enter-down", "enter-up", "activate";
+    // false when the focus leaves the list (at an end).
+    callback vkey(string) -> bool;
+    // The experiments' controls under the buttons (KeyControl).
+    callback control-key(string, string) -> bool;
+    // The Navigation screen's stops, and what the levels did last.
+    in property <NavView> nav-shelf;
+    // The shelf's built albums: only the window of ten thousand (opendap-layout).
+    in property <[NavTile]> nav-tiles;
+    in property <NavView> nav-player;
+    in property <NavView> nav-days;
+    in property <string> nav-text: "Action on a stop enters it; past either end, out.";
+    // The keyboard experiment: the panel is open, the fields' texts, the field being edited.
+    in-out property <bool> kb-open;
+    // A key of the on-screen keyboard: the logic sends it to the focused field as a key event, as a
+    // virtual keyboard does (virtual-keyboard-v1), so the field keeps the focus.
+    callback kb-key(string);
+    // The Transitions screen (opendap-motion's transition, interpolate and presence,
+    // opendap-layout's pager, opendap-input's matched): the logic places everything.
+    in property <length> tr-pager-offset;
+    in property <int> tr-page;
+    in property <[TrBox]> tr-tiles;
+    in property <TrBox> tr-detail;
+    in property <[TrBox]> tr-rows;
+    in property <string> tr-text: "Drag the pages; tap a tile; remove a line";
+    callback tr-pager(string, length);
+    callback tr-tile(int);
+    callback tr-detail-touch(string, length);
+    callback tr-list();
+    in-out property <int> kb-field: -1;
+    in-out property <[FieldView]> kb-fields;
+    callback field-edited(int, string) -> string;
+    callback field-left(int);
+    // The keyboard's variant, from the field being edited's purpose.
+    out property <bool> kb-digits: root.kb-field >= 0 && root.kb-field < root.kb-fields.length
+        && (root.kb-fields[root.kb-field].purpose == "number" || root.kb-fields[root.kb-field].purpose == "pin" || root.kb-fields[root.kb-field].purpose == "digits" || root.kb-fields[root.kb-field].purpose == "date" || root.kb-fields[root.kb-field].purpose == "time" || root.kb-fields[root.kb-field].purpose == "phone");
+    in property <float> strip-value;
+    // The Media screen (opendap-media, opendap-motion): a spring, a waveform, decode sizes.
+    callback spring-drag(string, length);
+    in property <length> spring-x;
+    in property <string> spring-text;
+    in property <[float]> wave-lo;
+    in property <[float]> wave-hi;
+    in property <string> media-text;
+    callback exception(string);
+    // A screen opened from the list (its name): the logic prepares what it shows.
+    callback screen-opened(string);
+    // Navigation: "" is the list, otherwise the screen open.
+    in-out property <string> screen;
+    // State of the primitives' screens.
+    in-out property <int> motion: 1;
+    in-out property <bool> motion-at-end;
+    in-out property <float> level: 40;
+    in-out property <bool> switch-a: true;
+    in-out property <bool> switch-b;
+    in-out property <int> choice: 1;
+    in-out property <float> range-low: 30;
+    in-out property <float> range-high: 70;
+    in-out property <int> tab;
+    in-out property <int> stop: 2;
+    in-out property <int> language;
+    in-out property <float> seek: 79;
+    in-out property <bool> toast-up: true;
+    // How many times the Actions screen's primary action ran (a tap, or Action with the focus
+    // hidden: the screen's primary action, T1-061).
+    in-out property <int> continued;
+    in-out property <bool> group-on;
+    in-out property <string> picked: "none";
+    in-out property <length> anchor-x;
+    in-out property <length> anchor-y;
+    in-out property <length> anchor-w;
+
+    title: "UI primitives";
+    background: Blueprint.on ? Blueprint.paper : Tokens.bg;
+
+    // Past an end of the screen's focus chain (blackbird-ui Screen): the logic sends the opposite
+    // key, so the focus stays on the element at that end.
+    callback screen-edge(bool);
+    // Frosts what is on screen for the next dialog's backdrop (the logic: opendap-media's blur).
+    callback frost();
+    // Where the popover goes next to its anchor (the logic: opendap-input's anchor::place).
+    callback place-menu(length, length, length, length, length);
+    Screen {
+        unit: root.unit;
+        edge(end) => { root.screen-edge(end); }
+        // Action with the focus hidden takes the screen's primary action, where it has one;
+        // Escape goes back (system input events §4.2).
+        has-primary: root.screen == "Actions";
+        primary => { root.continued += 1; }
+        can-back: root.screen != "";
+        // Escape releases the editing level first: the keyboard closes before the screen goes back.
+        back => { if root.kb-open { root.kb-open = false; } else { root.screen = ""; } }
+        // Below the status bar (an OS Shell draft the composer draws above every activity, RFC 0012).
+        VerticalLayout {
+            padding-top: Tokens.size-status-bar * root.unit;
+            hdr := Header {
+                title: root.screen == "" ? "UI primitives" : root.screen;
+                can-back: root.screen != "";
+                unit: root.unit;
+                back => { root.screen = ""; }
+            }
+
+            // Below the header, the screen's content, scrolled when it is taller than the display.
+            // The focused element always in view: when the buttons move the focus out of the
+            // visible part, the content scrolls just enough to show it whole.
+            flick := Flickable {
+                vertical-stretch: 1;
+                property <int> reveal: FocusReveal.serial;
+                // Scrolling by touch is touching the screen: the focus ring hides.
+                flicked => { FocusVisible.on = false; self.revealing = false; }
+                // Slint's Flickable takes a vertical drag from any control inside it once the finger
+                // passes its threshold, and no control can keep it (no nested scroll, no "disallow
+                // intercept"): the Spaces screen, whose list scrolls by its own pan, is not
+                // scrolled as a page (a Slint gap, ui-model §6.3).
+                interactive: root.screen != "Spaces" && root.screen != "Arena" && root.screen != "Virtual" && root.screen != "Media" && root.screen != "Transitions";
+                // Every screen opens at its top: the list's scroll never carries over.
+                property <string> shown: root.screen;
+                changed shown => { self.revealing = false; self.focus-here = false; self.content-y = 0; root.kb-open = false; }
+                // The viewport shrinks as the keyboard opens: the focused element stays in view.
+                changed height => { self.keep(); }
+                // The focused element kept in view: only while the ring shows (a touch focuses what
+                // is under the finger, which must not move), also when the ring appears after a
+                // touch-scroll, and never for what is outside this scroll area (the header:
+                // FocusReveal.fixed). Measured in the content, so an element scrolled out of view
+                // above is brought back too, and from where the scroll is going when it is still
+                // moving (a held button retargets it, never queues).
+                property <bool> ring: FocusVisible.on;
+                // Where the focused element is in the content, taken when it reports (the scroll then
+                // is the one it was measured at): later reveals (the ring appearing, the viewport
+                // shrinking under the keyboard) reuse it, whatever the scroll did since.
+                property <length> focus-top;
+                property <length> focus-bottom;
+                property <bool> focus-here;
+                changed reveal => {
+                    self.focus-here = !FocusReveal.fixed;
+                    self.focus-top = FocusReveal.y - self.absolute-position.y - self.content-y;
+                    self.focus-bottom = self.focus-top + FocusReveal.h;
+                    self.keep();
+                }
+                changed ring => { if self.ring { self.keep(); } else if !root.kb-open { self.revealing = false; } }
+                // The reveal's scroll (input events §3.7): animated toward `reveal-to`, retargeted,
+                // stopped by a touch; with reduced motion it jumps.
+                property <length> reveal-to;
+                property <bool> revealing;
+                function keep() {
+                    if !self.focus-here || (!FocusVisible.on && !root.kb-open) { return; }
+                    let base = self.revealing ? self.reveal-to : self.content-y;
+                    let top = self.focus-top;
+                    let bottom = self.focus-bottom;
+                    let to = top < -base ? -top
+                        : (bottom > -base + self.height ? self.height - bottom : base);
+                    let t = max(min(self.height - self.content-height, 0), min(0, to));
+                    if t == base { return; }
+                    if Motion.reduce { self.revealing = false; self.content-y = t; return; }
+                    self.reveal-to = t;
+                    self.revealing = true;
+                }
+                reveal-timer := Timer {
+                    interval: 16ms;
+                    running: flick.revealing && (FocusVisible.on || root.kb-open);
+                    triggered => {
+                        let d = flick.reveal-to - flick.content-y;
+                        // About 150 ms to settle, ease out: a third of what is left each frame.
+                        if abs(d) < 0.5px { flick.content-y = flick.reveal-to; flick.revealing = false; }
+                        else { flick.content-y += d * 0.35; }
+                    }
+                }
+                content-width: self.width;
+                content-height: content.preferred-height;
+                // The keyboard experiment: a tap on the content outside a field closes the keyboard
+                // (the field keeps the focus, hidden); a scroll is not a tap. Behind the content, so
+                // a field's own touch comes first.
+                if root.screen == "Keyboard": TouchArea {
+                    width: flick.width;
+                    height: max(content.preferred-height, flick.height);
+                    clicked => { FocusVisible.on = false; root.kb-open = false; }
+                }
+                content := VerticalLayout {
+                    width: parent.width;
+                    alignment: start;
+                // The list of primitives.
+                if root.screen == "": VerticalLayout {
+                    alignment: start;
+                    Label {
+                        x: Tokens.space-margin;
+                        role: "caption";
+                        mono: true;
+                        muted: true;
+                        text: root.device;
+                        height: 28px;
+                        vertical-alignment: center;
+                    }
+                    // The screens, in screens.tsv's order (generated by build.rs): opening one tells the logic,
+                    // for the screens that prepare something as they open.
+                    ScreenList {
+                        unit: root.unit;
+                        open(s) => { root.screen = s; root.screen-opened(s); }
+                    }
+                }
+
+                if root.screen == "Calibration": CalibrationScreen {
+                    calibration: root.calibration; calibration-off: root.calibration-off; unit: root.unit;
+                }
+
+                if root.screen == "Targets": TargetsScreen {
+                    unit: root.unit;
+                }
+
+                // A pad for gestures; the recognised one shows under it. The composer's debug UI mode
+                // shows them everywhere; this one checks the recogniser on its own.
+                if root.screen == "Gestures": GesturesScreen {
+                    contacts: root.contacts; gesture: root.gesture; focus-back => { hdr.focus-back(); }
+                    pad(p0, p1, p2, p3, p4) => { root.pad(p0, p1, p2, p3, p4); }
+                }
+
+                if root.screen == "Controls": ControlsScreen {
+                    unit: root.unit; choice <=> root.choice; level <=> root.level; range-high <=> root.range-high;
+                    range-low <=> root.range-low; switch-a <=> root.switch-a; switch-b <=> root.switch-b;
+                }
+
+                if root.screen == "Motion": MotionScreen {
+                    unit: root.unit; motion <=> root.motion; motion-at-end <=> root.motion-at-end;
+                }
+
+                if root.screen == "Opacity": OpacityScreen {
+                    focus-back => { hdr.focus-back(); }
+                }
+
+                if root.screen == "Spaces": SpacesScreen {
+                    spaces-focused: root.spaces-focused; spaces-lines: root.spaces-lines;
+                    spaces-offset: root.spaces-offset; control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    spaces-list(p0, p1, p2, p3, p4, p5, p6) => { root.spaces-list(p0, p1, p2, p3, p4, p5, p6); }
+                }
+
+                if root.screen == "Media": MediaScreen {
+                    media-text: root.media-text; spring-text: root.spring-text; spring-x: root.spring-x;
+                    wave-hi: root.wave-hi; wave-lo: root.wave-lo;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    spring-drag(p0, p1) => { root.spring-drag(p0, p1); }
+                }
+
+                if root.screen == "Virtual": VirtualScreen {
+                    vband-text: root.vband-text; vband-y: root.vband-y; vrows: root.vrows; vtext: root.vtext;
+                    vkey(p0) => { return root.vkey(p0); } vpan(p0, p1, p2) => { root.vpan(p0, p1, p2); }
+                }
+
+                if root.screen == "Arena": ArenaScreen {
+                    arena-text: root.arena-text; nested-inner: root.nested-inner; nested-outer: root.nested-outer;
+                    nested-text: root.nested-text; unit: root.unit; arena-double <=> root.arena-double;
+                    arena-pad(p0, p1, p2) => { root.arena-pad(p0, p1, p2); }
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    nested-pan(p0, p1, p2, p3) => { root.nested-pan(p0, p1, p2, p3); }
+                }
+
+                if root.screen == "Turns": TurnsScreen {
+                    dial-angle: root.dial-angle; dial-text: root.dial-text; strip-rtl: root.strip-rtl;
+                    strip-text: root.strip-text; strip-value: root.strip-value; unit: root.unit;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    spaces-dial(p0, p1, p2, p3, p4) => { root.spaces-dial(p0, p1, p2, p3, p4); }
+                    spaces-strip(p0, p1, p2) => { root.spaces-strip(p0, p1, p2); }
+                }
+
+                if root.screen == "Layout": LayoutScreen {
+                    window-width: root.width; focus-back => { hdr.focus-back(); }
+                }
+
+                if root.screen == "Layers": LayersScreen {
+                    unit: root.unit; show-menu => { menu.show(); } show-dialog => { dialog.show(); }
+                    anchor-w <=> root.anchor-w; frost() => { root.frost(); } group-on <=> root.group-on;
+                    picked <=> root.picked; place-menu(p0, p1, p2, p3, p4) => { root.place-menu(p0, p1, p2, p3, p4); }
+                }
+
+                if root.screen == "Keyboard": KeyboardScreen {
+                    content-origin: flick.absolute-position.y + flick.content-y;
+                    field-edited(p0, p1) => { return root.field-edited(p0, p1); }
+                    field-left(p0) => { root.field-left(p0); } kb-field <=> root.kb-field;
+                    kb-fields <=> root.kb-fields; kb-open <=> root.kb-open;
+                }
+
+                if root.screen == "Transitions": TransitionsScreen {
+                    tr-detail: root.tr-detail; tr-pager-offset: root.tr-pager-offset; tr-rows: root.tr-rows;
+                    tr-text: root.tr-text; tr-tiles: root.tr-tiles; unit: root.unit;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); }
+                    tr-detail-touch(p0, p1) => { root.tr-detail-touch(p0, p1); } tr-list() => { root.tr-list(); }
+                    tr-pager(p0, p1) => { root.tr-pager(p0, p1); } tr-tile(p0) => { root.tr-tile(p0); }
+                }
+
+                if root.screen == "Exceptions": ExceptionsScreen {
+                    unit: root.unit; exception(p0) => { root.exception(p0); }
+                }
+
+                if root.screen == "Actions": ActionsScreen {
+                    unit: root.unit; continued <=> root.continued;
+                }
+
+                if root.screen == "Navigation": NavigationScreen {
+                    nav-days: root.nav-days; nav-player: root.nav-player; nav-shelf: root.nav-shelf;
+                    nav-text: root.nav-text; nav-tiles: root.nav-tiles; unit: root.unit;
+                    control-key(p0, p1) => { return root.control-key(p0, p1); } level <=> root.level;
+                    tab <=> root.tab;
+                }
+
+                if root.screen == "Selection": SelectionScreen {
+                    unit: root.unit; language <=> root.language; stop <=> root.stop;
+                }
+
+                if root.screen == "Status": StatusScreen {
+                    unit: root.unit; seek <=> root.seek; toast-up <=> root.toast-up;
+                }
+
+                if root.screen == "States": StatesScreen { unit: root.unit; }
+                }
+            }
+            // The on-screen keyboard (keyboard.slint), docked at the bottom.
+            KeyboardPanel {
+                shown: root.kb-open && root.screen == "Keyboard";
+                digits: root.kb-digits;
+                key(t) => { root.kb-key(t); }
+                done => { root.kb-open = false; }
+            }
+        }
+    }
+    menu := Overlay {
+        edge(end) => { root.screen-edge(end); }
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        panel-x: root.anchor-x;
+        panel-y: root.anchor-y;
+        panel-width: root.anchor-w;
+        unit: root.unit;
+        ListLine { label: "Play next"; unit: root.unit; clicked => { root.picked = "Play next"; menu.close(); } init => { self.focus(); } }
+        ListLine { label: "Add to queue"; unit: root.unit; clicked => { root.picked = "Add to queue"; menu.close(); } }
+    }
+    dialog := Modal {
+        width: root.width;
+        height: root.height;
+        title: "Forget this device?";
+        unit: root.unit;
+        Label { role: "body"; text: "Its pairing and settings go. Escape or a tap outside keeps it."; }
+        PrimaryButton { label: "Forget"; unit: root.unit; clicked => { root.picked = "Forgot"; dialog.close(); } }
+        Button { label: "Cancel"; unit: root.unit; clicked => { dialog.close(); } }
+    }
+}

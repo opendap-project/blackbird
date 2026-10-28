@@ -1,0 +1,75 @@
+// The Turns screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusVisible, Layout, Label, Toggle, DirRow } from "@blackbird/slint/components.slint";
+import { KeyControl } from "../key-control.slint";
+import { Body, Group } from "../parts.slint";
+
+export component TurnsScreen inherits Body {
+    callback control-key(string, string) -> bool;
+    in property <float> dial-angle;
+    in property <string> dial-text;
+    callback spaces-dial(string, length, length, length, length);
+    callback spaces-strip(length, length, bool);
+    in property <bool> strip-rtl;
+    in property <string> strip-text;
+    in property <float> strip-value;
+    in property <float> unit;
+
+    Group {
+        title: "Dial: turn around it; the total keeps counting past the top";
+        DirRow {
+            spacing: Tokens.space-group;
+            dial := Rectangle {
+                width: 96px;
+                height: 96px;
+                border-radius: 48px;
+                border-width: 1px;
+                border-color: Tokens.border-strong;
+                // The needle, turned to the dial's angle (0 up, clockwise).
+                Rectangle {
+                    width: parent.width;
+                    height: parent.height;
+                    transform-rotation: root.dial-angle * 1deg;
+                    Rectangle {
+                        width: 2px;
+                        height: 40px;
+                        x: parent.width / 2 - 1px;
+                        y: 8px;
+                        background: Tokens.text-primary;
+                    }
+                }
+                TouchArea {
+                    pointer-event(e) => {
+                        if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-dial.focus(); root.spaces-dial("down", self.mouse-x, self.mouse-y, self.width, self.height); }
+                    }
+                    moved => { root.spaces-dial("move", self.mouse-x, self.mouse-y, self.width, self.height); }
+                }
+                kc-dial := KeyControl { init => { self.focus(); } name: "dial"; kind: "lockable"; key(n, k) => { return root.control-key(n, k); } }
+            }
+            Label { role: "caption"; mono: true; text: root.dial-text; vertical-alignment: center; }
+        }
+    }
+    Group {
+        title: "Strip: 0 to 1 from the start edge";
+        Rectangle {
+            height: 32px;
+            border-radius: 4px;
+            background: Tokens.surface-active;
+            Rectangle {
+                x: (root.strip-rtl ? 1 - root.strip-value : root.strip-value) * (parent.width - self.width);
+                width: 4px;
+                background: Tokens.text-primary;
+            }
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-strip.focus(); root.spaces-strip(self.mouse-x, self.width, root.strip-rtl); }
+                }
+                moved => { root.spaces-strip(self.mouse-x, self.width, root.strip-rtl); }
+            }
+            kc-strip := KeyControl { name: "strip"; kind: "lockable"; key(n, k) => { return root.control-key(n, k); } }
+        }
+        Label { role: "caption"; mono: true; text: root.strip-text; }
+        Toggle { label: "Right to left"; on: Layout.rtl; toggled(v) => { Layout.rtl = v; } unit: root.unit; }
+    }
+}

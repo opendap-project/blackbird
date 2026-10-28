@@ -1,0 +1,473 @@
+// The simulator window: the virtual device's display, framed by the device (schematic until the
+// case exports its geometry), and a sidebar of hardware actions that folds away.
+
+import { Slider, ComboBox } from "std-widgets.slint";
+import { Palette, Key, MeterBar, ProbeRow, TaskRow } from "theme.slint";
+import { Section, Pill, Toggle, Tool, Keycap, Binding, HeaderButton, Tabs, Choice } from "widgets.slint";
+import { ControlsPage } from "controls-page.slint";
+import { InstrumentsPage } from "instruments-page.slint";
+import { TasksPage } from "tasks-page.slint";
+import { KeymapDialog } from "keymap.slint";
+import { Device } from "device.slint";
+
+export { Key, MeterBar, ProbeRow, TaskRow }
+
+// An action on the chosen process.
+component ActionButton inherits Rectangle {
+    in property <string> label;
+    in property <bool> enabled: true;
+    in property <bool> danger;
+    callback clicked();
+    height: 28px;
+    border-radius: 7px;
+    opacity: root.enabled ? 1 : 0.4;
+    background: act-touch.pressed ? Palette.line.brighter(50%) : (act-touch.has-hover && root.enabled ? Palette.line.brighter(22%) : Palette.line);
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.enabled;
+    accessible-action-default => { if root.enabled { root.clicked(); } }
+    Text { text: root.label; color: root.danger && root.enabled ? #e5484d : Palette.text; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; }
+    act-touch := TouchArea { enabled: root.enabled; mouse-cursor: root.enabled ? pointer : default; clicked => { root.clicked(); } }
+}
+
+export component View inherits Window {
+    in property <string> name;
+    in property <image> screen;
+    in property <length> screen-w;
+    in property <length> screen-h;
+    // The frame, in logical px (panel pixels): the body, and where the display sits in it.
+    in property <bool> framed: true;
+    // The front of the device, drawn once from the case and faceplate layers (frame.rs), and
+    // where the display and the status LED's window are in it.
+    in property <image> front;
+    in property <length> front-w;
+    in property <length> front-h;
+    in property <length> screen-x;
+    in property <length> screen-y;
+    in property <length> led-x;
+    in property <length> led-y;
+    in property <length> led-d;
+    in-out property <[Key]> keys;
+    // Which controls are down, whatever pressed them (main.rs), for the sidebar's pills.
+    in property <bool> action-down;
+    in property <bool> main-down;
+    in property <bool> volume-up-down;
+    in property <bool> volume-down-down;
+    // The status LED's colour, transparent while off (the virtual board's LED adapter drives it).
+    in property <color> led: transparent;
+    in-out property <bool> sidebar: true;
+    // The keyboard bindings, in a modal.
+    in-out property <bool> keymap;
+    // Under the title: what the device is doing. At the bottom: the last thing worth saying (a
+    // saved file, an error), for a few seconds.
+    in property <string> status;
+    in property <string> note;
+    // The hardware's state, from the worker (src/device.rs): switch states are 0 off,
+    // 1 attaching, 2 on, 3 detaching.
+    in-out property <float> battery: 50;
+    in property <bool> battery-known;
+    in property <bool> battery-busy;
+    // Fire and forget: the slider and its readout show what was sent, never the hardware's echo;
+    // the hardware's charge is read once, when the window opens (main.rs).
+    in-out property <bool> battery-seeded;
+    in-out property <bool> battery-dragging;
+    // The faceplate's ambient light sensor: the slider's position is log10(lux + 1), 0 to 5.
+    in-out property <float> light: 2;
+    in property <bool> light-known;
+    // The microphone is live: the faceplate's privacy light, tied to its power (BRD-027).
+    in property <bool> mic-live;
+    in-out property <bool> light-seeded;
+    callback light-set(float);
+    in property <int> charger;
+    in property <int> sd;
+    in property <int> usb-disk;
+    in property <int> usb-dac;
+    // The device as a whole: 0 off, 1 starting, 2 ready, 3 rebooting, 4 stopping.
+    in property <int> phase;
+    in property <bool> debug-reboot;
+    in property <bool> saving;
+    // The sidebar's page: 0 the device's controls, 1 its instruments.
+    in-out property <int> tab: 0;
+    callback tab-changed(int);
+    // The device's sound (sound.rs): what it plays, and what it records.
+    in-out property <bool> out-analyze;
+    in-out property <bool> out-play: true;
+    in property <bool> out-active;
+    in property <string> out-format;
+    in property <[MeterBar]> out-meters;
+    in property <image> out-spectrum;
+    in property <image> out-waterfall;
+    // How each strip shows the sound: 0 the spectrum now, 1 the spectrogram (the last 21 s).
+    in-out property <int> out-view;
+    in-out property <int> in-view;
+    callback sound-view(string, int);
+    in property <string> out-readout;
+    in property <string> out-note;
+    in-out property <bool> in-analyze;
+    in-out property <int> in-source: 0;
+    in property <[string]> in-sources: ["This computer's default input", "Test tone 997 Hz", "Silence"];
+    in property <bool> in-active;
+    in property <string> in-format;
+    in property <[MeterBar]> in-meters;
+    in property <image> in-spectrum;
+    in property <image> in-waterfall;
+    in property <string> in-readout;
+    in property <string> in-note;
+    // Measuring costs the host: it runs while the Measure switch is on and the Instruments page
+    // shows; the switch keeps the wish (saved) when the page hides.
+    callback sound-analyze(string, bool);
+    callback sound-measure-wish(string, bool);
+    property <bool> out-measuring: root.out-analyze && root.sidebar && root.tab == 1;
+    property <bool> in-measuring: root.in-analyze && root.sidebar && root.tab == 1;
+    changed out-measuring => { root.sound-analyze("out", self.out-measuring); }
+    changed in-measuring => { root.sound-analyze("in", self.in-measuring); }
+    callback sound-play(bool);
+    callback sound-source(int);
+    // The device's load (stats.rs), while the system group shows.
+    in-out property <bool> sys-open: true;
+    // The layers' probes and their readings (main.rs).
+    in property <[ProbeRow]> probes;
+    callback sys-watch(bool);
+    // The device's load is read only while someone can see it.
+    property <bool> sys-visible: root.sidebar && (root.tab == 1 || root.tab == 2) && root.phase == 2;
+    changed sys-visible => { root.sys-watch(self.sys-visible); }
+    in property <bool> sys-known;
+    in property <string> sys-cpu;
+    in property <float> sys-cpu-busy;
+    in property <string> sys-mem;
+    in property <string> sys-mem-short;
+    in property <float> sys-mem-busy;
+    in property <string> sys-load;
+    in property <string> sys-uptime;
+    // The simulated hardware's power (stats.rs): the virtual board's battery model.
+    in property <bool> energy-known;
+    in property <string> energy-level;
+    in property <string> energy-power;
+    in property <string> energy-status;
+    in property <string> energy-voltage;
+    in property <string> energy-current;
+    in property <string> energy-temperature;
+    in property <string> energy-time;
+    in property <string> energy-charger;
+    in property <image> graph-battery;
+    in property <image> graph-power;
+    // The Tasks tab (stats.rs): every process, sorted and filtered by main.rs; one chosen.
+    in property <[TaskRow]> tasks;
+    in property <string> tasks-summary;
+    in-out property <string> task-sort: "cpu";
+    in-out property <bool> task-descending: true;
+    in-out property <bool> task-kernel;
+    in-out property <int> task-pid: -1;
+    in property <TaskRow> task-chosen;
+    in property <bool> task-found;
+    in property <string> task-refused;
+    callback task-sort-by(string);
+    callback task-show-kernel(bool);
+    callback task-choose(int);
+    callback task-act(string);
+    in-out property <bool> tasks-hovered;
+    callback task-hover-changed();
+    // The Tasks tab's graphs (history.rs): the device's, and the chosen process's.
+    in property <image> graph-cpu;
+    in property <image> graph-mem;
+    in property <image> graph-task-cpu;
+    in property <image> graph-task-mem;
+    in property <string> task-cpu-now;
+    in property <string> task-mem-now;
+
+    callback screen-pointer(string, length, length);
+    callback key(string, bool);
+    callback combo(bool);
+    callback action(string);
+    callback battery-set(float);
+    callback attach(string, bool);
+    // The debug UI mode: 0 off, 1 turning on, 2 on, 3 turning off.
+    in property <int> debug-ui;
+    callback set-debug-ui(bool);
+    callback host-key(string, bool);
+
+    title: root.name;
+    background: Palette.page;
+
+    // The host keyboard drives the whole window, mouse or not. Plain keys are the device's
+    // controls and are held as long as the key is (the faceplate's host keys: Space, ↑, ↓, P, by the buttons' places; Enter as Space; ← → as a
+    // keyboard's arrows, not buttons;
+    // S holds Main + Vol −). With ⌘ they are the sidebar's actions, under the same rules as a
+    // click: nothing in flight is asked twice, nothing disabled is taken. A key the OS repeats
+    // while held is one press, as on the hardware.
+    forward-focus: keys-in;
+    keys-in := FocusScope {
+        key-pressed(e) => {
+            if e.repeat { return accept; }
+            if (e.modifiers.control || e.modifiers.meta) && (e.text == "k" || e.text == "K" || e.text == "/") { root.keymap = !root.keymap; return accept; }
+            // The modal leaves the rest inert: Esc, ⌘K, its X or a click outside closes it.
+            if root.keymap {
+                return accept;
+            }
+            if e.modifiers.control || e.modifiers.meta {
+                if e.text == "s" || e.text == "S" { root.action("screenshot"); }
+                else if (e.text == "r" || e.text == "R") && root.phase == 2 { root.action(e.modifiers.shift ? "reboot-debug" : "reboot"); }
+                else if (e.text == "p" || e.text == "P") && e.modifiers.shift && root.phase == 2 { root.action("poweroff"); }
+                else if e.text == "1" { root.attach("microsd", root.sd == 0); }
+                else if e.text == "2" { root.attach("usb-storage", root.usb-disk == 0); }
+                else if e.text == "3" { root.attach("usb-audio", root.usb-dac == 0); }
+                else if e.text == "4" && root.battery-known { root.attach("charger", root.charger == 0); }
+                else if (e.text == "-" || e.text == "[") && root.battery-known { root.battery = max(0, round(root.battery) - 5); root.battery-set(root.battery); }
+                else if (e.text == "=" || e.text == "+" || e.text == "]") && root.battery-known { root.battery = min(100, round(root.battery) + 5); root.battery-set(root.battery); }
+                else if e.text == "\\" { root.sidebar = !root.sidebar; }
+                else { return reject; }
+                return accept;
+            }
+            if e.text == "s" { root.combo(true); return accept; }
+            root.host-key(e.text, true);
+            accept
+        }
+        key-released(e) => {
+            // Esc closes on its release: macOS hands the window only the release of Esc.
+            if root.keymap {
+                if e.text == Key.Escape { root.keymap = false; }
+                return accept;
+            }
+            if e.modifiers.control || e.modifiers.meta { return accept; }
+            if e.text == "s" { root.combo(false); return accept; }
+            root.host-key(e.text, false);
+            accept
+        }
+    }
+
+    HorizontalLayout {
+        padding: 16px;
+        spacing: 16px;
+
+        // The device: its drawn front, the live display in it, the keys to press, the LED.
+        Device {
+            framed: root.framed;
+            front: root.front;
+            front-h: root.front-h;
+            front-w: root.front-w;
+            key(a0, a1) => { root.key(a0, a1); }
+            keys <=> root.keys;
+            led: root.led;
+            led-d: root.led-d;
+            led-x: root.led-x;
+            led-y: root.led-y;
+            screen: root.screen;
+            screen-h: root.screen-h;
+            screen-pointer(a0, a1, a2) => { root.screen-pointer(a0, a1, a2); }
+            screen-w: root.screen-w;
+            screen-x: root.screen-x;
+            screen-y: root.screen-y;
+        }
+
+        // The layout gives the sidebar its column; inside it, the panel is the whole column when
+        // open, and only its button when folded.
+        Rectangle {
+          // Wider for the Tasks list, whose columns need the room.
+          width: root.sidebar ? (root.tab == 2 ? 360px : 236px) : 36px;
+          Rectangle {
+            x: 0;
+            y: 0;
+            width: parent.width;
+            height: root.sidebar ? parent.height : 36px;
+            background: Palette.panel;
+            border-radius: root.sidebar ? 10px : 8px;
+            fold := Rectangle {
+                x: parent.width - self.width - (root.sidebar ? 8px : 0);
+                y: root.sidebar ? 8px : 0;
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                background: grip.has-hover ? Palette.line : transparent;
+                accessible-role: button;
+                accessible-label: root.sidebar ? "Fold the sidebar" : "Open the sidebar";
+                accessible-action-default => { root.sidebar = !root.sidebar; }
+                Image {
+                    source: root.sidebar ? @image-url("icons/minimize.svg") : @image-url("icons/maximize.svg");
+                    colorize: grip.has-hover ? Palette.text : Palette.muted;
+                    width: 16px;
+                    height: 16px;
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                }
+                grip := TouchArea { mouse-cursor: pointer; clicked => { root.sidebar = !root.sidebar; } }
+            }
+            if root.sidebar && root.note != "": Text {
+                x: 12px;
+                y: parent.height - self.height - 12px;
+                width: parent.width - 24px;
+                text: root.note;
+                color: Palette.muted;
+                font-size: 11px;
+                wrap: no-wrap;
+                overflow: elide;
+                accessible-role: text;
+            }
+            if root.sidebar: HeaderButton {
+                x: fold.x - self.width - 2px;
+                y: 8px;
+                icon: @image-url("icons/keyboard.svg");
+                label: "Keyboard bindings";
+                clicked => { root.keymap = true; }
+            }
+            // The header stays: the device and what it is doing, beside the keyboard and fold buttons.
+            if root.sidebar: VerticalLayout {
+                x: 0;
+                y: 0;
+                width: parent.width;
+                height: self.preferred-height;
+                padding: 12px;
+                padding-bottom: 0;
+                spacing: 2px;
+                // Clear of the keyboard and fold buttons at the top right.
+                padding-right: 74px;
+                Text { text: root.name; color: Palette.text; font-size: 14px; font-weight: 600; }
+                // One line, always: a note never moves the sidebar.
+                Text { text: root.status; color: Palette.muted; font-size: 11px; wrap: no-wrap; overflow: elide; }
+            }
+            // The pages: the device's controls, and its instruments.
+            if root.sidebar: Tabs {
+                x: 12px;
+                y: 52px;
+                width: parent.width - 24px;
+                labels: ["Controls", "Instruments", "Tasks"];
+                current <=> root.tab;
+                changed(i) => { root.tab-changed(i); keys-in.focus(); }
+            }
+            // The groups scroll when they do not fit, between the tabs and the note line.
+            if root.sidebar && root.tab == 0: ControlsPage {
+                x: 0;
+                y: 84px;
+                width: parent.width;
+                height: parent.height - self.y - 34px;
+                action(a0) => { root.action(a0); }
+                action-down: root.action-down;
+                attach(a0, a1) => { root.attach(a0, a1); }
+                battery <=> root.battery;
+                battery-dragging <=> root.battery-dragging;
+                battery-known: root.battery-known;
+                battery-set(a0) => { root.battery-set(a0); }
+                charger: root.charger;
+                combo(a0) => { root.combo(a0); }
+                debug-reboot: root.debug-reboot;
+                debug-ui: root.debug-ui;
+                key(a0, a1) => { root.key(a0, a1); }
+                light <=> root.light;
+                light-known: root.light-known;
+                light-set(a0) => { root.light-set(a0); }
+                main-down: root.main-down;
+                mic-live: root.mic-live;
+                phase: root.phase;
+                saving: root.saving;
+                sd: root.sd;
+                set-debug-ui(a0) => { root.set-debug-ui(a0); }
+                usb-dac: root.usb-dac;
+                usb-disk: root.usb-disk;
+                volume-down-down: root.volume-down-down;
+                volume-up-down: root.volume-up-down;
+                refocus => { keys-in.focus(); }
+            }
+            // The instruments: the device's sound and load, measured from the host (ADR 0003).
+            if root.sidebar && root.tab == 1: InstrumentsPage {
+                x: 0;
+                y: 84px;
+                width: parent.width;
+                height: parent.height - self.y - 34px;
+                energy-charger: root.energy-charger;
+                energy-current: root.energy-current;
+                energy-known: root.energy-known;
+                energy-level: root.energy-level;
+                energy-power: root.energy-power;
+                energy-status: root.energy-status;
+                energy-temperature: root.energy-temperature;
+                energy-time: root.energy-time;
+                energy-voltage: root.energy-voltage;
+                graph-battery: root.graph-battery;
+                graph-power: root.graph-power;
+                in-active: root.in-active;
+                in-analyze <=> root.in-analyze;
+                in-format: root.in-format;
+                in-meters: root.in-meters;
+                in-note: root.in-note;
+                in-readout: root.in-readout;
+                in-source <=> root.in-source;
+                in-sources: root.in-sources;
+                in-spectrum: root.in-spectrum;
+                in-view <=> root.in-view;
+                in-waterfall: root.in-waterfall;
+                out-active: root.out-active;
+                out-analyze <=> root.out-analyze;
+                out-format: root.out-format;
+                out-meters: root.out-meters;
+                out-note: root.out-note;
+                out-play <=> root.out-play;
+                out-readout: root.out-readout;
+                out-spectrum: root.out-spectrum;
+                out-view <=> root.out-view;
+                out-waterfall: root.out-waterfall;
+                phase: root.phase;
+                probes: root.probes;
+                sound-measure-wish(a0, a1) => { root.sound-measure-wish(a0, a1); }
+                sound-play(a0) => { root.sound-play(a0); }
+                sound-source(a0) => { root.sound-source(a0); }
+                sound-view(a0, a1) => { root.sound-view(a0, a1); }
+                sys-cpu: root.sys-cpu;
+                sys-cpu-busy: root.sys-cpu-busy;
+                sys-known: root.sys-known;
+                sys-load: root.sys-load;
+                sys-mem: root.sys-mem;
+                sys-mem-busy: root.sys-mem-busy;
+                sys-open <=> root.sys-open;
+                sys-uptime: root.sys-uptime;
+                refocus => { keys-in.focus(); }
+            }
+            // The device's processes, as a task manager shows them (stats.rs): sorted by a
+            // column, kernel threads hidden unless asked for, and actions on the chosen one.
+            if root.sidebar && root.tab == 2: TasksPage {
+                x: 0;
+                y: 84px;
+                width: parent.width;
+                height: parent.height - self.y - 34px;
+                graph-cpu: root.graph-cpu;
+                graph-mem: root.graph-mem;
+                graph-task-cpu: root.graph-task-cpu;
+                graph-task-mem: root.graph-task-mem;
+                phase: root.phase;
+                sys-cpu: root.sys-cpu;
+                sys-known: root.sys-known;
+                sys-mem-short: root.sys-mem-short;
+                task-act(a0) => { root.task-act(a0); }
+                task-choose(a0) => { root.task-choose(a0); }
+                task-chosen: root.task-chosen;
+                task-cpu-now: root.task-cpu-now;
+                task-descending <=> root.task-descending;
+                task-found: root.task-found;
+                task-hover-changed() => { root.task-hover-changed(); }
+                task-kernel <=> root.task-kernel;
+                task-mem-now: root.task-mem-now;
+                task-pid <=> root.task-pid;
+                task-refused: root.task-refused;
+                task-show-kernel(a0) => { root.task-show-kernel(a0); }
+                task-sort <=> root.task-sort;
+                task-sort-by(a0) => { root.task-sort-by(a0); }
+                tasks: root.tasks;
+                tasks-hovered <=> root.tasks-hovered;
+                tasks-summary: root.tasks-summary;
+                refocus => { keys-in.focus(); }
+            }
+
+        }
+        }
+    }
+
+    // The keyboard bindings. Closed by its X, a click outside it, or Esc.
+    if root.keymap: KeymapDialog {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        close => {
+            root.keymap = false;
+            keys-in.focus();
+        }
+    }
+}

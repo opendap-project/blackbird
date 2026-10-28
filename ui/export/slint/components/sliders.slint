@@ -1,0 +1,314 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Sliders: the slider, the range slider and the seek bar, built on the adjustable.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint, Measure } from "../blueprint.slint";
+import { Layout } from "foundation.slint";
+import { FocusVisible, FocusNav, Adjustable } from "focus.slint";
+import { Label } from "text.slint";
+
+// A slider: a value on a track, dragged or stepped; in blueprint, the track as a dimension line
+// and the value beside the knob.
+export component Slider inherits Rectangle {
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in-out property <float> value: 50;
+    in property <string> label;
+    in property <float> unit: 1.0;
+    // Disabled: dimmed, no focus, no touch (ADR 0003).
+    in property <bool> enabled: true;
+    opacity: root.enabled ? 1 : 0.45;
+    accessible-enabled: root.enabled;
+    callback changed(float);
+    height: Tokens.size-target-min;
+    accessible-role: slider;
+    accessible-label: root.label;
+    accessible-value: round(root.value);
+    accessible-value-minimum: root.minimum;
+    accessible-value-maximum: root.maximum;
+    accessible-description: root.adjusting ? "Adjusting: the volume buttons move the value" : "";
+    // A screen reader adjusts it as the buttons do.
+    accessible-action-increment => { root.nudge(root.step); }
+    accessible-action-decrement => { root.nudge(-root.step); }
+    property <float> t: (root.value - root.minimum) / max(1, root.maximum - root.minimum);
+    // Where it is drawn: from the start edge, mirrored right to left.
+    property <float> tv: Layout.rtl ? 1 - root.t : root.t;
+    property <length> knob: 20px;
+    // The lock ends when the focus hides (a touch elsewhere): Escape then means back again.
+    property <bool> shown: FocusVisible.on;
+    changed shown => { if !self.shown { root.adjusting = false; } }
+    // Locked for adjustment (Enter, Action or Space on the focused knob): the volume buttons and
+    // the arrows move the value instead of the focus, until it is released the same way or the
+    // focus leaves.
+    in-out property <bool> adjusting;
+    property <float> step: (root.maximum - root.minimum) / 20;
+    function nudge(by: float) {
+        root.value = max(root.minimum, min(root.maximum, root.value + by));
+        root.changed(root.value);
+    }
+    // The track.
+    Rectangle {
+        x: root.knob / 2;
+        width: parent.width - root.knob;
+        y: (parent.height - self.height) / 2;
+        height: Blueprint.on ? 1px : 4px;
+        border-radius: 2px;
+        background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
+        // The fill, from the start of the track to the knob's centre.
+        Rectangle {
+            x: Layout.rtl ? parent.width * (1 - root.t) : 0;
+            width: parent.width * root.t;
+            border-radius: 2px;
+            background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+        }
+    }
+    if Blueprint.on: Rectangle { x: root.knob / 2; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
+    if Blueprint.on: Rectangle { x: parent.width - root.knob / 2 - 1px; width: 1px; y: (parent.height - 9px) / 2; height: 9px; background: Blueprint.ink.with-alpha(Blueprint.secondary); }
+    // The focus is on the knob, the control, not on the field: its ring around it; locked for
+    // adjustment, the ring turns to live input.
+    if fs.ring: Rectangle {
+        x: (parent.width - root.knob) * root.tv - 4px;
+        y: (parent.height - root.knob) / 2 - 4px;
+        width: root.knob + 8px;
+        height: root.knob + 8px;
+        border-radius: self.width / 2;
+        // Locked for adjustment it reads apart from plain focus: a thicker ring and a filled halo.
+        border-width: root.adjusting ? 3px : 2px;
+        border-color: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base) : Tokens.focus;
+        background: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base).with-alpha(0.45) : transparent;
+    }
+    // The knob.
+    Rectangle {
+        x: (parent.width - root.knob) * root.tv;
+        y: (parent.height - root.knob) / 2;
+        width: root.knob;
+        height: root.knob;
+        border-radius: root.knob / 2;
+        border-width: Blueprint.on ? 1px : 0;
+        border-color: touch.pressed ? Blueprint.live : Blueprint.interactive;
+        background: Blueprint.on ? (touch.pressed ? Blueprint.live.with-alpha(0.3) : Blueprint.paper) : Tokens.text-primary;
+    }
+    if Blueprint.on: Text {
+        x: min(parent.width - self.width, max(0, (parent.width - root.knob) * root.tv + root.knob / 2 - self.width / 2));
+        y: 0;
+        text: round(root.value);
+        font-family: Tokens.font-family-mono;
+        font-size: 10px;
+        color: Blueprint.ink.with-alpha(Blueprint.text);
+    }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := Adjustable {
+        live: root.enabled;
+        adjusting <=> root.adjusting;
+        // 5 % a step.
+        step(d) => { root.nudge(d * root.step); }
+    }
+    // The value follows the finger once it moves along the track past the slop (a drag with the
+    // horizontal axis: a vertical move scrolls the page and takes nothing); a tap sets the value
+    // where it lands; a cancel puts back the value it had at the press (input events §3.2).
+    // Right to left, the track runs from the right.
+    function set-from(x: length) {
+        let f = max(0, min(1, (x - root.knob / 2) / (root.width - root.knob)));
+        root.value = root.minimum + (Layout.rtl ? 1 - f : f) * (root.maximum - root.minimum);
+        root.changed(root.value);
+    }
+    property <bool> dragging;
+    property <float> at-press;
+    touch := TouchArea {
+        enabled: root.enabled;
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down { FocusVisible.on = false; fs.focus(); root.dragging = false; root.at-press = root.value; }
+            if e.kind == PointerEventKind.up && !root.dragging
+                && abs(self.mouse-y - self.pressed-y) < 10px * root.unit { root.set-from(self.mouse-x); }
+            if e.kind == PointerEventKind.cancel { root.value = root.at-press; root.changed(root.value); root.dragging = false; }
+        }
+        moved => {
+            if self.pressed && !root.dragging
+                && abs(self.mouse-x - self.pressed-x) >= 10px * root.unit
+                && abs(self.mouse-x - self.pressed-x) > abs(self.mouse-y - self.pressed-y) { root.dragging = true; }
+            if self.pressed && root.dragging { root.set-from(self.mouse-x); }
+        }
+    }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// A range: two knobs on one track, low and high; a press takes the nearer knob, and they never
+// cross. In blueprint, the track is a dimension line and each value shows over its knob.
+export component RangeSlider inherits Rectangle {
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in-out property <float> low: 20;
+    in-out property <float> high: 80;
+    in property <string> label;
+    in property <float> unit: 1.0;
+    // Disabled: dimmed, no focus, no touch (ADR 0003).
+    in property <bool> enabled: true;
+    opacity: root.enabled ? 1 : 0.45;
+    accessible-enabled: root.enabled;
+    callback changed(float, float);
+    height: Tokens.size-target-min;
+    accessible-role: slider;
+    accessible-label: root.label;
+    accessible-value: round(root.low) + " to " + round(root.high);
+    property <length> knob: 20px;
+    property <float> span: max(1, root.maximum - root.minimum);
+    // Where the knobs are drawn: from the start edge, mirrored right to left (the low knob on the
+    // right).
+    property <length> lx: root.mirror((root.width - root.knob) * (root.low - root.minimum) / root.span);
+    property <length> hx: root.mirror((root.width - root.knob) * (root.high - root.minimum) / root.span);
+    pure function mirror(x: length) -> length { return Layout.rtl ? (root.width - root.knob) - x : x; }
+    accessible-action-increment => { root.move-active((root.active == 0 ? root.low : root.high) + root.span / 20); }
+    accessible-action-decrement => { root.move-active((root.active == 0 ? root.low : root.high) - root.span / 20); }
+    // The lock ends when the focus hides.
+    property <bool> shown: FocusVisible.on;
+    changed shown => { if !self.shown { root.adjusting = false; } }
+    // Which knob a drag moves, and the one the focus is on: 0 low, 1 high.
+    property <int> active;
+    // Locked for adjustment, as the slider is (Enter, Action or Space).
+    in-out property <bool> adjusting;
+    Rectangle {
+        x: root.knob / 2;
+        width: parent.width - root.knob;
+        y: (parent.height - self.height) / 2;
+        height: Blueprint.on ? 1px : 4px;
+        border-radius: 2px;
+        background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
+        Rectangle {
+            x: min(root.lx, root.hx);
+            width: abs(root.hx - root.lx);
+            border-radius: 2px;
+            background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+        }
+    }
+    for k[i] in [root.lx, root.hx]: Rectangle {
+        x: k;
+        y: (parent.height - root.knob) / 2;
+        width: root.knob;
+        height: root.knob;
+        border-radius: root.knob / 2;
+        border-width: Blueprint.on ? 1px : 0;
+        border-color: touch.pressed && root.active == i ? Blueprint.live : Blueprint.interactive;
+        background: Blueprint.on ? (touch.pressed && root.active == i ? Blueprint.live.with-alpha(0.3) : Blueprint.paper) : Tokens.text-primary;
+    }
+    // The focus is on one knob at a time, the control: its ring; locked, in live colour.
+    if fs.ring: Rectangle {
+        x: (root.active == 0 ? root.lx : root.hx) - 4px;
+        y: (parent.height - root.knob) / 2 - 4px;
+        width: root.knob + 8px;
+        height: root.knob + 8px;
+        border-radius: self.width / 2;
+        // Locked for adjustment it reads apart from plain focus: a thicker ring and a filled halo.
+        border-width: root.adjusting ? 3px : 2px;
+        border-color: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base) : Tokens.focus;
+        background: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base).with-alpha(0.45) : transparent;
+    }
+    if Blueprint.on: Text {
+        x: max(0, root.lx + root.knob / 2 - self.width / 2);
+        y: 0;
+        text: round(root.low);
+        font-family: Tokens.font-family-mono;
+        font-size: 10px;
+        color: Blueprint.ink.with-alpha(Blueprint.text);
+    }
+    if Blueprint.on: Text {
+        x: min(parent.width - self.width, root.hx + root.knob / 2 - self.width / 2);
+        y: 0;
+        text: round(root.high);
+        font-family: Tokens.font-family-mono;
+        font-size: 10px;
+        color: Blueprint.ink.with-alpha(Blueprint.text);
+    }
+    function value-at(x: length) -> float {
+        let f = max(0, min(1, (x - root.knob / 2) / (root.width - root.knob)));
+        return root.minimum + (Layout.rtl ? 1 - f : f) * root.span;
+    }
+    function move-active(v: float) {
+        if root.active == 0 { root.low = min(v, root.high); } else { root.high = max(v, root.low); }
+        root.changed(root.low, root.high);
+    }
+    forward-focus: fs;
+    fs := Adjustable {
+        live: root.enabled;
+        adjusting <=> root.adjusting;
+        // Reached backward (Volume +, Shift+Tab): from the high knob; forward, from the low one. A
+        // touch chose its knob itself, and the window getting the focus back keeps the one it had.
+        arrived => { root.active = FocusNav.backward ? 1 : 0; }
+        // The focused knob, 5 % of the range a step.
+        step(d) => { root.move-active((root.active == 0 ? root.low : root.high) + d * root.span / 20); }
+        // Free: the focus walks low → high, then leaves. Each knob it reaches is a focus move,
+        // reported as any (a screen reader says it; a scroll area keeps it in view).
+        other-key(e) => {
+            if e.text == Key.Tab && !e.modifiers.shift && root.active == 0 { root.active = 1; self.report(); return accept; }
+            if (e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift)) && root.active == 1 { root.active = 0; self.report(); return accept; }
+            reject
+        }
+    }
+    // As the slider: a knob is chosen at the press (the nearer; with both together, the one on
+    // the side the touch falls), it moves once the finger travels along the track past the slop
+    // or on a tap, and a cancel puts both back.
+    property <bool> dragging;
+    property <float> low-at-press;
+    property <float> high-at-press;
+    touch := TouchArea {
+        enabled: root.enabled;
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down {
+                FocusVisible.on = false;
+                fs.focus();
+                root.dragging = false;
+                root.low-at-press = root.low;
+                root.high-at-press = root.high;
+                let dl = abs(self.mouse-x - (root.lx + root.knob / 2));
+                let dh = abs(self.mouse-x - (root.hx + root.knob / 2));
+                root.active = abs(dl - dh) < 1px
+                    ? ((self.mouse-x > root.lx + root.knob / 2) != Layout.rtl ? 1 : 0)
+                    : (dl < dh ? 0 : 1);
+            }
+            if e.kind == PointerEventKind.up && !root.dragging
+                && abs(self.mouse-y - self.pressed-y) < 10px * root.unit { root.move-active(root.value-at(self.mouse-x)); }
+            if e.kind == PointerEventKind.cancel {
+                root.low = root.low-at-press;
+                root.high = root.high-at-press;
+                root.changed(root.low, root.high);
+                root.dragging = false;
+            }
+        }
+        moved => {
+            if self.pressed && !root.dragging
+                && abs(self.mouse-x - self.pressed-x) >= 10px * root.unit
+                && abs(self.mouse-x - self.pressed-x) > abs(self.mouse-y - self.pressed-y) { root.dragging = true; }
+            if self.pressed && root.dragging { root.move-active(root.value-at(self.mouse-x)); }
+        }
+    }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// A seek bar (§9.5): the position and the times, elapsed and remaining; never mirrored.
+export component SeekBar inherits VerticalLayout {
+    in-out property <float> position;
+    in property <float> length: 1;
+    in property <string> elapsed;
+    in property <string> remaining;
+    in property <float> unit: 1.0;
+    callback seek(float);
+    spacing: Tokens.space-unit;
+    // Focus on entry lands on its slider.
+    forward-focus: seek-slider;
+    seek-slider := Slider {
+        minimum: 0;
+        maximum: root.length;
+        value <=> root.position;
+        label: "Position";
+        unit: root.unit;
+        changed(v) => { root.seek(v); }
+    }
+    HorizontalLayout {
+        // The seek bar keeps its physical order (§9.5): the elapsed time at the left either way.
+        Label { role: "caption"; mono: true; muted: true; text: root.elapsed; horizontal-stretch: 1; horizontal-alignment: TextHorizontalAlignment.left; wrap: no-wrap; }
+        Label { role: "caption"; mono: true; muted: true; text: root.remaining; horizontal-alignment: right; wrap: no-wrap; }
+    }
+}

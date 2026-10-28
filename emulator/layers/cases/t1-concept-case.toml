@@ -1,0 +1,98 @@
+# Case: the T1's case as the concept's 3D model builds it (t1 docs/concept-art; the "T1 en 3D" model,
+# its construction and finishes kept, T1-059): one piece with flat walls and a 0.6 mm bevel, a
+# squircle footprint, the faceplate and the back cover inset flush inside a 1 mm lip, and the keys
+# on the side walls. The body is the tentative 59.5 x 94.3 x 24 mm of t1 ADR 0003; radii, the bevel
+# and the keys' sizes come from the concept model and are set by eye (UNVERIFIED). Millimetres,
+# origin at the device centre, x across, y up, z towards the faceplate (T1-021). Only the
+# simulator window draws it (odap-vdev frame); it never reaches the device description.
+[layer]
+kind = "case"
+id = "t1-concept-case"
+name = "T1 case (concept model)"
+
+[case]
+width_mm = 59.5
+height_mm = 94.3
+thickness_mm = 24.0
+# Squircle corners: a superellipse of exponent 3.6 over 1.45 x the radius (the concept model).
+radius_mm = 9.0
+squircle_n = 3.6
+bevel_mm = 0.6
+# The rim of the case around the inset faceplate: the faceplate fills the opening it leaves.
+lip_mm = 1.0
+# Graphite polymer (PC or ABS) with a grip texture (CASE-020, CASE-021).
+color = "#2b2d2f"
+texture = "grip"
+
+# The keys on the side walls, measured on the concept model's meshes (UNVERIFIED, set by eye
+# there): where they are along the edge (centre, from the device centre), the length and the width
+# (across the case's thickness, centred on its mid-plane) of their face, the bevel around the face,
+# how far the face stands out of the wall, their shape and finish, and marks in relief.
+# The keys sit 4.964 mm lower than in the concept model (maintainers, 2026-10-23): Action's top edge
+# meets the bottom line of the OS Shell's status bar (28 design px, 4.284 mm on this display), and the
+# others keep their places relative to it.
+# travel_mm is how far a key goes into the case when pressed, sideways: set by eye (UNVERIFIED);
+# T1-022 states only that Action travels deeper than the others, which travel short.
+[[case.keys]]
+role = "action"
+side = "left"
+y_mm = 25.936
+length_mm = 13.0
+width_mm = 13.0
+protrusion_mm = 2.06
+travel_mm = 0.65
+shape = "disc"
+finish = "anodised-orange"
+
+[[case.keys]]
+role = "volume-up"
+side = "left"
+y_mm = 9.7485
+length_mm = 11.375
+width_mm = 8.6
+bevel_mm = 0.45
+# The face of a 0.6 mm extrusion with 0.45 mm bevels each side, seated 0.05 mm in.
+protrusion_mm = 1.0
+travel_mm = 0.25
+shape = "half-up"
+# One capsule split in two: each half's face ends, outside, in the capsule's round cap (the
+# capsule is 8.6 mm across, so a 4.3 mm radius), and is square at the split. Straight on, the
+# outline is edge-on: the front shows a rectangle, its outer corners rounded by the bevel.
+cap_radius_mm = 4.3
+finish = "satin-silver"
+# + in graphite relief on the face (bars 3.6 x 0.85 mm), centred here; on the face, so not drawn
+# from the front.
+mark = "+"
+mark_y_mm = 10.636
+
+[[case.keys]]
+role = "volume-down"
+side = "left"
+y_mm = -2.8765
+length_mm = 11.375
+width_mm = 8.6
+bevel_mm = 0.45
+# The face of a 0.6 mm extrusion with 0.45 mm bevels each side, seated 0.05 mm in.
+protrusion_mm = 1.0
+travel_mm = 0.25
+shape = "half-down"
+cap_radius_mm = 4.3
+finish = "satin-silver"
+mark = "-"
+mark_y_mm = -3.764
+
+[[case.keys]]
+role = "main"
+side = "right"
+y_mm = 17.936
+length_mm = 15.0
+width_mm = 7.0
+bevel_mm = 0.4
+protrusion_mm = 0.85
+travel_mm = 0.25
+shape = "pill"
+finish = "satin-silver"
+# Five crests across the pill, 1.8 mm apart, for touch identification.
+ribs = 5
+rib_pitch_mm = 1.8
+rib_height_mm = 0.29

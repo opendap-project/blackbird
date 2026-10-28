@@ -1,0 +1,283 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Selection: the list line, the toggle, the radio stops and the check line.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint, Measure } from "../blueprint.slint";
+import { Motion, Layout, DirRow, Ink } from "foundation.slint";
+import { FocusVisible, FocusTarget, Adjustable, TapArea } from "focus.slint";
+import { Label } from "text.slint";
+
+// A list line: go to a thing or a sub-screen; full width, hairline, chevron (§15.2).
+export component ListLine inherits Rectangle {
+    in property <string> label;
+    in property <string> detail;
+    // Disabled with its reason (ADR 0003): the line dims and says why; taking it does nothing.
+    in property <string> reason;
+    // Disabled without a reason of its own (a disabled group says it once, ADR 0003).
+    in property <bool> enabled: true;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: root.detail == "" && root.reason == "" ? Tokens.size-row : Tokens.size-row-two;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (!root.live ? transparent : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-base : transparent)));
+    // In blueprint, the line's interactive area: its outline.
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.live;
+    accessible-description: root.reason != "" ? root.reason : root.detail;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    DirRow {
+        padding-left: Tokens.space-margin;
+        padding-right: Tokens.space-margin;
+        spacing: Tokens.space-unit;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            Label { role: "body"; text: root.label; wrap: no-wrap; overflow: elide; opacity: root.live ? 1 : 0.45; }
+            if root.detail != "" || root.reason != "": Label { role: "caption"; muted: true; text: root.reason != "" ? root.reason : root.detail; wrap: no-wrap; overflow: elide; }
+        }
+        Path {
+            width: 20px;
+            height: 20px;
+            cross-axis-self-alignment: CrossAxisAlignment.center;
+            viewbox-width: 24;
+            viewbox-height: 24;
+            // Forward points to the end: mirrored right to left.
+            commands: Layout.rtl ? "M15 6 L9 12 L15 18" : "M9 6 L15 12 L9 18";
+            stroke: Ink.secondary;
+            opacity: root.live ? 1 : 0.45;
+            stroke-width: 2px;
+            stroke-line-cap: round;
+            stroke-line-join: round;
+            fill: transparent;
+        }
+    }
+    Rectangle { y: parent.height - Tokens.size-group-divider; height: Tokens.size-group-divider; background: Ink.line; }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
+    // Disabled, a touch is inert: no focus, no action (input events §3.7).
+    touch := TapArea {
+        enabled: root.live; unit: root.unit; down => { fs.focus(); } tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// A toggle: one setting on or off (§15.2); in blueprint, its track and knob as outlines.
+export component Toggle inherits Rectangle {
+    in property <string> label;
+    in-out property <bool> on;
+    // Disabled with its reason (ADR 0003): the switch dims, the reason shows under the label.
+    in property <string> reason;
+    // Disabled without a reason of its own (a disabled group says it once, ADR 0003).
+    in property <bool> enabled: true;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <float> unit: 1.0;
+    callback toggled(bool);
+    height: root.reason == "" ? Tokens.size-row : Tokens.size-row-two;
+    accessible-role: switch;
+    accessible-label: root.label;
+    accessible-checked: root.on;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-action-default => { if root.live { root.on = !root.on; root.toggled(root.on); } }
+    background: Blueprint.on && touch.pressed ? Blueprint.live.with-alpha(0.2) : (Blueprint.on && touch.has-hover ? Blueprint.interactive.with-alpha(0.1) : transparent);
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    DirRow {
+        padding-left: Tokens.space-margin;
+        padding-right: Tokens.space-margin;
+        spacing: Tokens.space-unit;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            Label { role: "body"; text: root.label; wrap: no-wrap; overflow: elide; opacity: root.live ? 1 : 0.45; }
+            if root.reason != "": Label { role: "caption"; muted: true; text: root.reason; wrap: no-wrap; overflow: elide; }
+        }
+        Rectangle {
+            width: 40px;
+            height: 24px;
+            // Disabled: the whole control dims, not only its label (ui-model §5).
+            opacity: root.live ? 1 : 0.45;
+            cross-axis-self-alignment: CrossAxisAlignment.center;
+            border-radius: self.height / 2;
+            border-width: Blueprint.on ? 1px : 0;
+            border-color: Blueprint.ink.with-alpha(root.on ? Blueprint.text : Blueprint.outline);
+            background: Blueprint.on ? Blueprint.ink.with-alpha(root.on ? 0.14 : 0) : (root.on ? Tokens.text-primary : Tokens.surface-active);
+            // (the track is the setting's state: structure, in ink)
+            animate background { duration: Motion.reduce ? 0 : Tokens.motion-duration-fast; }
+            Rectangle {
+                width: 18px;
+                height: 18px;
+                y: 3px;
+                // On is at the end: mirrored right to left.
+                x: (root.on != Layout.rtl) ? parent.width - self.width - 3px : 3px;
+                border-radius: self.height / 2;
+                border-width: Blueprint.on ? 1px : 0;
+                border-color: Blueprint.ink.with-alpha(Blueprint.text);
+                background: Blueprint.on ? transparent : (root.on ? Tokens.bg : Tokens.text-secondary);
+                animate x { duration: Motion.reduce ? 0 : Tokens.motion-duration-fast; easing: cubic-bezier(0.2, 0, 0, 1); }
+            }
+        }
+    }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.on = !root.on; root.toggled(root.on); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-radius: 0; border-width: 2px; border-color: Tokens.focus; }
+    // Disabled, a touch is inert: no focus, no change (input events §3.7).
+    touch := TapArea {
+        enabled: root.live; unit: root.unit; down => { fs.focus(); } tapped => { root.on = !root.on; root.toggled(root.on); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+
+// Radio stops on an axis (§15.2): one of a few options on a meaningful scale; the selected stop
+// enlarged and described in words.
+export component RadioStops inherits VerticalLayout {
+    in property <[string]> stops;
+    in-out property <int> selected;
+    in property <string> description;
+    in property <float> unit: 1.0;
+    // Disabled: dimmed, no focus, no touch (ADR 0003).
+    in property <bool> enabled: true;
+    opacity: root.enabled ? 1 : 0.45;
+    callback changed(int);
+    // Locked for adjustment (Enter, Action or Space), as a slider: the volume buttons move the
+    // choice instead of the focus, until it is released the same way, by Escape, or the focus
+    // leaves. ← → move it at any time.
+    in-out property <bool> adjusting;
+    // The lock ends when the focus hides.
+    property <bool> shown: FocusVisible.on;
+    changed shown => { if !self.shown { root.adjusting = false; } }
+    // A stop's place along the axis, from the start edge, mirrored right to left.
+    pure function place(i: int, w: length) -> length {
+        let p = i * (w - Tokens.size-target-min) / max(1, root.stops.length - 1);
+        return Layout.rtl ? (w - Tokens.size-target-min) - p : p;
+    }
+    function pick(i: int) {
+        if i >= 0 && i < root.stops.length && i != root.selected { root.selected = i; root.changed(i); }
+    }
+    forward-focus: fs;
+    spacing: Tokens.space-unit;
+    Rectangle {
+        height: Tokens.size-target-min;
+        Rectangle {
+            x: Tokens.size-target-min / 2;
+            width: parent.width - Tokens.size-target-min;
+            // Centred on the stops: its own thickness taken out.
+            y: (parent.height - self.height) / 2;
+            height: Blueprint.on ? 1px : 2px;
+            background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.surface-active;
+        }
+        for stop[i] in root.stops: Rectangle {
+            x: root.place(i, parent.width);
+            width: Tokens.size-target-min;
+            height: Tokens.size-target-min;
+            accessible-role: radio-button;
+            accessible-label: stop;
+            accessible-checked: i == root.selected;
+            accessible-action-default => { root.selected = i; root.changed(i); }
+            property <length> d: i == root.selected ? 22px : 12px;
+            Rectangle {
+                width: parent.d;
+                height: parent.d;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                border-radius: self.width / 2;
+                border-width: Blueprint.on ? 1px : 0;
+                border-color: stop-touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(0.8);
+                background: Blueprint.on
+                    ? (i == root.selected ? Blueprint.ink.with-alpha(0.3) : Blueprint.paper)
+                    : (i == root.selected ? Tokens.text-primary : Tokens.color-graphite-700);
+                animate width, height { duration: Motion.reduce ? 0 : Tokens.motion-duration-fast; }
+            }
+            stop-touch := TapArea {
+                enabled: root.enabled;
+        unit: root.unit; down => { fs.focus(); } tapped => { root.selected = i; root.changed(i); } }
+        }
+        fs := Adjustable {
+            live: root.enabled;
+            adjusting <=> root.adjusting;
+            // The next stop or the previous, as a slider's value goes up and down.
+            step(d) => { root.pick(root.selected + d); }
+        }
+        // The focus is on the chosen stop, the control, not on the whole axis (as a slider's knob).
+        if fs.ring: Rectangle {
+            x: root.place(root.selected, parent.width) + (Tokens.size-target-min - 30px) / 2;
+            y: (parent.height - 30px) / 2;
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            border-width: root.adjusting ? 3px : 2px;
+            border-color: root.adjusting ? (Blueprint.on ? Blueprint.live : Tokens.brand-base) : Tokens.focus;
+        }
+    }
+    // The chosen stop and what it means, in reading order.
+    DirRow {
+        Label { role: "label"; text: root.stops[root.selected]; horizontal-stretch: 0; wrap: no-wrap; }
+        Label { role: "label"; muted: true; text: root.description == "" ? "" : "  ·  " + root.description; overflow: elide; wrap: no-wrap; }
+    }
+}
+
+// A line that picks one item of a list (first-run language): a check on the chosen one.
+export component CheckLine inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <string> label;
+    in property <bool> checked;
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: Tokens.size-row;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-base : transparent));
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-role: radio-button;
+    accessible-label: root.label;
+    accessible-checked: root.checked;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    DirRow {
+        padding-left: Tokens.space-margin;
+        padding-right: Tokens.space-margin;
+        Label { role: "body"; text: root.label; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; font-weight: root.checked ? Tokens.font-weight-semibold : Tokens.font-weight-regular; }
+        if root.checked: Image { source: @image-url("../../icons/24/done.svg"); width: 20px; height: 20px; cross-axis-self-alignment: CrossAxisAlignment.center; colorize: Ink.text; }
+    }
+    Rectangle { y: parent.height - Tokens.size-group-divider; height: Tokens.size-group-divider; background: Ink.line; }
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-width: 2px; border-color: Tokens.focus; }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}

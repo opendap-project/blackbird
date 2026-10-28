@@ -1,0 +1,97 @@
+# Local checks for every commit. Install once per clone: pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=5120"]
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+      - id: reuse
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.24.0
+    hooks:
+      - id: markdownlint-cli2
+  - repo: https://github.com/opendap-project/tools
+    rev: v0.1.0
+    hooks:
+      - id: no-stray-files
+  - repo: local
+    hooks:
+      - id: primitives-matrix
+        name: primitives matrix rendered from its data
+        entry: odapkit verify render docs/verification/primitives-matrix.toml --check
+        language: system
+        files: ^docs/verification/
+        pass_filenames: false
+      - id: primitives-matrix-checks
+        name: primitives matrix names the checks that prove its cases (tests/matrix_checks.py --check)
+        entry: tests/matrix_checks.py --check
+        language: system
+        files: ^(docs/verification/|tests/e2e/scenarios\.py|crates/odap-testbed/tests/interface(\.rs|/))
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: requirements-rendered
+        name: requirements README rendered (odapkit req render --check)
+        entry: odapkit req render docs/requirements/requirements.toml --check
+        language: system
+        pass_filenames: false
+        files: ^docs/requirements/
+  - repo: local
+    hooks:
+      - id: key-names-generated
+        name: key_names.rs generated from the kernel header (key_names.py --check)
+        entry: sh -c 'python3 crates/odap-composer/tools/test_key_names.py -q && python3 crates/odap-composer/tools/key_names.py --check'
+        language: system
+        pass_filenames: false
+        files: ^crates/odap-composer/(tools/|src/linux/key_names\.rs$)
+  - repo: local
+    hooks:
+      - id: thresholds-generated
+        name: thresholds.rs and input-events §7 generated from thresholds.toml (thresholds.py --check)
+        entry: sh -c 'python3 crates/opendap-input/tools/test_thresholds.py -q && python3 crates/opendap-input/tools/thresholds.py --check'
+        language: system
+        pass_filenames: false
+        files: ^(crates/opendap-input/(thresholds\.toml|tools/|src/thresholds\.rs)|docs/specs/input-events\.md)$
+      - id: e2e-tokens
+        name: the e2e scenarios' design tokens read from Blackbird UI (test_tokens.py)
+        entry: python3 tests/e2e/test_tokens.py -q
+        language: system
+        pass_filenames: false
+        files: ^tests/e2e/(tokens|test_tokens|device)\.py$
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt --check on changed Rust files
+        entry: rustfmt --check --edition 2024
+        language: system
+        types: [rust]
+      - id: clippy
+        name: cargo clippy -D warnings (before push)
+        entry: cargo clippy --workspace --all-targets -q -- -D warnings
+        language: system
+        pass_filenames: false
+        types: [rust]
+        stages: [pre-push]
+      - id: cargo-test
+        name: cargo test (before push)
+        entry: cargo test --workspace -q
+        language: system
+        pass_filenames: false
+        types: [rust]
+        stages: [pre-push]
+  - repo: local
+    hooks:
+      - id: device-fixture-generated
+        name: virtual T1 description fixture matches virtual-devices (generate.py --check)
+        entry: python3 crates/opendap-device/fixtures/generate.py --check
+        language: system
+        pass_filenames: false
+        files: ^crates/opendap-device/fixtures/

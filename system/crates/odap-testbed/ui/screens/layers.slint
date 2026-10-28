@@ -1,0 +1,50 @@
+// The Layers screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Button, Toggle, Readout, Group as CascadeGroup } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component LayersScreen inherits Body {
+    callback show-menu();
+    callback show-dialog();
+    in-out property <length> anchor-w;
+    callback frost();
+    in-out property <bool> group-on;
+    in-out property <string> picked;
+    callback place-menu(length, length, length, length, length);
+    in property <float> unit;
+
+    // A group that cascades its state: disabled, nothing in it acts, its reason
+    // shows once (ui-model §9, ADR 0003).
+    CascadeGroup {
+        title: "A group, disabled with its reason";
+        enabled: root.group-on;
+        reason: "Turn the switch below on to use these.";
+        unit: root.unit;
+        // Disabled with the group: skipped by the buttons (input events §3.7).
+        Button { label: "Sync now"; enabled: root.group-on; unit: root.unit; }
+        Toggle { label: "Crossfeed"; enabled: root.group-on; unit: root.unit; }
+    }
+    Group {
+        // Focus on entry: the first element that is not disabled.
+        Toggle { label: "Group enabled"; on <=> root.group-on; unit: root.unit; init => { self.focus(); } }
+    }
+    Group {
+        title: "A popover above everything, and a dialog that makes the rest inert";
+        // Anchored to this button: the popover opens under it (a popup is declared
+        // at the window's root, Slint's rule, and placed at its anchor).
+        Button {
+            label: "Open a popover";
+            unit: root.unit;
+            clicked => {
+                // Placed by opendap-input's anchor: below the button, or above it
+                // when it does not fit, slid to stay on the screen.
+                root.anchor-w = self.width;
+                root.place-menu(self.absolute-position.x, self.absolute-position.y, self.width, self.height, 2 * Tokens.size-row + 2 * Tokens.space-unit + 2px);
+                root.show-menu();
+            }
+        }
+        Button { label: "Open a dialog"; unit: root.unit; clicked => { root.frost(); root.show-dialog(); } }
+        Readout { label: "Last choice"; value: root.picked; }
+    }
+}

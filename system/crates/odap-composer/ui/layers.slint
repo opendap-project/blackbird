@@ -1,0 +1,92 @@
+// The composer's system layers (composer and UI runtime spec §2, §7), drawn above every client: the
+// debug UI mode (debug-ui.slint), and today the OS Shell's drafts (shell/: status bar, power menu,
+// toasts; RFC 0012, the OS Shell drafts spec). Values come from Blackbird UI's generated tokens.
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import "@blackbird/fonts/IBMPlexSans-Variable.ttf";
+import "@blackbird/fonts/IBMPlexMono-Regular.ttf";
+import { ControlMark, DebugUi } from "debug-ui.slint";
+import { PowerMenu } from "shell/power-menu.slint";
+import { StatusBar, StatusLabels } from "shell/status-bar.slint";
+import { Toast } from "shell/toast.slint";
+
+// The structs the composer's Rust side fills (layers.rs).
+export { ControlMark, StatusLabels }
+
+export component Layers inherits Window {
+    in property <string> toast;
+    in property <bool> power-open;
+    in property <length> main-y;
+    in property <bool> can-recovery;
+    in-out property <bool> point-at-main;
+    in property <int> focused-choice: -1;
+    callback power-choice(string);
+    // The debug UI mode (layers.rs sets it from the flag).
+    in property <bool> debug;
+    in property <float> unit: 1.0;
+    in property <[ControlMark]> controls;
+    in property <bool> touching;
+    in property <length> touch-x;
+    in property <length> touch-y;
+    in property <string> touch-zone;
+    in property <string> gesture;
+    // The status bar (status.rs sets these); hidden under system views (SYS-069).
+    in property <bool> status-shown;
+    in property <string> status-time;
+    in property <bool> status-microsd;
+    in property <int> status-battery: -1;
+    in property <int> status-battery-glyph;
+    in property <bool> status-battery-low;
+    in property <bool> status-charging;
+    in property <bool> status-bluetooth-shown;
+    in property <bool> status-bluetooth-dimmed;
+    in property <bool> status-wifi-shown;
+    in property <bool> status-wifi-dimmed;
+    in property <StatusLabels> status-labels;
+    background: transparent;
+
+    if root.status-shown && !root.power-open: StatusBar {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        time: root.status-time;
+        microsd: root.status-microsd;
+        battery: root.status-battery;
+        battery-glyph: root.status-battery-glyph;
+        battery-low: root.status-battery-low;
+        charging: root.status-charging;
+        bluetooth-shown: root.status-bluetooth-shown;
+        bluetooth-dimmed: root.status-bluetooth-dimmed;
+        wifi-shown: root.status-wifi-shown;
+        wifi-dimmed: root.status-wifi-dimmed;
+        labels: root.status-labels;
+    }
+
+    if root.power-open: PowerMenu {
+        width: parent.width;
+        height: parent.height;
+        main-y: root.main-y;
+        can-recovery: root.can-recovery;
+        point-at-main <=> root.point-at-main;
+        focused-choice: root.focused-choice;
+        choose(what) => { root.power-choice(what); }
+    }
+    if root.toast != "": Toast {
+        x: Tokens.space-margin;
+        width: parent.width - 2 * Tokens.space-margin;
+        y: parent.height - 12px - self.height;
+        text: root.toast;
+    }
+    // Above everything, system views included, and taking no input.
+    if root.debug: DebugUi {
+        width: parent.width;
+        height: parent.height;
+        unit: root.unit;
+        controls: root.controls;
+        touching: root.touching;
+        touch-x: root.touch-x;
+        touch-y: root.touch-y;
+        touch-zone: root.touch-zone;
+        gesture: root.gesture;
+    }
+}

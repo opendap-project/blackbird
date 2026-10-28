@@ -1,0 +1,59 @@
+// The Media screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusVisible, Label } from "@blackbird/slint/components.slint";
+import { KeyControl } from "../key-control.slint";
+import { Body, Group } from "../parts.slint";
+
+export component MediaScreen inherits Body {
+    callback control-key(string, string) -> bool;
+    in property <string> media-text;
+    callback spring-drag(string, length);
+    in property <string> spring-text;
+    in property <length> spring-x;
+    in property <[float]> wave-hi;
+    in property <[float]> wave-lo;
+
+    Group {
+        title: "Drag the block and let go: it springs back with your velocity";
+        Rectangle {
+            height: 56px;
+            border-width: 1px;
+            border-color: Tokens.border-base;
+            Rectangle { x: (parent.width - 1px) / 2; width: 1px; background: Tokens.border-strong; }
+            Rectangle {
+                x: (parent.width - self.width) / 2 + root.spring-x;
+                y: 8px;
+                width: 40px;
+                height: 40px;
+                border-radius: 6px;
+                background: Tokens.brand-base;
+            }
+            TouchArea {
+                pointer-event(e) => {
+                    if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-spring.focus(); root.spring-drag("down", self.mouse-x); }
+                    if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.spring-drag("up", self.mouse-x); }
+                }
+                moved => { root.spring-drag("move", self.mouse-x); }
+            }
+            kc-spring := KeyControl { init => { self.focus(); } name: "spring"; kind: "button"; key(n, k) => { return root.control-key(n, k); } }
+        }
+        Label { role: "caption"; mono: true; text: root.spring-text; }
+    }
+    Group {
+        title: "A million samples, one column per 2 px, every peak kept";
+        Rectangle {
+            height: 72px;
+            border-width: 1px;
+            border-color: Tokens.border-base;
+            for lo[i] in root.wave-lo: Rectangle {
+                x: i * 2px;
+                width: 1px;
+                y: parent.height / 2 - root.wave-hi[i] * parent.height / 2;
+                height: max(1px, (root.wave-hi[i] - lo) * parent.height / 2);
+                background: Tokens.text-primary;
+            }
+        }
+        Label { role: "caption"; mono: true; text: root.media-text; }
+    }
+}

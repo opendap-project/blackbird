@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 828b8db453b33ff63d443d3fd783ff6e2e626dfe82c09ea5f4f300ecae12389a # shrinks to (bounds, anchor, size) = (Rect { origin: (0.0, 0.0), size: (100.0, 100.0) }, Rect { origin: (90.28557, 0.0), size: (1.0, 1.0) }, (42.949665, 1.0)), asked = Below, gap = 0.0
+cc 846be64164e4208cf372afedeccffb1199a130ff02bf94dd07b5ffcbf6642a54 # shrinks to mut areas = [Scroller { offset: 0.0, max: 1818.9092, takes_first: false }], deltas = [1065.0253, 1279.9651, -547.9924]

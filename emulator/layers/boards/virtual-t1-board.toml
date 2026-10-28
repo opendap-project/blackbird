@@ -1,0 +1,66 @@
+# H1: the board of the virtual T1: the T1 reference board's storage and connectors, with the
+# classes QEMU offers in their place (docs/specs/virtual-devices.md). Connectors are named as on
+# the T1 board, so faceplates and HATs attach to them by name.
+[layer]
+kind = "board"
+id = "virtual-t1-board"
+name = "Virtual T1 board"
+
+[board]
+storage_gb = 32
+
+# The card the simulation inserts into the microSD socket when none is given (odap-vdev sd insert):
+# a sparse raw image of this size in the instance's state, so it takes no space until written.
+# Any size up to 2 TB (SDXC's limit); 1 GiB when no layer sets it. Units: KiB, MiB, GiB, TiB, or
+# KB, MB, GB, TB.
+[microsd]
+card_size = "1GiB"
+
+# The PMIC's forced power-off: holding `main` this long cuts the power, in hardware, whatever the
+# OS does (T1 controls spec §1.3). The T1's time is a PMIC register set in bring-up (UNVERIFIED);
+# this is the virtual board's own, applied by odap-vdev (input press main --hold).
+[pmic]
+forced_power_off_ms = 8000
+
+# The signals this layer carries that the simulator can observe (VD-010): a probe's name is the
+# point it stands for on the hardware, its kind what it carries (pcm, rgb, lux, power), its source
+# where the simulator reads it. Runner only: never in the device description.
+[[probes]]
+name = "soc-dac"
+kind = "pcm"
+what = "SoC to DAC: the stream the DACs receive"
+source = "audio:out"
+
+[[probes]]
+name = "battery"
+kind = "power"
+what = "Battery: charge, voltage, current"
+source = "power_supply:battery"
+
+[[connectors]]
+name = "faceplate"
+[[connectors]]
+name = "usb-c"
+[[connectors]]
+name = "microsd"
+[[connectors]]
+name = "hat"
+
+[qemu]
+args = [
+  # Internal storage (eMMC on the T1): fixed PCI address and first in the boot order.
+  "-drive", "if=none,id=system,format=qcow2,file={run.disk}",
+  "-device", "virtio-blk-pci,drive=system,addr=0x2,bootindex=0",
+  # Management link (the cable to a computer): SSH on the host's loopback.
+  "-netdev", "user,id=net0,hostfwd=tcp:127.0.0.1:{run.ssh_port}-:22", "-device", "virtio-net-pci,netdev=net0,mac=52:54:00:0d:a1:00",
+  # USB-C in host mode: hot-plugged drives and audio devices (odap-vdev usb).
+  "-device", "qemu-xhci,id=xhci", "-audiodev", "{host.audio},id=usbsnd",
+  # microSD socket, empty until a card is inserted (odap-vdev sd).
+  "-device", "sdhci-pci", "-drive", "if=none,id=sdcard", "-device", "sd-card,id=sd0,drive=sdcard",
+  # Headphone output (the T1's DACs) and the faceplate's main microphone: one output and one
+  # input stream. With the D-Bus display (ADR 0002) they go through it ({run.sound} is QEMU's
+  # `dbus` audiodev, in the guest's own formats): the simulator window plays the output on the
+  # host, supplies the input (the host's microphone or a test signal) and measures both. With
+  # QEMU's own window they go to the host's audio, whose CoreAudio backend has no input (QEMU 11).
+  "-audiodev", "{run.sound},id=snd0", "-device", "virtio-sound-pci,audiodev=snd0,streams=2",
+]

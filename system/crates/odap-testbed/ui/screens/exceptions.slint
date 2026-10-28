@@ -1,0 +1,16 @@
+// The Exceptions screen of the UI primitives activity (SYS-071).
+
+import { Label, Button } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component ExceptionsScreen inherits Body {
+    callback exception(string);
+    in property <float> unit;
+
+    Group {
+        Label { role: "label"; muted: true; text: "The composer keeps the last frame and restarts the activity."; }
+        Button { label: "Panic"; unit: root.unit; clicked => { root.exception("panic"); } init => { self.focus(); } }
+        Button { label: "Hang for 5 s"; unit: root.unit; clicked => { root.exception("hang"); } }
+        Button { label: "Exit"; unit: root.unit; clicked => { root.exception("exit"); } }
+    }
+}

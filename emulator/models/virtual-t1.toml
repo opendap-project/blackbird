@@ -1,0 +1,12 @@
+# The virtual T1: the T1 reference's combination of layers, as a device model.
+[model]
+id = "org.opendap.virtual-t1"
+name = "Virtual T1"
+version = 1
+
+[layers]
+soc = "qemu-virt-aarch64"
+board = "virtual-t1-board"
+case = "t1-concept-case"
+faceplate = "virtual-touch"
+hats = []

@@ -1,0 +1,63 @@
+#!/bin/sh
+# The simulator's settings, kept across reboots: what the simulator window and odap-vdev set on the
+# virtual board (the debug UI mode, the battery, the charger, the light on the sensor) is a property
+# of this virtual device, as a real one keeps its battery charge and its light across a restart.
+# Each lands where it acts, which is tmpfs or a module's parameters and lasts one boot; this script
+# records it on the device's disk and puts it back at boot, before the composer starts, so the first
+# frame already follows it.
+# Usage: virtual-settings set KEY VALUE | get KEY | restore
+#   KEY      debug-ui (0 or 1), battery (0 to 100), charger (on or off), light (lux)
+#   restore  put every recorded setting back (odap-vdev-settings.service, at boot)
+# The light is restored by odap-vdev-hw itself, which reads it from this file when it starts.
+set -eu
+file=/var/lib/odap-vdev/settings
+power=/sys/module/test_power/parameters
+
+valid() {
+  case "$1=$2" in
+    debug-ui=0 | debug-ui=1 | charger=on | charger=off) return 0 ;;
+    battery=*) [ "$2" -ge 0 ] 2>/dev/null && [ "$2" -le 100 ] ;;
+    light=*) [ "$2" -ge 0 ] 2>/dev/null && [ "$2" -le 100000 ] ;;
+    *) return 1 ;;
+  esac
+}
+
+get() {
+  [ -f "$file" ] || return 0
+  sed -n "s/^$1=//p" "$file" | tail -n 1
+}
+
+case "${1:-}" in
+  set)
+    # shellcheck disable=SC2015 # the error branch is meant to run when either test fails
+    [ $# -eq 3 ] && valid "$2" "$3" || { echo "virtual-settings: bad setting: ${2:-} ${3:-}" >&2; exit 2; }
+    mkdir -p "${file%/*}"
+    # Replaced whole, never half written: a reboot mid-write keeps the previous file.
+    { [ -f "$file" ] && grep -v "^$2=" "$file" || true; echo "$2=$3"; } > "$file.new"
+    mv "$file.new" "$file"
+    ;;
+  get)
+    get "$2"
+    ;;
+  restore)
+    v=$(get debug-ui)
+    if [ -n "$v" ]; then
+      mkdir -p /run/opendap
+      echo "$v" > /run/opendap/debug-ui
+    fi
+    v=$(get battery)
+    c=$(get charger)
+    if [ -n "$v$c" ]; then
+      modprobe test_power 2>/dev/null || true
+      [ -n "$v" ] && echo "$v" > "$power/battery_capacity"
+      if [ -n "$c" ]; then
+        echo "$c" > "$power/usb_online"
+        if [ "$c" = on ]; then echo charging; else echo discharging; fi > "$power/battery_status"
+      fi
+    fi
+    ;;
+  *)
+    echo "usage: virtual-settings set KEY VALUE | get KEY | restore" >&2
+    exit 2
+    ;;
+esac

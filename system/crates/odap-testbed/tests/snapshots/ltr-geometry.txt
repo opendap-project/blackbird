@@ -1,0 +1,280 @@
+# Calibration
+"Back" 0 28 48 48
+"Calibration" 52 28 252 48
+"Reduce motion" 16 164 288 52
+"Reduce motion" 32 180 212 20
+"Reduce transparency" 16 220 288 52
+"Reduce transparency" 32 236 212 20
+"Right to left" 16 108 288 52
+"Right to left" 32 124 212 20
+"Settings every screen follows" 16 88 288 16
+# Targets
+"48" 16 108 48 48
+"48" 28 108 24 48
+"52" 72 108 52 52
+"52" 84 108 28 52
+"64" 132 108 64 64
+"64" 144 108 40 64
+"Back" 0 28 48 48
+"Minimum, frequent, primary" 16 88 288 16
+"Play" 16 212 288 64
+"Play" 36 212 248 64
+"Targets" 52 28 252 48
+"The primary action" 16 192 288 16
+# Gestures
+"0 contacts" 16 336 288 16
+"Back" 0 28 48 48
+"Gesture pad" 16 88 288 220
+"Gestures" 52 28 252 48
+"No gesture yet" 16 312 288 20
+"Tap, press, swipe" 110 190 100 17
+# Controls
+"Back" 0 28 48 48
+"Blind comparison" 16 340 288 52
+"Blind comparison" 32 356 212 20
+"Button group" 16 412 288 16
+"Controls" 52 28 252 48
+"Gapless playback" 16 284 288 52
+"Gapless playback" 32 300 212 20
+"Level" 16 108 288 48
+"Range" 16 196 288 48
+"Range: 30 to 70" 16 176 288 16
+"Sharp" 16 432 98 48
+"Sharp" 48 448 35 17
+"Short" 209 432 95 48
+"Short" 240 448 32 17
+"Slider: 40" 16 88 288 16
+"Slow" 115 432 93 48
+"Slow" 146 448 30 17
+"Toggles" 16 264 288 16
+# Actions
+"0" 296 176 8 28
+"Action: compare" 16 400 101 22
+"Action: compare" 22 400 89 22
+"Actions" 52 28 252 48
+"Back" 0 28 48 48
+"Continue" 16 108 288 64
+"Continue" 36 108 248 64
+"Continued" 16 176 280 28
+"Edge label: what a physical control does here" 16 380 288 16
+"Like" 104 312 48 48
+"Play" 128 208 64 64
+"Primary: a word makes a capsule, an icon a circle" 16 88 288 16
+"Queue" 160 312 48 48
+"Secondary and icon actions" 16 292 288 16
+"Sync now" 16 312 80 48
+"Sync now" 28 312 56 48
+# Navigation
+"1" 48 283 8 16
+"2" 128 283 8 16
+"3" 208 283 8 16
+"4" 288 283 8 16
+"A player: a stop with an adjustable inside, two levels" 16 459 288 16
+"A shelf of 10 000 albums: one stop, Action enters it" 16 235 288 16
+"Album 1" 16 331 72 16
+"Album 2" 96 331 72 16
+"Album 3" 176 331 72 16
+"Album 4" 256 331 72 16
+"Albums" 12 88 82 48
+"Albums" 16 88 74 48
+"Albums" 16 255 288 96
+"Artists" 94 88 73 48
+"Artists" 98 88 65 48
+"Back" 0 28 48 48
+"Days of the week: cyclic, so Volume goes round" 16 371 288 16
+"Fri" 194 407 14 16
+"Mon" 26 407 24 16
+"More" 252 88 68 48
+"More" 256 88 60 48
+"Navigation" 52 28 252 48
+"Playlists" 167 88 85 48
+"Playlists" 171 88 77 48
+"SECTION LABEL" 16 156 288 16
+"Sat" 232 407 18 16
+"Sun" 271 407 21 16
+"Tabs switch views of the same level; a section label heads a group." 16 176 288 39
+"Thu" 150 407 21 16
+"Tue" 69 407 20 16
+"Wed" 107 407 25 16
+# Selection
+"  ·  as recorded" 139 160 165 17
+"Analyse" 256 108 48 48
+"Back" 0 28 48 48
+"Balanced" 96 108 48 48
+"English" 16 217 288 52
+"English" 32 217 236 52
+"Enjoy" 16 108 48 48
+"Español" 16 269 288 52
+"Español" 32 269 256 52
+"Neutral" 176 108 48 48
+"Neutral" 16 160 123 17
+"Pick one" 16 197 288 16
+"Selection" 52 28 252 48
+"Stops on an axis" 16 88 288 16
+"中文" 16 321 288 52
+"中文" 32 321 256 52
+# Status
+"16 bit" 257 410 47 28
+"1:19" 16 322 252 16
+"44.1 kHz" 241 378 63 28
+"Above the safe level" 16 164 288 24
+"Above the safe level" 38 164 266 24
+"Back" 0 28 48 48
+"Bit depth" 16 410 241 28
+"Can't sync" 16 192 288 24
+"Can't sync" 38 192 266 24
+"Indicators: a word and an icon, never colour alone" 16 88 288 16
+"Loading" 16 264 288 2
+"Position" 16 270 288 48
+"Progress, loading, position" 16 236 288 16
+"Readouts" 16 358 288 16
+"Sample rate" 16 378 225 28
+"Status" 52 28 252 48
+"Synced" 16 108 288 24
+"Synced" 38 108 266 24
+"Syncing" 16 136 288 24
+"Syncing" 38 136 266 24
+"−2:30" 268 322 36 16
+# States
+"Back" 0 28 48 48
+"Can't sync" 16 327 288 23
+"Can't sync. The computer stopped answering. Check it is on and on the same network." 16 283 288 178
+"Make one from any album or track." 32 175 256 20
+"New playlist" 32 215 256 48
+"New playlist" 44 215 232 48
+"No playlists yet" 32 148 256 23
+"States" 52 28 252 48
+"The computer stopped answering. Check it is on and on the same network." 16 354 288 39
+"Try again" 16 413 288 48
+"Try again" 28 413 264 48
+# Motion
+"120 ms" 16 116 95 48
+"120 ms" 41 132 45 17
+"200 ms" 112 116 96 48
+"200 ms" 138 132 45 17
+"320 ms" 209 116 95 48
+"320 ms" 234 132 45 17
+"Back" 0 28 48 48
+"Motion" 52 28 252 48
+# Opacity
+"Back" 0 28 48 48
+"Opacity" 52 28 252 48
+# Layers
+"A group, disabled with its reason" 0 88 320 144
+"A group, disabled with its reason" 16 88 288 16
+"A popover above everything, and a dialog that makes the rest inert" 16 324 288 32
+"Back" 0 28 48 48
+"Crossfeed" 16 180 288 52
+"Crossfeed" 32 196 212 20
+"Group enabled" 16 252 288 52
+"Group enabled" 32 268 212 20
+"Layers" 52 28 252 48
+"Open a dialog" 16 412 288 48
+"Open a dialog" 28 412 264 48
+"Open a popover" 16 360 288 48
+"Open a popover" 28 360 264 48
+"Sync now" 16 128 288 48
+"Sync now" 28 128 264 48
+"Turn the switch below on to use these." 16 108 288 16
+# Layout
+"44.1 kHz" 109 146 49 16
+"48" 32 339 15 16
+"72" 104 351 15 16
+"96" 200 363 15 16
+"A label and its value: beside it from 280 px, under it below" 16 188 288 32
+"Aspect box: a cover keeps 1:1 at any width" 16 303 288 16
+"Back" 0 28 48 48
+"Bit-perfect" 26 146 59 16
+"DSD128" 115 114 45 16
+"FLAC 24/96" 26 114 65 16
+"Gapless" 182 146 44 16
+"Headphones · 3.5 mm" 174 224 130 17
+"Layout" 52 28 252 48
+"MQA off" 184 114 44 16
+"Needs 1000 px" 16 245 288 17
+"Needs 1000 px: So the value goes under" 16 245 288 38
+"Output" 16 224 146 17
+"Output: Headphones · 3.5 mm" 16 224 288 17
+"So the value goes under" 16 266 288 17
+"Wrap: items of their own size, then the next line" 16 88 288 16
+# Spaces
+"Back" 0 28 48 48
+"Drag the list: the finger moves in @viewport, not in @content" 16 88 288 32
+"Spaces" 52 28 252 48
+"activity:ui-primitives/container:list/region:content/element:row-0" 16 296 288 32
+"focused by the buttons: row-0, @content y 0" 16 332 288 32
+"row-0" 28 136 264 17
+"row-1" 28 178 264 17
+"row-2" 28 220 264 17
+"row-3" 28 262 264 17
+# Turns
+"Back" 0 28 48 48
+"Dial: turn around it; the total keeps counting past the top" 16 88 288 32
+"Right to left" 16 316 288 52
+"Right to left" 32 332 212 20
+"Strip: 0 to 1 from the start edge" 16 240 288 16
+"Turns" 52 28 252 48
+# Arena
+"Arena" 52 28 252 48
+"Back" 0 28 48 48
+"Double tap here" 16 184 288 52
+"Double tap here" 32 200 212 20
+"Nested: the inner list first, the rest to the outer" 16 256 288 16
+"Tap, double tap or hold: who wins the contact" 16 88 288 16
+"Touch here" 128 136 65 17
+"inner row 0" 48 312 224 24
+"inner row 1" 48 336 224 24
+"inner row 2" 48 360 224 24
+"inner row 3" 48 384 224 24
+"outer content" 28 284 264 16
+"outer row 0" 28 406 264 16
+# Virtual
+"A hundred thousand rows: only the window is built, its slots reused" 16 88 288 32
+"Back" 0 28 48 48
+"Rows 0–999" 28 130 264 16
+"Virtual" 52 28 252 48
+"row 0" 68 180 184 17
+"row 1" 68 240 184 17
+"row 2" 68 288 184 17
+"row 3" 68 336 184 17
+"row 4" 68 384 184 17
+# Media
+"A million samples, one column per 2 px, every peak kept" 16 220 288 32
+"Back" 0 28 48 48
+"Drag the block and let go: it springs back with your velocity" 16 88 288 32
+"Media" 52 28 252 48
+# Exceptions
+"Back" 0 28 48 48
+"Exceptions" 52 28 252 48
+"Exit" 16 230 288 48
+"Exit" 28 230 264 48
+"Hang for 5 s" 16 178 288 48
+"Hang for 5 s" 28 178 264 48
+"Panic" 16 126 288 48
+"Panic" 28 126 264 48
+"The composer keeps the last frame and restarts the activity." 16 88 288 34
+# Keyboard
+"At most 0" 16 248 288 16
+"Back" 0 28 48 48
+"Crossfeed (Hz)" 16 284 288 16
+"Crossfeed (Hz)" 28 304 264 48
+"Email" 16 372 288 16
+"Email" 28 392 264 48
+"Keyboard" 52 28 252 48
+"Pairing code" 16 460 288 16
+"Preamp (dB)" 16 176 288 16
+"Preamp (dB)" 28 196 264 48
+"Profile name" 16 88 288 16
+"Profile name" 28 108 264 48
+# Transitions
+"Back" 0 28 48 48
+"Enter and exit" 16 224 288 16
+"Line 1" 28 308 264 17
+"Line 2" 28 348 264 17
+"Line 3" 28 388 264 17
+"Line 4" 28 428 264 17
+"Page 1" 128 143 63 26
+"Pages: drag, or Action then Volume" 16 88 288 16
+"Remove or restore line 2" 16 244 288 48
+"Remove or restore line 2" 28 244 264 48
+"Transitions" 52 28 252 48

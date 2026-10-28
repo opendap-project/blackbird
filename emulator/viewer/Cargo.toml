@@ -1,0 +1,32 @@
+# The simulator window of virtual devices (rfcs 0007; virtual-devices ADR 0001): a host app that
+# shows the device's display, framed by the device itself, with a sidebar of hardware actions.
+[workspace]
+resolver = "3"
+members = ["crates/opendap-qemu-display", "crates/odap-vdev-view", "crates/odap-vdev-audio"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.89"
+license = "GPL-3.0-or-later"
+
+[workspace.dependencies]
+opendap-qemu-display = { path = "crates/opendap-qemu-display" }
+# The OpenDAP CLI's crates (rfcs 0008): the use cases and adapters `opendap` and OpenDAP Desktop
+# run, consumed as published, never from a checkout's sources.
+opendap-model = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-core = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-transport-ssh = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-transport-vm = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+# OpenDAP's audio measurements (system), as published: the instruments' meters and spectra.
+opendap-audio-analysis = { git = "https://github.com/opendap-project/system", rev = "2da450f" }
+# The host's audio, to play the device's output and record its input (CoreAudio, ALSA, PulseAudio).
+cpal = "0.18.2"
+slint = { version = "1.18.1", default-features = false }
+slint-build = "1.18.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# QEMU's D-Bus display, peer to peer (no bus daemon).
+zbus = { version = "5.19", default-features = false, features = ["blocking-api", "async-io", "p2p"] }
+
+[profile.release]
+strip = true

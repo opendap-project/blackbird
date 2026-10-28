@@ -1,0 +1,20 @@
+// The Opacity screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Blueprint, DirRow } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component OpacityScreen inherits Body {
+    callback focus-back();
+
+    init => { root.focus-back(); }
+    Group {
+        DirRow {
+            spacing: 3px;
+            for a in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]: Rectangle {
+                height: 32px;
+                background: (Blueprint.on ? Blueprint.ink : Tokens.text-primary).with-alpha(a);
+            }
+        }
+    }
+}

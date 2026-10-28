@@ -1,0 +1,30 @@
+[package]
+name = "odap-vdev-view"
+version = "0.1.0"
+description = "The simulator window of virtual devices: the display, framed by the device, and a sidebar of hardware actions"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+opendap-qemu-display.workspace = true
+opendap-audio-analysis.workspace = true
+cpal.workspace = true
+opendap-model.workspace = true
+opendap-core.workspace = true
+opendap-transport-ssh.workspace = true
+opendap-transport-vm.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# ODAP_VIEW_SNAPSHOT: the window saved as PNG.
+png = "0.18"
+# The window: winit for the window level (kept on top), FemtoVG to draw.
+slint = { workspace = true, features = ["std", "compat-1-2", "backend-winit", "renderer-femtovg", "accessibility", "unstable-winit-030"] }
+
+# macOS: the threads that answer QEMU's sound at the highest QoS (sound.rs, urgent_thread).
+[target.'cfg(target_os = "macos")'.dependencies]
+libc = "0.2"
+
+[build-dependencies]
+slint-build.workspace = true

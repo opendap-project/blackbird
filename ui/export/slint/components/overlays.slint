@@ -1,0 +1,164 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Overlays (ui-model §9): the overlay, the modal's frosted backdrop and scrim, and the modal.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint } from "../blueprint.slint";
+import { FocusVisible, FocusNav, EndStop } from "focus.slint";
+import { Label } from "text.slint";
+import { Panel } from "surfaces.slint";
+
+// A popover anchored where it is declared: it opens above everything of the activity (Slint's
+// popup: outside its parent's clipping and order, as the web's top layer), takes the focus while
+// open (Tab and the volume buttons stay inside it) and gives it back when it closes; a touch
+// outside it closes it. Open with `show()`.
+export component Overlay inherits PopupWindow {
+    in property <float> unit: 1.0;
+    // Where its panel goes (from opendap-input's anchor::place) and how wide: the popup itself
+    // covers the window (x, y, width, height of the window), so a tap outside the panel is seen.
+    in property <length> panel-x;
+    in property <length> panel-y;
+    in property <length> panel-width;
+    callback dismissed();
+    // Past its first or last element (system input events §3.7: a popover does not wrap, only a
+    // modal does): the runtime sends the opposite key back, as for the screen's ends.
+    callback edge(bool);
+    close-policy: no-auto-close;
+    // A tap outside the panel closes it and, as any touch, hides the focus ring (design system
+    // §8.4); nothing under it receives the tap. Decided 2026-10-24.
+    TouchArea {
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down { FocusVisible.on = false; root.close(); root.dismissed(); }
+        }
+    }
+    // Escape (and the way back) closes it: a faceplate without touch is never trapped in it.
+    FocusScope {
+        focus-on-tab-navigation: false;
+        focus-on-click: false;
+        capture-key-pressed(e) => {
+            if e.text == Key.Tab || e.text == Key.Backtab {
+                FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+                FocusNav.shift = e.modifiers.shift;
+            }
+            reject
+        }
+        key-pressed(e) => {
+            if e.text == Key.Escape { root.close(); root.dismissed(); return accept; }
+            reject
+        }
+        EndStop { end: false; reached(e) => { root.edge(e); } }
+        Panel {
+            x: root.panel-x;
+            y: root.panel-y;
+            width: root.panel-width;
+            height: body.preferred-height;
+            border-width: 1px;
+            border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-strong;
+            background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
+            // Touches on the panel's own parts stay in it, and hide the ring as any touch does.
+            TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+            body := VerticalLayout {
+                padding: Tokens.space-unit;
+                @children
+            }
+        }
+        EndStop { end: true; reached(e) => { root.edge(e); } }
+    }
+}
+
+// The dimmed ground under a modal: it takes every touch below it.
+// What is under an open modal, frosted (ui-model §9, design system §12.3): the runtime fills
+// `frost` when the modal opens (system opendap-media's blur: shrunk, blurred once, nothing per
+// frame), so the layer above reads as frosted glass, not as a darkened sheet. Empty, or with
+// reduce transparency on (an accessibility setting), the scrim is a solid tint instead.
+export global Backdrop {
+    in-out property <image> frost;
+    in-out property <bool> reduce-transparency;
+}
+
+export component Scrim inherits Rectangle {
+    callback tapped();
+    property <bool> frosted: !Blueprint.on && !Backdrop.reduce-transparency && Backdrop.frost.width > 0;
+    background: Blueprint.on ? Blueprint.paper.with-alpha(0.7) : (self.frosted ? transparent : #000000b8);
+    if root.frosted: Image {
+        width: parent.width;
+        height: parent.height;
+        source: Backdrop.frost;
+        image-fit: fill;
+        image-rendering: smooth;
+    }
+    // A graphite tint over the frost, so the dialog's text stays legible whatever is under it.
+    if root.frosted: Rectangle { background: #0b0d10; opacity: 0.24; }
+    TouchArea { clicked => { root.tapped(); } }
+    // In blueprint, hatched: the area is inert, not empty.
+    if Blueprint.on: Rectangle {
+        clip: true;
+        for i in ceil(root.width / 16px) + 1: Rectangle {
+            x: i * 16px;
+            width: 1px;
+            background: Blueprint.ink.with-alpha(Blueprint.faint * 0.6);
+        }
+    }
+}
+
+// A dialog: the rest of the activity is inert under a scrim (it takes every touch), the focus is
+// trapped inside it (Slint's popup keeps Tab and the volume buttons in it), and Escape or a tap on
+// the scrim dismiss it where `dismissable`. Its content takes the focus on entry as a screen does:
+// its primary action, else its first element. Open with `show()`, close with `close()`. Declared
+// at the screen's root, so it covers the whole surface.
+export component Modal inherits PopupWindow {
+    in property <string> title;
+    in property <bool> dismissable: true;
+    in property <float> unit: 1.0;
+    // Its primary action (a dialog's confirm): Action with the focus hidden takes it, as a
+    // screen's does.
+    in property <bool> has-primary;
+    callback primary();
+    callback dismissed();
+    close-policy: no-auto-close;
+    x: 0;
+    y: 0;
+    Scrim {
+        tapped => { if root.dismissable { root.close(); root.dismissed(); } }
+    }
+    FocusScope {
+        focus-on-tab-navigation: false;
+        focus-on-click: false;
+        capture-key-pressed(e) => {
+            if e.text == Key.Tab || e.text == Key.Backtab {
+                FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+                FocusNav.shift = e.modifiers.shift;
+            }
+            reject
+        }
+        key-pressed(e) => {
+            if e.text == Key.Escape && root.dismissable { root.close(); root.dismissed(); return accept; }
+            if e.text == Key.Return || e.text == " " {
+                if root.has-primary && !FocusVisible.on { root.primary(); } else { FocusVisible.on = true; }
+                return accept;
+            }
+            reject
+        }
+        Panel {
+            // Touches inside the dialog never reach the scrim (which dismisses).
+            TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+            x: Tokens.space-margin;
+            width: parent.width - 2 * Tokens.space-margin;
+            height: body.preferred-height;
+            y: (parent.height - self.height) / 2;
+            accessible-role: groupbox;
+            accessible-label: root.title;
+            background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
+            border-width: 1px;
+            border-color: Blueprint.on ? Blueprint.interactive.with-alpha(0.6) : Tokens.border-base;
+            body := VerticalLayout {
+                padding: Tokens.space-group;
+                spacing: Tokens.space-group;
+                if root.title != "": Label { role: "title"; text: root.title; }
+                @children
+            }
+        }
+    }
+}

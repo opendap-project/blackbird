@@ -1,0 +1,69 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Text: the label roles, the section label, the edge label and the technical readout.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint } from "../blueprint.slint";
+import { Layout, DirRow, Ink } from "foundation.slint";
+
+// Text in its roles (§9.1): `title`, `body`, `label`, `caption`; `mono` for values (§15).
+export component Label inherits Text {
+    in property <string> role: "body";
+    in property <bool> mono;
+    in property <bool> muted;
+    // Aligned to the layout's start, or its end (a value at a row's end): left and right swap right
+    // to left (Slint's `start` follows the text's own direction, not the layout's).
+    in property <bool> end;
+    horizontal-alignment: root.end != Layout.rtl ? TextHorizontalAlignment.right : TextHorizontalAlignment.left;
+    font-family: root.mono ? Tokens.font-family-mono : Tokens.font-family-ui;
+    font-size: root.role == "title" ? Tokens.font-size-title : (root.role == "label" ? Tokens.font-size-label : (root.role == "caption" ? Tokens.font-size-caption : Tokens.font-size-body));
+    font-weight: root.role == "title" ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
+    color: root.muted ? Ink.secondary : Ink.text;
+    wrap: word-wrap;
+}
+
+// A group's label (§9.2, §10.1): a group step after the previous group, a unit step before its
+// first line.
+export component SectionLabel inherits Text {
+    font-family: Tokens.font-family-ui;
+    font-size: Tokens.font-size-caption;
+    font-weight: Tokens.font-weight-medium;
+    color: Ink.secondary;
+    accessible-role: AccessibleRole.text;
+}
+
+
+// A technical value (§15): its label, and the value in mono, right-aligned, Western digits.
+export component Readout inherits DirRow {
+    in property <string> label;
+    in property <string> value;
+    height: 28px;
+    Label { role: "label"; muted: true; text: root.label; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
+    Label { role: "label"; mono: true; text: root.value; vertical-alignment: center; end: true; wrap: no-wrap; }
+}
+
+// A label at the screen's edge beside a physical control, saying what it does here when that is
+// not its usual job (§8.1).
+export component EdgeLabel inherits Rectangle {
+    in property <string> text;
+    in property <string> edge: "left";
+    height: 22px;
+    width: label.preferred-width + 12px;
+    border-radius: Blueprint.on ? 0 : 11px;
+    background: Blueprint.on ? Blueprint.paper : Tokens.surface-raised;
+    border-width: 1px;
+    border-color: Blueprint.on ? Blueprint.interactive : Tokens.border-strong;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+    label := Text {
+        x: 6px;
+        height: parent.height;
+        vertical-alignment: center;
+        text: root.text;
+        font-family: Tokens.font-family-ui;
+        font-size: Tokens.font-size-caption;
+        color: Ink.text;
+    }
+}

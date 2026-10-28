@@ -1,0 +1,36 @@
+// The Actions screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Button, PrimaryButton, IconButton, Readout, EdgeLabel, DirRow } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component ActionsScreen inherits Body {
+    in-out property <int> continued;
+    in property <float> unit;
+
+    Group {
+        title: "Primary: a word makes a capsule, an icon a circle";
+        PrimaryButton { label: "Continue"; unit: root.unit; clicked => { root.continued += 1; } }
+        Readout { label: "Continued"; value: root.continued; }
+        HorizontalLayout {
+            alignment: center;
+            PrimaryButton { icon: @image-url("@blackbird/icons/24/play.svg"); name: "Play"; unit: root.unit; default-focus: false; }
+        }
+    }
+    Group {
+        title: "Secondary and icon actions";
+        DirRow {
+            spacing: Tokens.space-target-gap;
+            justify: start;
+            Button { label: "Sync now"; unit: root.unit; }
+            IconButton { icon: @image-url("@blackbird/icons/24/like.svg"); name: "Like"; unit: root.unit; }
+            IconButton { icon: @image-url("@blackbird/icons/24/queue.svg"); name: "Queue"; unit: root.unit; }
+        }
+    }
+    Group {
+        title: "Edge label: what a physical control does here";
+        // A fixed-width element in a stack caps the stack's width (Slint takes the
+        // smallest maximum): a row aligned to the start holds it.
+        HorizontalLayout { alignment: start; EdgeLabel { text: "Action: compare"; } }
+    }
+}

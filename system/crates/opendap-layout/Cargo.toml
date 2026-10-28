@@ -1,0 +1,20 @@
+[package]
+name = "opendap-layout"
+version = "0.0.1"
+description = "Layout primitives of Blackbird OS for large content: windowing (virtual lists and grids), scroll anchoring, recycling, prefetch, sticky headers; platform-agnostic"
+edition.workspace = true
+rust-version.workspace = true
+license = "MPL-2.0"
+publish = false
+
+[dependencies]
+# What a list or a pager does past its ends (opendap-input's `ends`): one rule for every sequence.
+opendap-input.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "layout"
+harness = false

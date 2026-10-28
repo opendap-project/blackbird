@@ -1,0 +1,74 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Layout (ui-model §6): stacks and rows whose gaps are proximity tokens, wrapping items, the
+// adaptive label and value, and the box that keeps its ratio.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Layout, DirRow } from "foundation.slint";
+import { Label } from "text.slint";
+
+
+// A vertical stack whose gap is a proximity token (DS-017): `unit` within a unit, `group` within
+// a group, `section` between groups. The container owns the space; no child spaces itself.
+export component Stack inherits VerticalLayout {
+    in property <string> space: "group";
+    spacing: root.space == "unit" ? Tokens.space-unit : (root.space == "section" ? Tokens.space-section : Tokens.space-group);
+    alignment: start;
+}
+
+// A horizontal stack, as `Stack`; its start and end follow the layout's direction.
+export component Row inherits DirRow {
+    in property <string> space: "group";
+    spacing: root.space == "unit" ? Tokens.space-unit : (root.space == "section" ? Tokens.space-section : Tokens.space-group);
+}
+
+// Items of their own size that continue on the next line (chips, format badges): a few dozen at
+// most, since it is not virtualized.
+export component Wrap inherits FlexboxLayout {
+    in property <string> space: "unit";
+    // In reading order, as `DirRow`'s.
+    in property <LayoutAlignment> justify: start;
+    flex-direction: Layout.rtl ? FlexboxLayoutDirection.row-reverse : FlexboxLayoutDirection.row;
+    alignment: root.justify;
+    property <length> gap: root.space == "group" ? Tokens.space-group : Tokens.space-unit;
+    spacing-horizontal: root.gap;
+    spacing-vertical: root.gap;
+}
+
+// A label and its value, side by side when the space it is given reaches `needs`, the value
+// under the label when not (SwiftUI's ViewThatFits for the commonest case: a setting's value
+// beside its label, or under a long one). It decides from `available`, the width its container
+// gives (bind it to the container's width), never from its own width. Two fixed layouts, one
+// shown: a FlexboxLayout whose direction follows a width loops in Slint 1.18 (ui-model §6.3).
+export component AdaptivePair inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+    in property <length> available;
+    in property <length> needs: 280px;
+    out property <bool> as-row: root.available >= root.needs;
+    height: root.as-row ? beside.preferred-height : under.preferred-height;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.label + ": " + root.value;
+    beside := DirRow {
+        visible: root.as-row;
+        spacing: Tokens.space-group;
+        Label { role: "label"; text: root.label; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; vertical-alignment: center; }
+        Label { role: "label"; muted: true; text: root.value; horizontal-stretch: 0; wrap: no-wrap; vertical-alignment: center; }
+    }
+    under := VerticalLayout {
+        visible: !root.as-row;
+        spacing: Tokens.space-unit;
+        Label { role: "label"; text: root.label; }
+        Label { role: "label"; muted: true; text: root.value; }
+    }
+}
+
+// A box whose height follows its width by a ratio (a cover: 1), so art keeps its shape at any
+// width (CSS aspect-ratio). Its width comes from its container.
+export component AspectBox inherits Rectangle {
+    in property <float> ratio: 1;
+    height: self.width * root.ratio;
+    @children
+}

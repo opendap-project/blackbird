@@ -1,0 +1,5 @@
+# The graphite studio backdrop of the T1 concept art, used by the avatar (social/opendap-avatar.svg)
+# and the app icon (app_icon.py): a radial gradient through three stops, centre to edge, with a soft
+# cool light pool. Brand data, read by colours.py; the design tokens hold every other brand colour.
+stops = ["#1D2125", "#15181B", "#0D0F11"]
+pool = "#AAB9CD"

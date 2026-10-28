@@ -1,0 +1,212 @@
+// The product host's places (composer and UI runtime spec §3). Bring-up: Now Playing only.
+// The status bar is not the product's: the composer draws it above the top 28 px (spec §2).
+// Values come from Blackbird UI's generated tokens; layout follows the interface mockups
+// (blackbird-ui renders/web/ui-mockups.html, "Now Playing").
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+// The design system's type, with the script companions (a language's own name, library metadata).
+import { Fonts } from "@blackbird/slint/fonts.slint";
+
+export struct TrackView {
+    title: string,
+    artist: string,
+    album: string,
+    // Format and output, then the signal path state (design system: one mono line).
+    format: string,
+    path: string,
+    position: string,
+    remaining: string,
+    progress: float,
+}
+
+component Mono inherits Text {
+    font-family: Tokens.font-family-mono;
+    font-size: Tokens.font-size-caption;
+    color: Tokens.text-muted;
+    vertical-alignment: center;
+}
+
+component Glyph inherits Image {
+    in property <color> tint: Tokens.text-primary;
+    colorize: tint;
+    image-rendering: smooth;
+}
+
+// A control the finger can hit: the visible glyph is smaller than its target (design system §8).
+component Control inherits TouchArea {
+    in property <image> icon;
+    in property <length> target: Tokens.size-target-min;
+    in property <length> glyph: 24px;
+    in property <color> tint: Tokens.text-primary;
+    in property <string> label;
+    width: target;
+    height: target;
+    accessible-role: button;
+    accessible-label: label;
+    accessible-action-default => { self.clicked(); }
+    Glyph { source: icon; width: glyph; height: glyph; tint: root.pressed ? Tokens.text-secondary : tint; }
+}
+
+component Toggle inherits Control {
+    in property <bool> on;
+    target: 52px;
+    tint: on ? Tokens.text-primary : Tokens.text-muted;
+    accessible-checked: on;
+    if on: Rectangle {
+        width: 4px;
+        height: 4px;
+        border-radius: 2px;
+        y: parent.height - 7px - self.height;
+        background: Tokens.text-primary;
+    }
+}
+
+component SeekBar inherits Rectangle {
+    in property <float> progress;
+    height: 12px;
+    accessible-role: slider;
+    accessible-label: "Position";
+    accessible-value: round(progress * 100) + "%";
+    Rectangle {
+        y: (parent.height - 3px) / 2;
+        height: 3px;
+        border-radius: 2px;
+        background: Tokens.surface-active;
+        Rectangle { x: 0; width: parent.width * progress; border-radius: 2px; background: Tokens.text-primary; }
+    }
+    Rectangle {
+        x: parent.width * progress - self.width / 2;
+        width: 12px;
+        height: 12px;
+        border-radius: 6px;
+        background: Tokens.text-primary;
+    }
+}
+
+component NowPlaying inherits Rectangle {
+    in property <TrackView> track;
+    in property <bool> playing;
+    callback toggle-play();
+    callback previous();
+    callback next();
+
+    background: Tokens.bg;
+
+    // The artwork's colour field behind the upper half, fading into the background.
+    Rectangle {
+        y: 0;
+        height: 380px;
+        background: @radial-gradient(circle, #6A3B2Fcc 0%, #2A3E5800 70%);
+        Rectangle {
+            background: @linear-gradient(180deg, Tokens.bg 0%, #11131500 20%, #11131500 79%, Tokens.bg 98%);
+        }
+    }
+
+    // The top size-status-bar is the system's: the composer draws the status bar there, as a
+    // system layer above every activity (composer and UI runtime spec §2, SYS-038).
+    // Head: the way down to the library at the start, the player's own actions at the end.
+    HorizontalLayout {
+        y: Tokens.size-status-bar;
+        height: 48px;
+        Control { icon: @image-url("@blackbird/icons/24/down.svg"); label: "Library"; }
+        Rectangle { horizontal-stretch: 1; }
+        Control { icon: @image-url("@blackbird/icons/24/devices.svg"); label: "Play on"; }
+        Control { icon: @image-url("@blackbird/icons/24/like.svg"); label: "Like"; }
+        Control { icon: @image-url("@blackbird/icons/24/queue.svg"); label: "Queue"; }
+    }
+
+    VerticalLayout {
+        x: Tokens.space-margin;
+        y: 262px;
+        width: parent.width - 2 * Tokens.space-margin;
+        spacing: 0;
+        Text {
+            text: track.title;
+            font-family: Tokens.font-family-ui;
+            font-size: Tokens.font-size-title;
+            font-weight: Tokens.font-weight-semibold;
+            color: Tokens.text-primary;
+            height: Tokens.font-line-height-title;
+            overflow: elide;
+            vertical-alignment: center;
+        }
+        Text {
+            text: track.artist + " · " + track.album;
+            font-family: Tokens.font-family-ui;
+            font-size: Tokens.font-size-body;
+            color: Tokens.text-secondary;
+            height: Tokens.font-line-height-body;
+            overflow: elide;
+            vertical-alignment: center;
+        }
+        HorizontalLayout {
+            padding-top: Tokens.space-unit;
+            height: Tokens.font-line-height-caption + Tokens.space-unit;
+            Mono { text: track.format; }
+            Rectangle { horizontal-stretch: 1; }
+            Mono { text: track.path; color: Tokens.text-secondary; }
+        }
+        Rectangle { height: Tokens.space-group - (12px - 3px) / 2; }
+        SeekBar { progress: track.progress; }
+        HorizontalLayout {
+            padding-top: 6px - (12px - 3px) / 2;
+            height: Tokens.font-line-height-caption + self.padding-top;
+            Mono { text: track.position; }
+            Rectangle { horizontal-stretch: 1; }
+            Mono { text: track.remaining; }
+        }
+    }
+
+    // Transport in the thumb zone; the orange control is the one the Action button shares.
+    HorizontalLayout {
+        y: parent.height - 18px - 68px;
+        height: 68px;
+        padding-left: 6px;
+        padding-right: 6px;
+        alignment: space-between;
+        Toggle { icon: @image-url("@blackbird/icons/24/shuffle.svg"); label: "Shuffle"; on: false; y: (parent.height - self.height) / 2; }
+        Control { icon: @image-url("@blackbird/icons/24/previous.svg"); label: "Previous"; target: 56px; glyph: 28px; y: (parent.height - self.height) / 2; clicked => { root.previous(); } }
+        TouchArea {
+            width: 68px;
+            height: 68px;
+            accessible-role: button;
+            accessible-label: root.playing ? "Pause" : "Play";
+            accessible-action-default => { self.clicked(); }
+            clicked => { root.toggle-play(); }
+            Rectangle {
+                border-radius: self.width / 2;
+                background: parent.pressed ? Tokens.brand-pressed : Tokens.brand-base;
+                Glyph {
+                    source: root.playing ? @image-url("@blackbird/icons/24/pause.svg") : @image-url("@blackbird/icons/24/play.svg");
+                    width: 28px;
+                    height: 28px;
+                    tint: Tokens.text-on-brand;
+                }
+            }
+        }
+        Control { icon: @image-url("@blackbird/icons/24/next.svg"); label: "Next"; target: 56px; glyph: 28px; y: (parent.height - self.height) / 2; clicked => { root.next(); } }
+        Toggle { icon: @image-url("@blackbird/icons/24/repeat.svg"); label: "Repeat album"; on: true; y: (parent.height - self.height) / 2; }
+    }
+}
+
+export component Product inherits Window {
+    in property <TrackView> track;
+    in-out property <bool> playing;
+    callback toggle-play();
+    callback previous();
+    callback next();
+
+    title: "OpenDAP";
+    preferred-width: 320px;
+    preferred-height: 480px;
+    background: Tokens.bg;
+    default-font-family: Tokens.font-family-ui;
+
+    NowPlaying {
+        track: root.track;
+        playing: root.playing;
+        toggle-play => { root.toggle-play(); }
+        previous => { root.previous(); }
+        next => { root.next(); }
+    }
+}

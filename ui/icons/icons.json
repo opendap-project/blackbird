@@ -1,0 +1,1065 @@
+{
+  "schema": "opendap.icons/v1",
+  "icons": [
+    {
+      "name": "play",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Play"
+      },
+      "style": "filled",
+      "source": "tabler:filled/player-play@3.49.0"
+    },
+    {
+      "name": "pause",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Pause"
+      },
+      "style": "filled",
+      "source": "tabler:filled/player-pause@3.49.0"
+    },
+    {
+      "name": "previous",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Previous"
+      },
+      "style": "filled",
+      "source": "tabler:filled/player-skip-back@3.49.0"
+    },
+    {
+      "name": "next",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Next"
+      },
+      "style": "filled",
+      "source": "tabler:filled/player-skip-forward@3.49.0"
+    },
+    {
+      "name": "stop",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Stop"
+      },
+      "style": "filled",
+      "source": "tabler:filled/player-stop@3.49.0"
+    },
+    {
+      "name": "shuffle",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Shuffle"
+      },
+      "style": "outline",
+      "source": "tabler:outline/arrows-shuffle@3.49.0"
+    },
+    {
+      "name": "repeat",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Repeat"
+      },
+      "style": "outline",
+      "source": "tabler:outline/repeat@3.49.0"
+    },
+    {
+      "name": "repeat-one",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Repeat one"
+      },
+      "style": "outline",
+      "source": "tabler:outline/repeat-once@3.49.0"
+    },
+    {
+      "name": "back-15",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Back 15 seconds"
+      },
+      "style": "outline",
+      "source": "tabler:outline/rewind-backward-15@3.49.0"
+    },
+    {
+      "name": "forward-30",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Forward 30 seconds"
+      },
+      "style": "outline",
+      "source": "tabler:outline/rewind-forward-30@3.49.0"
+    },
+    {
+      "name": "eject",
+      "grid": 24,
+      "category": "transport",
+      "label": {
+        "en": "Eject"
+      },
+      "style": "filled",
+      "source": "tabler:filled/player-eject@3.49.0"
+    },
+    {
+      "name": "album",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Album"
+      },
+      "style": "outline",
+      "source": "tabler:outline/album@3.49.0"
+    },
+    {
+      "name": "artist",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Artist"
+      },
+      "style": "outline",
+      "source": "tabler:outline/microphone-2@3.49.0"
+    },
+    {
+      "name": "song",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Song"
+      },
+      "style": "outline",
+      "source": "tabler:outline/music@3.49.0"
+    },
+    {
+      "name": "playlist",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Playlist"
+      },
+      "style": "outline",
+      "source": "tabler:outline/playlist@3.49.0"
+    },
+    {
+      "name": "queue",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Queue"
+      },
+      "style": "outline",
+      "source": "tabler:outline/list-numbers@3.49.0"
+    },
+    {
+      "name": "folder",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Folder"
+      },
+      "style": "outline",
+      "source": "tabler:outline/folder@3.49.0"
+    },
+    {
+      "name": "podcast",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Podcast"
+      },
+      "style": "outline",
+      "source": "tabler:outline/broadcast@3.49.0"
+    },
+    {
+      "name": "audiobook",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Audiobook"
+      },
+      "style": "outline",
+      "source": "tabler:outline/book@3.49.0"
+    },
+    {
+      "name": "recording",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Recording"
+      },
+      "style": "outline",
+      "source": "tabler:outline/microphone@3.49.0"
+    },
+    {
+      "name": "lyrics",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Lyrics"
+      },
+      "style": "outline",
+      "source": "tabler:outline/quote@3.49.0"
+    },
+    {
+      "name": "like",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Like"
+      },
+      "style": "outline",
+      "source": "tabler:outline/heart@3.49.0"
+    },
+    {
+      "name": "like-filled",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Liked"
+      },
+      "style": "filled",
+      "source": "tabler:filled/heart@3.49.0"
+    },
+    {
+      "name": "volume",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Volume"
+      },
+      "style": "outline",
+      "source": "tabler:outline/volume@3.49.0"
+    },
+    {
+      "name": "volume-muted",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Muted"
+      },
+      "style": "outline",
+      "source": "tabler:outline/volume-off@3.49.0"
+    },
+    {
+      "name": "headphones",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Headphones"
+      },
+      "style": "outline",
+      "source": "tabler:outline/headphones@3.49.0"
+    },
+    {
+      "name": "output-jack",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Headphone output"
+      },
+      "style": "outline",
+      "source": "opendap"
+    },
+    {
+      "name": "output-balanced",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Balanced output"
+      },
+      "style": "outline",
+      "source": "opendap"
+    },
+    {
+      "name": "speaker",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Speaker"
+      },
+      "style": "outline",
+      "source": "tabler:outline/device-speaker@3.49.0"
+    },
+    {
+      "name": "signal-path",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Signal path"
+      },
+      "style": "outline",
+      "source": "tabler:outline/route@3.49.0"
+    },
+    {
+      "name": "dac",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "DAC"
+      },
+      "style": "outline",
+      "source": "tabler:outline/cpu@3.49.0"
+    },
+    {
+      "name": "tone",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Tone"
+      },
+      "style": "outline",
+      "source": "tabler:outline/adjustments-horizontal@3.49.0"
+    },
+    {
+      "name": "compare",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Compare"
+      },
+      "style": "outline",
+      "source": "tabler:outline/arrows-exchange@3.49.0"
+    },
+    {
+      "name": "hearing",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Hearing"
+      },
+      "style": "outline",
+      "source": "tabler:outline/ear@3.49.0"
+    },
+    {
+      "name": "profile",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Profile"
+      },
+      "style": "outline",
+      "source": "tabler:outline/adjustments-alt@3.49.0"
+    },
+    {
+      "name": "devices",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Play on"
+      },
+      "style": "outline",
+      "source": "tabler:outline/devices@3.49.0"
+    },
+    {
+      "name": "this-device",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "This T1"
+      },
+      "style": "outline",
+      "source": "tabler:outline/device-mobile@3.49.0"
+    },
+    {
+      "name": "bluetooth",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Bluetooth"
+      },
+      "style": "outline",
+      "source": "tabler:outline/bluetooth@3.49.0"
+    },
+    {
+      "name": "wifi",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Wi-Fi"
+      },
+      "style": "outline",
+      "source": "tabler:outline/wifi@3.49.0"
+    },
+    {
+      "name": "usb",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "USB"
+      },
+      "style": "outline",
+      "source": "tabler:outline/usb@3.49.0"
+    },
+    {
+      "name": "pair",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Pair"
+      },
+      "style": "outline",
+      "source": "tabler:outline/link@3.49.0"
+    },
+    {
+      "name": "sync",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Sync"
+      },
+      "style": "outline",
+      "source": "tabler:outline/refresh@3.49.0"
+    },
+    {
+      "name": "hat",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "HAT"
+      },
+      "style": "outline",
+      "source": "tabler:outline/stack-2@3.49.0"
+    },
+    {
+      "name": "battery",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Battery"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-3@3.49.0"
+    },
+    {
+      "name": "storage",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Storage"
+      },
+      "style": "outline",
+      "source": "tabler:outline/database@3.49.0"
+    },
+    {
+      "name": "power",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Power"
+      },
+      "style": "outline",
+      "source": "tabler:outline/power@3.49.0"
+    },
+    {
+      "name": "restart",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Restart"
+      },
+      "style": "outline",
+      "source": "tabler:outline/rotate-clockwise@3.49.0"
+    },
+    {
+      "name": "lock",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Lock"
+      },
+      "style": "outline",
+      "source": "tabler:outline/lock@3.49.0"
+    },
+    {
+      "name": "brightness",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Brightness"
+      },
+      "style": "outline",
+      "source": "tabler:outline/sun@3.49.0"
+    },
+    {
+      "name": "sleep",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Sleep timer"
+      },
+      "style": "outline",
+      "source": "tabler:outline/moon@3.49.0"
+    },
+    {
+      "name": "update",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Software update"
+      },
+      "style": "outline",
+      "source": "tabler:outline/download@3.49.0"
+    },
+    {
+      "name": "back",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Back"
+      },
+      "style": "outline",
+      "source": "tabler:outline/chevron-left@3.49.0"
+    },
+    {
+      "name": "forward",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Forward"
+      },
+      "style": "outline",
+      "source": "tabler:outline/chevron-right@3.49.0"
+    },
+    {
+      "name": "down",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Down"
+      },
+      "style": "outline",
+      "source": "tabler:outline/chevron-down@3.49.0"
+    },
+    {
+      "name": "up",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Up"
+      },
+      "style": "outline",
+      "source": "tabler:outline/chevron-up@3.49.0"
+    },
+    {
+      "name": "search",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Search"
+      },
+      "style": "outline",
+      "source": "tabler:outline/search@3.49.0"
+    },
+    {
+      "name": "add",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Add"
+      },
+      "style": "outline",
+      "source": "tabler:outline/plus@3.49.0"
+    },
+    {
+      "name": "close",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Close"
+      },
+      "style": "outline",
+      "source": "tabler:outline/x@3.49.0"
+    },
+    {
+      "name": "done",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Done"
+      },
+      "style": "outline",
+      "source": "tabler:outline/check@3.49.0"
+    },
+    {
+      "name": "more",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "More"
+      },
+      "style": "outline",
+      "source": "tabler:outline/dots@3.49.0"
+    },
+    {
+      "name": "reorder",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Reorder"
+      },
+      "style": "outline",
+      "source": "tabler:outline/grip-horizontal@3.49.0"
+    },
+    {
+      "name": "delete",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Delete"
+      },
+      "style": "outline",
+      "source": "tabler:outline/trash@3.49.0"
+    },
+    {
+      "name": "undo",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Undo"
+      },
+      "style": "outline",
+      "source": "tabler:outline/arrow-back-up@3.49.0"
+    },
+    {
+      "name": "waiting",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Waiting"
+      },
+      "style": "outline",
+      "source": "tabler:outline/clock@3.49.0"
+    },
+    {
+      "name": "error",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Error"
+      },
+      "style": "outline",
+      "source": "tabler:outline/circle-x@3.49.0"
+    },
+    {
+      "name": "warning",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Warning"
+      },
+      "style": "outline",
+      "source": "tabler:outline/alert-triangle@3.49.0"
+    },
+    {
+      "name": "info",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Information"
+      },
+      "style": "outline",
+      "source": "tabler:outline/info-circle@3.49.0"
+    },
+    {
+      "name": "library",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Library"
+      },
+      "style": "outline",
+      "source": "tabler:outline/books@3.49.0"
+    },
+    {
+      "name": "history",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "History"
+      },
+      "style": "outline",
+      "source": "tabler:outline/history@3.49.0"
+    },
+    {
+      "name": "index",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "A to Z"
+      },
+      "style": "outline",
+      "source": "tabler:outline/sort-a-z@3.49.0"
+    },
+    {
+      "name": "add-to-queue",
+      "grid": 24,
+      "category": "library",
+      "label": {
+        "en": "Add to queue"
+      },
+      "style": "outline",
+      "source": "tabler:outline/playlist-add@3.49.0"
+    },
+    {
+      "name": "meters",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Meters"
+      },
+      "style": "outline",
+      "source": "tabler:outline/chart-bar@3.49.0"
+    },
+    {
+      "name": "waveform",
+      "grid": 24,
+      "category": "sound",
+      "label": {
+        "en": "Waveform"
+      },
+      "style": "outline",
+      "source": "tabler:outline/wave-sine@3.49.0"
+    },
+    {
+      "name": "computer",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Computer"
+      },
+      "style": "outline",
+      "source": "tabler:outline/device-laptop@3.49.0"
+    },
+    {
+      "name": "phone",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Phone"
+      },
+      "style": "outline",
+      "source": "tabler:outline/device-mobile@3.49.0"
+    },
+    {
+      "name": "nfc",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "NFC"
+      },
+      "style": "outline",
+      "source": "tabler:outline/nfc@3.49.0"
+    },
+    {
+      "name": "qr-code",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "QR code"
+      },
+      "style": "outline",
+      "source": "tabler:outline/qrcode@3.49.0"
+    },
+    {
+      "name": "sync-error",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Sync problem"
+      },
+      "style": "outline",
+      "source": "tabler:outline/refresh-alert@3.49.0"
+    },
+    {
+      "name": "microsd",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "microSD card"
+      },
+      "style": "outline",
+      "source": "tabler:outline/device-sd-card@3.49.0"
+    },
+    {
+      "name": "battery-charging",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Charging"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-charging@3.49.0"
+    },
+    {
+      "name": "battery-low",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Battery low"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-1@3.49.0"
+    },
+    {
+      "name": "unlock",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Unlock"
+      },
+      "style": "outline",
+      "source": "tabler:outline/lock-open@3.49.0"
+    },
+    {
+      "name": "recovery",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Recovery"
+      },
+      "style": "outline",
+      "source": "tabler:outline/lifebuoy@3.49.0"
+    },
+    {
+      "name": "household",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Household"
+      },
+      "style": "outline",
+      "source": "tabler:outline/users@3.49.0"
+    },
+    {
+      "name": "member",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Member"
+      },
+      "style": "outline",
+      "source": "tabler:outline/user@3.49.0"
+    },
+    {
+      "name": "settings",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Settings"
+      },
+      "style": "outline",
+      "source": "tabler:outline/settings@3.49.0"
+    },
+    {
+      "name": "notifications",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Notifications"
+      },
+      "style": "outline",
+      "source": "tabler:outline/bell@3.49.0"
+    },
+    {
+      "name": "language",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Language"
+      },
+      "style": "outline",
+      "source": "tabler:outline/language@3.49.0"
+    },
+    {
+      "name": "keyboard",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Keyboard"
+      },
+      "style": "outline",
+      "source": "tabler:outline/keyboard@3.49.0"
+    },
+    {
+      "name": "theme",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Theme"
+      },
+      "style": "outline",
+      "source": "tabler:outline/palette@3.49.0"
+    },
+    {
+      "name": "capability",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Capability"
+      },
+      "style": "outline",
+      "source": "tabler:outline/puzzle@3.49.0"
+    },
+    {
+      "name": "developer",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Developer"
+      },
+      "style": "outline",
+      "source": "tabler:outline/terminal-2@3.49.0"
+    },
+    {
+      "name": "screenshot",
+      "grid": 24,
+      "category": "device",
+      "label": {
+        "en": "Screenshot"
+      },
+      "style": "outline",
+      "source": "tabler:outline/screenshot@3.49.0"
+    },
+    {
+      "name": "edit",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Edit"
+      },
+      "style": "outline",
+      "source": "tabler:outline/pencil@3.49.0"
+    },
+    {
+      "name": "restore",
+      "grid": 24,
+      "category": "action",
+      "label": {
+        "en": "Restore"
+      },
+      "style": "outline",
+      "source": "tabler:outline/restore@3.49.0"
+    },
+    {
+      "name": "loading",
+      "grid": 24,
+      "category": "state",
+      "label": {
+        "en": "Loading"
+      },
+      "style": "outline",
+      "source": "tabler:outline/loader-2@3.49.0"
+    },
+    {
+      "name": "status-microsd",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "microSD card"
+      },
+      "style": "outline",
+      "source": "tabler:outline/device-sd-card@3.49.0"
+    },
+    {
+      "name": "status-volume",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Volume"
+      },
+      "style": "outline",
+      "source": "tabler:outline/volume@3.49.0"
+    },
+    {
+      "name": "status-bluetooth",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Bluetooth"
+      },
+      "style": "outline",
+      "source": "tabler:outline/bluetooth@3.49.0"
+    },
+    {
+      "name": "status-wifi",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Wi-Fi"
+      },
+      "style": "outline",
+      "source": "tabler:outline/wifi@3.49.0"
+    },
+    {
+      "name": "status-battery-0",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Battery empty"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery@3.49.0"
+    },
+    {
+      "name": "status-battery-1",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Battery low"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-1@3.49.0"
+    },
+    {
+      "name": "status-battery-2",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Battery half"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-2@3.49.0"
+    },
+    {
+      "name": "status-battery-3",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Battery high"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-3@3.49.0"
+    },
+    {
+      "name": "status-battery-4",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Battery full"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery-4@3.49.0"
+    },
+    {
+      "name": "status-charging",
+      "grid": 16,
+      "category": "status",
+      "label": {
+        "en": "Charging"
+      },
+      "style": "outline",
+      "source": "tabler:outline/battery+filled/bolt@3.49.0"
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+// The Transitions screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusVisible, Layout, Label, Button } from "@blackbird/slint/components.slint";
+import { KeyControl } from "../key-control.slint";
+import { Body, Group } from "../parts.slint";
+import { TrBox } from "../models.slint";
+
+export component TransitionsScreen inherits Body {
+    callback control-key(string, string) -> bool;
+    in property <TrBox> tr-detail;
+    callback tr-detail-touch(string, length);
+    callback tr-list();
+    callback tr-pager(string, length);
+    in property <length> tr-pager-offset;
+    in property <[TrBox]> tr-rows;
+    in property <string> tr-text;
+    callback tr-tile(int);
+    in property <[TrBox]> tr-tiles;
+    in property <float> unit;
+
+    // A pager: one stop; Action locks it, Volume turns the pages (input events §3.7).
+    Group {
+        title: "Pages: drag, or Action then Volume";
+        kc-pager := KeyControl {
+            name: "pager";
+            kind: "lockable";
+            key(n, k) => { return root.control-key(n, k); }
+            init => { self.focus(); }
+            height: 96px;
+            Rectangle {
+                clip: true;
+                for i in 3: Rectangle {
+                    // Page 0 at the start edge: right to left mirrors the strip.
+                    x: Layout.rtl ? root.tr-pager-offset - i * parent.width : i * parent.width - root.tr-pager-offset;
+                    width: parent.width;
+                    background: i == 0 ? Tokens.surface-raised : (i == 1 ? Tokens.surface-active : Tokens.surface-base);
+                    border-width: 1px;
+                    border-color: Tokens.border-base;
+                    Label { role: "title"; text: "Page " + (i + 1); horizontal-alignment: center; vertical-alignment: center; }
+                }
+                TouchArea {
+                    pointer-event(e) => {
+                        if e.kind == PointerEventKind.down { FocusVisible.on = false; kc-pager.focus(); root.tr-pager("down", self.mouse-x); }
+                        if e.kind == PointerEventKind.up { root.tr-pager("up", self.mouse-x); }
+                        if e.kind == PointerEventKind.cancel { root.tr-pager("up", self.mouse-x); }
+                    }
+                    moved => { root.tr-pager("move", self.mouse-x); }
+                }
+            }
+        }
+    }
+    // Enter and exit: a removed line leaves (still drawn), the rest close up.
+    Group {
+        title: "Enter and exit";
+        Button { label: "Remove or restore line 2"; unit: root.unit; clicked => { root.tr-list(); } }
+        Rectangle {
+            height: 4 * 40px;
+            clip: true;
+            for r in root.tr-rows: Rectangle {
+                y: r.y;
+                height: r.h;
+                opacity: r.opacity;
+                clip: true;
+                Label { x: 12px; width: parent.width - 24px; role: "label"; text: r.label; vertical-alignment: center; }
+                Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.border-base; }
+            }
+        }
+    }
+    // A morph: a tile and the detail it becomes are one matched element.
+    Group {
+        title: "Morph: tap a tile, tap or drag the detail down to go back";
+        kc-morph := KeyControl {
+            name: "morph";
+            kind: "button";
+            key(n, k) => { return root.control-key(n, k); }
+            height: 200px;
+            Rectangle {
+                clip: true;
+                for t[i] in root.tr-tiles: Rectangle {
+                    x: t.x;
+                    y: t.y;
+                    width: t.w;
+                    height: t.h;
+                    border-radius: t.radius;
+                    opacity: t.opacity;
+                    background: Tokens.surface-active;
+                    Label { role: "caption"; text: t.label; horizontal-alignment: center; vertical-alignment: center; }
+                    TouchArea { clicked => { FocusVisible.on = false; kc-morph.focus(); root.tr-tile(i); } }
+                }
+                if root.tr-detail.opacity > 0: Rectangle {
+                    x: root.tr-detail.x;
+                    y: root.tr-detail.y;
+                    width: root.tr-detail.w;
+                    height: root.tr-detail.h;
+                    border-radius: root.tr-detail.radius;
+                    background: Tokens.brand-base;
+                    opacity: root.tr-detail.opacity;
+                    Label { role: "title"; text: root.tr-detail.label; horizontal-alignment: center; vertical-alignment: center; color: Tokens.surface-base; }
+                    TouchArea {
+                        pointer-event(e) => {
+                            if e.kind == PointerEventKind.down { FocusVisible.on = false; root.tr-detail-touch("down", self.mouse-y + parent.y); }
+                            if e.kind == PointerEventKind.up || e.kind == PointerEventKind.cancel { root.tr-detail-touch("up", self.mouse-y + parent.y); }
+                        }
+                        moved => { root.tr-detail-touch("move", self.mouse-y + parent.y); }
+                    }
+                }
+            }
+        }
+    }
+    Group {
+        Label { role: "caption"; mono: true; muted: true; text: root.tr-text; }
+    }
+}

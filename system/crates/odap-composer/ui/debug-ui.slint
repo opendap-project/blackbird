@@ -1,0 +1,152 @@
+// The debug UI mode (SYS-070), a composer primitive: the blueprint's references drawn over whatever
+// is on screen (composer and UI runtime spec §2).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Blueprint, BlueprintGrid, SnapLines } from "@blackbird/slint/components.slint";
+
+// A physical control where the device description places it, and whether it is down now.
+export struct ControlMark {
+    role: string,
+    // "left", "right", "top" or "bottom"; the centre and length along it.
+    edge: string,
+    centre: length,
+    span: length,
+    down: bool,
+}
+
+// A dotted line, for references that overlap others (the side margins).
+component Dotted inherits Rectangle {
+    in property <color> tint;
+    width: 1px;
+    for i in floor(root.height / 4px): Rectangle {
+        y: i * 4px;
+        height: 1px;
+        background: root.tint.with-alpha(0.4);
+    }
+}
+
+// A region the specs define: a faint fill, lit while a contact that started in it is down.
+component Zone inherits Rectangle {
+    in property <color> tint;
+    in property <bool> active;
+    background: root.tint.with-alpha(root.active ? 0.22 : 0.05);
+    animate background { duration: Tokens.motion-duration-fast; }
+}
+
+// The debug UI mode (SYS-070): the blueprint's references over the real interface, whatever it
+// shows, taking no input. Regions: status bar 28 px (composer spec §2), side margins 16 px and
+// edge-gesture zones 20 px (design system §8.3, §8.5), the lower half where the thumb rests
+// (§8.3), the physical controls where the description places them, lit while each is down; while
+// a finger is down, a crosshair with its coordinates; the gesture recognised, in a callout. The
+// activities draw their own elements as blueprints (Blackbird UI's components).
+export component DebugUi inherits Rectangle {
+    in property <float> unit: 1.0;
+    in property <[ControlMark]> controls;
+    in property <bool> touching;
+    in property <length> touch-x;
+    in property <length> touch-y;
+    in property <string> touch-zone;
+    in property <string> gesture;
+    property <length> status-h: Tokens.size-status-bar * root.unit;
+    property <length> edge-w: 20px * root.unit;
+    property <length> margin-w: Tokens.space-margin * root.unit;
+
+    // Snap lines at the key points (centre axes, quadrants, bands), over the 8 px grid the
+    // activity's screens draw.
+    SnapLines { unit: root.unit; margins: false; }
+    Zone { x: 0; width: root.width; y: root.height / 2; height: root.height / 2; tint: Tokens.state-success; }
+    // The edge zones between the corners, and the corners where two meet: regions of their own,
+    // so a contact there belongs to one region only (opendap-input).
+    Zone { x: 0; width: root.edge-w; y: root.status-h; height: root.height - root.status-h - root.edge-w; tint: Tokens.state-processing; active: root.touching && root.touch-zone == "edge-leading"; }
+    Zone { x: root.width - root.edge-w; width: root.edge-w; y: root.status-h; height: root.height - root.status-h - root.edge-w; tint: Tokens.state-processing; active: root.touching && root.touch-zone == "edge-trailing"; }
+    Zone { x: root.edge-w; width: root.width - 2 * root.edge-w; y: root.height - root.edge-w; height: root.edge-w; tint: Tokens.state-processing; active: root.touching && root.touch-zone == "edge-bottom"; }
+    Zone { x: root.edge-w; width: root.width - 2 * root.edge-w; y: 0; height: root.status-h; tint: Tokens.state-processing; active: root.touching && root.touch-zone == "edge-top"; }
+    for c in [
+        { x: 0, y: 0, name: "corner-top-leading" },
+        { x: 1, y: 0, name: "corner-top-trailing" },
+        { x: 0, y: 1, name: "corner-bottom-leading" },
+        { x: 1, y: 1, name: "corner-bottom-trailing" },
+    ]: Rectangle {
+        x: c.x * (root.width - root.edge-w);
+        // The top corners are as tall as the status bar, the top zone (opendap-input).
+        y: c.y * (root.height - root.edge-w);
+        width: root.edge-w;
+        height: c.y == 0 ? root.status-h : root.edge-w;
+        // A corner: the edge colour, outlined, so it reads as a region apart from both edges.
+        background: Tokens.state-processing.with-alpha(root.touching && root.touch-zone == c.name ? 0.3 : 0.1);
+        border-width: 1px;
+        border-color: Tokens.state-processing.with-alpha(0.55);
+        animate background { duration: Tokens.motion-duration-fast; }
+    }
+    Dotted { x: root.margin-w; height: root.height; tint: Tokens.state-warning; }
+    Dotted { x: root.width - root.margin-w; height: root.height; tint: Tokens.state-warning; }
+    Zone {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.status-h;
+        tint: Tokens.state-info;
+        active: false;
+        Rectangle { y: parent.height - 1px; height: 1px; background: Tokens.state-info.with-alpha(0.4); }
+    }
+
+    // The physical controls: interactive areas, as the OS handles them, drawn as every other one
+    // (blueprint.slint's semantics): the interactive colour at rest, live while held; the
+    // geometry never changes.
+    for c in root.controls: Rectangle {
+        x: c.edge == "left" ? 0 : root.width - self.width;
+        y: c.centre - c.span / 2;
+        width: 3px;
+        height: c.span;
+        background: c.down ? Blueprint.live : Blueprint.interactive.with-alpha(0.7);
+        animate background { duration: Tokens.motion-duration-fast; }
+    }
+
+    // While a finger is down: a crosshair through it, and where it is, kept on screen.
+    if root.touching: Rectangle {
+        Rectangle { x: root.touch-x; width: 1px; background: Blueprint.ink.with-alpha(Blueprint.outline); }
+        Rectangle { y: root.touch-y; height: 1px; background: Blueprint.ink.with-alpha(Blueprint.outline); }
+        Rectangle {
+            x: min(root.touch-x + 24px, root.width - self.width - 4px);
+            y: max(root.touch-y - 40px, root.status-h + 4px);
+            width: coords.preferred-width + 12px;
+            height: 22px;
+            border-width: 1px;
+            border-color: Blueprint.ink.with-alpha(Blueprint.outline);
+            background: Blueprint.paper.with-alpha(0.92);
+            coords := Text {
+                x: 6px;
+                height: parent.height;
+                vertical-alignment: center;
+                text: round(root.touch-x / root.unit / 1px) + ", " + round(root.touch-y / root.unit / 1px);
+                font-family: Tokens.font-family-mono;
+                font-size: Tokens.font-size-caption;
+                color: Blueprint.ink.with-alpha(Blueprint.text);
+            }
+        }
+    }
+
+    // The gesture, in a toast that leaves by itself: black, white text and border, as wide as
+    // its text, centred on the screen.
+    if root.gesture != "": Rectangle {
+        width: min(message.preferred-width + 24px, root.width - 2 * root.margin-w);
+        height: message.preferred-height + 14px;
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        background: #000000;
+        border-width: 1px;
+        border-color: #ffffff;
+        message := Text {
+            x: 12px;
+            width: parent.width - 24px;
+            height: parent.height;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            wrap: word-wrap;
+            text: root.gesture;
+            font-family: Tokens.font-family-mono;
+            font-size: Tokens.font-size-label;
+            color: #ffffff;
+        }
+    }
+}

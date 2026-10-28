@@ -1,0 +1,52 @@
+// What the activity's logic (src/) hands the screens, as Slint structs.
+
+// A stop of the Navigation screen as the logic's navigator has it (input events §3.7).
+export struct NavView {
+    // The child with the focus inside it ("" when the stop itself has it).
+    focus: string,
+    // 0: the stop; 1: inside it; 2: a child engaged inside it.
+    depth: int,
+    // The shelf's scroll (the child kept in view), and the seek's value.
+    offset: length,
+    value: float,
+}
+
+// A box of the Transitions screen, as the logic's primitives place it (opendap-motion's interpolate).
+export struct TrBox {
+    x: length,
+    y: length,
+    w: length,
+    h: length,
+    radius: length,
+    opacity: float,
+    label: string,
+}
+
+// A field of the Keyboard screen as the logic's form has it.
+export struct FieldView {
+    label: string,
+    text: string,
+    issue: string,
+    // The keyboard it asks for (opendap-forms' Purpose): "number", "pin", "email", "normal"…
+    purpose: string,
+}
+
+// One built album of the Navigation screen's virtual shelf.
+export struct NavTile {
+    index: int,
+}
+
+// One slot of the virtual list: what it shows now, and where.
+export struct VRow {
+    index: int,
+    y: length,
+    h: length,
+    tall: bool,
+    // Its page has arrived; its cover is decoded (only when the scroll is slow).
+    ready: bool,
+    cover: bool,
+    // The item that has the focus (opendap-layout's focus: by item, never by slot).
+    focused: bool,
+    // A section's first row carries its section's header above it, in the content.
+    head: length,
+}

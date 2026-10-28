@@ -1,0 +1,40 @@
+// The Motion screen of the UI primitives activity (SYS-071).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Blueprint, Segment, DirRow } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component MotionScreen inherits Body {
+    in-out property <int> motion;
+    in-out property <bool> motion-at-end;
+    in property <float> unit;
+
+    Group {
+        Rectangle {
+            height: 24px;
+            Rectangle {
+                y: parent.height / 2;
+                height: 1px;
+                background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.outline) : Tokens.border-base;
+            }
+            Rectangle {
+                x: root.motion-at-end ? parent.width - self.width : 0;
+                y: 4px;
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                background: Tokens.brand-base;
+                animate x {
+                    duration: root.motion == 0 ? Tokens.motion-duration-fast : (root.motion == 1 ? Tokens.motion-duration-standard : Tokens.motion-duration-slow);
+                    easing: cubic-bezier(0.2, 0, 0, 1);
+                }
+            }
+        }
+        DirRow {
+            spacing: Tokens.size-group-divider;
+            Segment { label: "120 ms"; first: true; selected: root.motion == 0; unit: root.unit; clicked => { root.motion = 0; root.motion-at-end = !root.motion-at-end; } init => { self.focus(); } }
+            Segment { label: "200 ms"; selected: root.motion == 1; unit: root.unit; clicked => { root.motion = 1; root.motion-at-end = !root.motion-at-end; } }
+            Segment { label: "320 ms"; last: true; selected: root.motion == 2; unit: root.unit; clicked => { root.motion = 2; root.motion-at-end = !root.motion-at-end; } }
+        }
+    }
+}

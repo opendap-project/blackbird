@@ -1,0 +1,55 @@
+// The States screen of the UI primitives activity (SYS-071): empty, error and reason states, and
+// every focusable component disabled.
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { Toggle, ListLine, Panel, EmptyState, ErrorState, Button, PrimaryButton, IconButton, Tab, Segment, Slider, RangeSlider, RadioStops, CheckLine, DirRow } from "@blackbird/slint/components.slint";
+import { Body, Group } from "../parts.slint";
+
+export component StatesScreen inherits Body {
+    in property <float> unit;
+
+    Group {
+        // The panel takes the row's width; the state sits in it with the margin as padding (a
+        // width computed from a parent that has none collapsed it).
+        Panel {
+            VerticalLayout {
+                padding: Tokens.space-margin;
+                EmptyState {
+                    init => { self.focus(); }
+                    icon: @image-url("@blackbird/icons/24/playlist.svg");
+                    title: "No playlists yet";
+                    hint: "Make one from any album or track.";
+                    action: "New playlist";
+                    unit: root.unit;
+                }
+            }
+        }
+        ErrorState { title: "Can't sync"; reason: "The computer stopped answering. Check it is on and on the same network."; unit: root.unit; }
+    }
+    VerticalLayout {
+        Toggle { label: "Bluetooth"; reason: "This faceplate has no radio"; unit: root.unit; }
+        ListLine { label: "Update now"; reason: "Plug in a charger first"; unit: root.unit; }
+    }
+    // Every focusable component disabled (input events §3.7): dimmed once, skipped by the buttons,
+    // inert to a touch. The interface tests walk and touch them.
+    Group {
+        title: "Disabled, each";
+        Button { label: "Off button"; enabled: false; unit: root.unit; }
+        PrimaryButton { label: "Off primary"; enabled: false; default-focus: false; unit: root.unit; }
+        DirRow {
+            justify: start;
+            IconButton { icon: @image-url("@blackbird/icons/24/like.svg"); name: "Off icon"; enabled: false; unit: root.unit; }
+            Tab { label: "Off tab"; enabled: false; unit: root.unit; }
+        }
+        DirRow {
+            Segment { label: "Off seg A"; first: true; selected: true; enabled: false; unit: root.unit; }
+            Segment { label: "Off seg B"; last: true; enabled: false; unit: root.unit; }
+        }
+        Slider { label: "Off slider"; enabled: false; unit: root.unit; }
+        RangeSlider { label: "Off range"; enabled: false; unit: root.unit; }
+        RadioStops { stops: ["Off one", "Off two", "Off three"]; selected: 1; enabled: false; unit: root.unit; }
+        CheckLine { label: "Off check"; enabled: false; unit: root.unit; }
+        ListLine { label: "Off line"; enabled: false; unit: root.unit; }
+        Toggle { label: "Off toggle"; enabled: false; unit: root.unit; }
+    }
+}

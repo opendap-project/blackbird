@@ -1,0 +1,183 @@
+// The sidebar's Instruments page: the device's sound, probes, energy and load, measured from the host.
+
+import { Slider, ComboBox } from "std-widgets.slint";
+import { Palette, MeterBar, ProbeRow } from "theme.slint";
+import { Section, Pill, Toggle, Tool, Keycap, Binding, HeaderButton, Tabs, Choice } from "widgets.slint";
+import { WaterfallStrip, MeterRow, SpectrumStrip, Stat, Graph } from "meters.slint";
+
+export component InstrumentsPage inherits Flickable {
+    in property <string> energy-charger;
+    in property <string> energy-current;
+    in property <bool> energy-known;
+    in property <string> energy-level;
+    in property <string> energy-power;
+    in property <string> energy-status;
+    in property <string> energy-temperature;
+    in property <string> energy-time;
+    in property <string> energy-voltage;
+    in property <image> graph-battery;
+    in property <image> graph-power;
+    in property <bool> in-active;
+    in-out property <bool> in-analyze;
+    in property <string> in-format;
+    in property <[MeterBar]> in-meters;
+    in property <string> in-note;
+    in property <string> in-readout;
+    in-out property <int> in-source;
+    in property <[string]> in-sources;
+    in property <image> in-spectrum;
+    in-out property <int> in-view;
+    in property <image> in-waterfall;
+    in property <bool> out-active;
+    in-out property <bool> out-analyze;
+    in property <string> out-format;
+    in property <[MeterBar]> out-meters;
+    in property <string> out-note;
+    in-out property <bool> out-play;
+    in property <string> out-readout;
+    in property <image> out-spectrum;
+    in-out property <int> out-view;
+    in property <image> out-waterfall;
+    in property <int> phase;
+    in property <[ProbeRow]> probes;
+    callback sound-measure-wish(string, bool);
+    callback sound-play(bool);
+    callback sound-source(int);
+    callback sound-view(string, int);
+    in property <string> sys-cpu;
+    in property <float> sys-cpu-busy;
+    in property <bool> sys-known;
+    in property <string> sys-load;
+    in property <string> sys-mem;
+    in property <float> sys-mem-busy;
+    in-out property <bool> sys-open;
+    in property <string> sys-uptime;
+    // Hands the keyboard back to the window after a control takes a click.
+    callback refocus();
+    content-height: meters.preferred-height;
+    interactive: true;
+    meters := VerticalLayout {
+        width: parent.width;
+        padding: 12px;
+        padding-top: 8px;
+        spacing: 20px;
+        alignment: start;
+
+        Section {
+            title: "OUTPUT · HEADPHONES";
+            Toggle {
+                icon: @image-url("icons/waveform.svg");
+                label: "Measure";
+                state: root.out-analyze ? 2 : 0;
+                toggled(on) => { root.out-analyze = on; root.sound-measure-wish("out", on); root.refocus(); }
+            }
+            if root.out-analyze: VerticalLayout {
+                spacing: 6px;
+                Text { text: root.out-active ? root.out-format : "Nothing playing"; color: root.out-active ? Palette.text : Palette.muted; font-size: 11px; }
+                for m in root.out-meters: MeterRow { m: m; tint: #3b82c4; }
+                Choice { labels: ["Spectrum", "Spectrogram"]; current <=> root.out-view; changed(i) => { root.sound-view("out", i); root.refocus(); } }
+                if root.out-view == 0: SpectrumStrip { source: root.out-spectrum; label: "Output spectrum, 20 Hz to 20 kHz"; }
+                if root.out-view == 1: WaterfallStrip { source: root.out-waterfall; label: "Output spectrogram, the last 42 seconds"; }
+                // Three lines kept whether or not there is anything to say, so the box keeps its size.
+                Text { text: root.out-readout; color: Palette.text; font-size: 11px; wrap: no-wrap; overflow: elide; height: 44px; vertical-alignment: top; }
+            }
+            Toggle {
+                icon: @image-url("icons/headphones.svg");
+                label: "Play on this computer";
+                state: root.out-play ? 2 : 0;
+                toggled(on) => { root.out-play = on; root.sound-play(on); root.refocus(); }
+            }
+            if root.out-note != "": Text { text: root.out-note; color: Palette.muted; font-size: 10px; wrap: word-wrap; }
+        }
+
+        Section {
+            title: "INPUT · MICROPHONE";
+            // What the device records: any of this computer's inputs, a test tone or
+            // silence (sound.rs); the list is read again whenever this page opens.
+            ComboBox {
+                model: root.in-sources;
+                current-index <=> root.in-source;
+                accessible-label: "Recorded from";
+                selected => { root.sound-source(self.current-index); root.refocus(); }
+            }
+            Toggle {
+                icon: @image-url("icons/microphone.svg");
+                label: "Measure";
+                state: root.in-analyze ? 2 : 0;
+                toggled(on) => { root.in-analyze = on; root.sound-measure-wish("in", on); root.refocus(); }
+            }
+            if root.in-analyze: VerticalLayout {
+                spacing: 6px;
+                Text { text: root.in-active ? root.in-format : "Not recording"; color: root.in-active ? Palette.text : Palette.muted; font-size: 11px; }
+                for m in root.in-meters: MeterRow { m: m; tint: #ff9f0a; }
+                Choice { labels: ["Spectrum", "Spectrogram"]; current <=> root.in-view; changed(i) => { root.sound-view("in", i); root.refocus(); } }
+                if root.in-view == 0: SpectrumStrip { source: root.in-spectrum; label: "Input spectrum, 20 Hz to 20 kHz"; }
+                if root.in-view == 1: WaterfallStrip { source: root.in-waterfall; label: "Input spectrogram, the last 42 seconds"; }
+                // Three lines kept whether or not there is anything to say, so the box keeps its size.
+                Text { text: root.in-readout; color: Palette.text; font-size: 11px; wrap: no-wrap; overflow: elide; height: 44px; vertical-alignment: top; }
+            }
+            if root.in-note != "": Text { text: root.in-note; color: Palette.muted; font-size: 10px; wrap: word-wrap; }
+        }
+
+        // Every signal the device's layers declare for observation, where the
+        // measurements above come from (VD-010).
+        Section {
+            title: "PROBES";
+            for p in root.probes: VerticalLayout {
+                spacing: 0px;
+                accessible-role: text;
+                accessible-label: p.name + ": " + p.what + ", " + p.value;
+                HorizontalLayout {
+                    height: 16px;
+                    Text { text: p.name; color: Palette.text; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; }
+                    Text { text: p.value; color: Palette.text; font-size: 11px; vertical-alignment: center; horizontal-alignment: right; overflow: elide; }
+                }
+                Text { text: p.what; color: Palette.muted; font-size: 10px; overflow: elide; }
+            }
+        }
+
+        Section {
+            title: "ENERGY";
+            if !root.energy-known: Text { text: root.phase == 2 ? "Reading the device…" : "Once the device runs"; color: Palette.muted; font-size: 11px; }
+            if root.energy-known: VerticalLayout {
+                spacing: 4px;
+                HorizontalLayout {
+                    spacing: 8px;
+                    Graph { label: "Battery"; value: root.energy-level; source: root.graph-battery; }
+                    Graph { label: "Power"; value: root.energy-power; source: root.graph-power; }
+                }
+                Stat { label: "State"; value: root.energy-status; }
+                Stat { label: "Voltage"; value: root.energy-voltage; }
+                Stat { label: "Current"; value: root.energy-current; }
+                Stat { label: "Temperature"; value: root.energy-temperature; }
+                Stat { label: "Time"; value: root.energy-time; }
+                Stat { label: "Charger"; value: root.energy-charger; }
+                // What the model does not simulate is said, never hidden (SYS-040).
+                Stat { label: "Per rail"; value: "Not modelled on this hardware"; }
+                Text {
+                    text: "The virtual board's battery model: its values are set (Controls, Power), not drawn by the device's load.";
+                    color: Palette.muted;
+                    font-size: 10px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        Section {
+            title: "SYSTEM";
+            open <=> root.sys-open;
+            if !root.sys-known: Text { text: root.phase == 2 ? "Reading the device…" : "Once the device runs"; color: Palette.muted; font-size: 11px; }
+            if root.sys-known: VerticalLayout {
+                spacing: 2px;
+                Stat { label: "CPU"; value: root.sys-cpu; }
+                MeterRow { m: { label: "", rms: root.sys-cpu-busy, peak: root.sys-cpu-busy, value: "" }; tint: #3b82c4; }
+                Stat { label: "Memory"; value: root.sys-mem; }
+                MeterRow { m: { label: "", rms: root.sys-mem-busy, peak: root.sys-mem-busy, value: "" }; tint: #3b82c4; }
+                Stat { label: "Load"; value: root.sys-load; }
+                Stat { label: "Up"; value: root.sys-uptime; }
+                // What the hardware lacks is shown as absent, never hidden (SYS-040).
+                Stat { label: "NPU"; value: "None on this hardware"; }
+            }
+        }
+    }
+}

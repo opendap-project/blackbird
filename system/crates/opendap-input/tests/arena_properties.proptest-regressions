@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc ab09840fa5469839533080c4a3071448a2bc02f9cada838bc057011d98ce4e0b # shrinks to ms = [(DragV, false), (Tap, false), (LongPress, false)], (inputs, cancelled) = ([Down { at: (100.0, 100.0), ms: 0 }, Move { at: (100.0, 100.0), ms: 221 }, Move { at: (100.0, 100.0), ms: 321 }, Move { at: (100.0, 100.0), ms: 500 }, Cancel], true)

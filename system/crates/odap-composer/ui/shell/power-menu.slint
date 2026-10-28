@@ -1,0 +1,122 @@
+// An OS Shell draft hosted by the composer (RFC 0012; OS Shell drafts spec): the power menu, beside
+// Main. Its layout follows the interface mockups (blackbird-ui renders/web/ui-mockups.html, "Power,
+// beside Main"); its focus and choices are decided in src/power_menu.rs.
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+
+// The focus the volume buttons move (design system: a brighter border, `focus`).
+component FocusRing inherits Rectangle {
+    border-width: 2px;
+    border-color: Tokens.focus;
+}
+
+component Choice inherits Rectangle {
+    in property <string> label;
+    in property <bool> primary;
+    in property <bool> focused;
+    // A pointer over it (a mouse, a simulator window): a faint surface, as the focus is a ring.
+    background: touch.has-hover ? Tokens.surface-raised : transparent;
+    callback activated();
+    height: 56px;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-action-default => { root.activated(); }
+    Text {
+        x: 0;
+        width: parent.width - Tokens.space-margin;
+        height: parent.height;
+        horizontal-alignment: right;
+        vertical-alignment: center;
+        text: root.label;
+        font-family: Tokens.font-family-ui;
+        font-size: Tokens.font-size-body-large;
+        font-weight: root.primary ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
+        color: touch.pressed ? Tokens.text-muted : (root.primary ? Tokens.text-primary : Tokens.text-secondary);
+    }
+    if root.focused: FocusRing { }
+    touch := TouchArea {
+        clicked => { root.activated(); }
+    }
+}
+
+// Power, beside Main: a long press of Main opens the choices next to Main itself; pressing Main
+// again powers off, so the confirmation is the same physical gesture (§7: power requires it).
+// Touching "Power off" only points at that press. Restart and recovery are touch choices.
+// The buttons alone work it too (SYS-039): Volume + and − move the focus, Action takes the
+// focused choice, Main powers off.
+export component PowerMenu inherits Rectangle {
+    in property <length> main-y;
+    in property <bool> can-recovery;
+    in-out property <bool> point-at-main;
+    // The focused choice: 0 Power off, 1 Restart, 2 Restart to recovery (when present), then
+    // Cancel; -1 for none.
+    in property <int> focused-choice;
+    callback choose(string);
+
+    // A system view precedes the OS Shell (SYS-069): it takes the whole screen, with no status bar
+    // or any other OS Shell layer showing; a touch on its ground does nothing.
+    Rectangle {
+        background: Tokens.color-graphite-950.darker(30%);
+        TouchArea { }
+    }
+    // The choices run the full width, their labels at the right, beside Main.
+    choices := VerticalLayout {
+        x: 0;
+        width: parent.width;
+        y: max(0, min(root.main-y - 28px, parent.height - self.preferred-height - 76px));
+        Choice {
+            label: "Power off";
+            primary: true;
+            focused: root.focused-choice == 0;
+            activated => { root.point-at-main = true; }
+        }
+        Choice {
+            label: "Restart";
+            focused: root.focused-choice == 1;
+            activated => { root.choose("restart"); }
+        }
+        if root.can-recovery: Choice {
+            label: "Restart to recovery";
+            focused: root.focused-choice == 2;
+            activated => { root.choose("recovery"); }
+        }
+        // The mockup's padding: a group space above, the margin on the right.
+        HorizontalLayout {
+            padding-top: Tokens.space-group;
+            padding-right: Tokens.space-margin;
+            Text {
+                text: "Press Main again to power off";
+                horizontal-alignment: right;
+                font-family: Tokens.font-family-ui;
+                font-size: Tokens.font-size-label;
+                color: root.point-at-main ? Tokens.text-primary : Tokens.text-muted;
+                accessible-role: text;
+            }
+        }
+    }
+    // Cancel, at the bottom, apart from the destructive choices.
+    Rectangle {
+        x: Tokens.space-margin;
+        width: parent.width - 2 * Tokens.space-margin;
+        y: parent.height - 12px - self.height;
+        height: 52px;
+        border-radius: Tokens.radius-pill;
+        background: cancel.has-hover ? Tokens.surface-raised : transparent;
+        accessible-role: button;
+        accessible-label: "Cancel";
+        accessible-action-default => { root.choose("cancel"); }
+        Text {
+            text: "Cancel";
+            font-family: Tokens.font-family-ui;
+            font-size: Tokens.font-size-body-large;
+            font-weight: Tokens.font-weight-medium;
+            color: cancel.pressed ? Tokens.text-muted : Tokens.text-secondary;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        if root.focused-choice == (root.can-recovery ? 3 : 2): FocusRing { border-radius: parent.border-radius; }
+        cancel := TouchArea {
+            clicked => { root.choose("cancel"); }
+        }
+    }
+}

@@ -1,0 +1,13 @@
+[package]
+name = "opendap-qemu-display"
+version = "0.1.0"
+description = "A client of QEMU's D-Bus display (org.qemu.Display1), peer to peer through QMP: frames as the guest draws them, and the absolute pointer"
+edition.workspace = true
+rust-version.workspace = true
+license = "MPL-2.0"
+publish = false
+
+[dependencies]
+zbus = { workspace = true }
+serde_json.workspace = true
+libc = "0.2"

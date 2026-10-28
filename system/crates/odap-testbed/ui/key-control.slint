@@ -1,0 +1,95 @@
+// The buttons for an experiment's control (design system §8.4).
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+import { FocusReveal, FocusVisible, FocusNav } from "@blackbird/slint/components.slint";
+
+// The buttons for an experiment's control (design system §8.4): it takes the focus like any
+// control and draws its ring over its box. `kind`: "button" (Action activates), "lockable"
+// (Action locks, then Volume adjusts, as a slider), "list" (Volume walks its items, leaving at
+// the ends), "stop" (a composite with one stop, input events §3.7: the logic navigates inside it
+// with opendap-input's nav; the ring is the stop's until it is engaged, then its child's). Keys
+// go to the logic as `key(name, what)`, routed to the screen that owns the control (src/keys.rs).
+export component KeyControl inherits FocusScope {
+    // A touch is the touch area's under it: it hides the ring, gives this the focus and starts its
+    // gesture, in that order. Taking the focus on the press itself (Slint's default) took the press
+    // from the touch area: the first drag after the buttons left the ring shown and moved nothing.
+    focus-on-click: false;
+    in property <string> name;
+    in property <string> kind: "button";
+    in-out property <bool> adjusting;
+    // A stop engaged draws the ring on its child, not on itself.
+    in property <bool> engaged;
+    // A touch inside the stop hid the ring: the touch decides its levels (it keeps those it is
+    // inside), not the hiding, which comes after it.
+    in-out property <bool> touched-inside;
+    // The lock ends when the focus hides.
+    property <bool> shown: FocusVisible.on;
+    changed shown => {
+        if !self.shown {
+            self.adjusting = false;
+            // The focus hid: every level releases (input events §3.7).
+            if root.kind == "stop" && !root.touched-inside { root.key(root.name, "release"); }
+        }
+        root.touched-inside = false;
+    }
+    callback key(string, string) -> bool;
+    changed has-focus => {
+        if !self.has-focus { self.adjusting = false; }
+        if !self.has-focus && root.kind == "stop" { root.key(root.name, "release"); }
+        if self.has-focus && root.kind == "stop" && FocusVisible.on { root.key(root.name, "enter"); }
+        if self.has-focus {
+            // Entered by the keys: from the side they came from; by a touch: left to the touch.
+            if root.kind == "list" && FocusVisible.on { root.key(root.name, FocusNav.backward ? "enter-up" : "enter-down"); }
+            FocusReveal.y = self.absolute-position.y;
+            FocusReveal.h = self.height;
+            FocusReveal.fixed = false;
+            FocusReveal.serial += 1;
+        }
+    }
+    key-pressed(e) => {
+        if !FocusVisible.on {
+            if e.text == Key.Return || e.text == " " || e.text == Key.Escape { return reject; }
+            FocusVisible.on = true;
+            // A list shows the ring on an item: the one it had, else its first.
+            if root.kind == "list" { root.key(root.name, "reveal"); }
+            return accept;
+        }
+        let vol-up = e.text == Key.Backtab || (e.text == Key.Tab && e.modifiers.shift);
+        let vol-down = e.text == Key.Tab && !e.modifiers.shift;
+        if root.kind == "lockable" {
+            if e.text == Key.Return || e.text == " " { root.adjusting = !root.adjusting; return accept; }
+            if e.text == Key.Escape && root.adjusting { root.adjusting = false; return accept; }
+            // ← → are a keyboard's arrows: they mirror right to left (src/keys.rs); Volume and ↑ ↓ are
+            // more and less by their place: never mirrored.
+            if e.text == Key.RightArrow { root.key(root.name, "right"); return accept; }
+            if e.text == Key.LeftArrow { root.key(root.name, "left"); return accept; }
+            if root.adjusting && (vol-up || e.text == Key.UpArrow) { root.key(root.name, "inc"); return accept; }
+            if root.adjusting && (vol-down || e.text == Key.DownArrow) { root.key(root.name, "dec"); return accept; }
+            return reject;
+        }
+        if root.kind == "stop" {
+            if e.text == Key.Return || e.text == " " { return root.key(root.name, "activate") ? accept : reject; }
+            if e.text == Key.Escape { return root.key(root.name, "escape") ? accept : reject; }
+            if e.text == Key.RightArrow { return root.key(root.name, "right") ? accept : reject; }
+            if e.text == Key.LeftArrow { return root.key(root.name, "left") ? accept : reject; }
+            if vol-down || e.text == Key.DownArrow { return root.key(root.name, "next") ? accept : reject; }
+            if vol-up || e.text == Key.UpArrow { return root.key(root.name, "prev") ? accept : reject; }
+            return reject;
+        }
+        if root.kind == "list" {
+            if e.text == Key.Return || e.text == " " { root.key(root.name, "activate"); return accept; }
+            if vol-down { return root.key(root.name, "next") ? accept : reject; }
+            if vol-up { return root.key(root.name, "prev") ? accept : reject; }
+            return reject;
+        }
+        if e.text == Key.Return || e.text == " " { root.key(root.name, "activate"); return accept; }
+        reject
+    }
+    // Above what the control draws inside it.
+    if root.has-focus && FocusVisible.on && !root.engaged: Rectangle {
+        z: 10;
+        border-width: root.adjusting ? 3px : 2px;
+        border-color: root.adjusting ? Tokens.brand-base : Tokens.focus;
+        background: root.adjusting ? Tokens.brand-base.with-alpha(0.12) : transparent;
+    }
+}

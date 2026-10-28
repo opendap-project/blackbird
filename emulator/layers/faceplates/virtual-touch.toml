@@ -1,0 +1,159 @@
+# H3: the touch faceplate of the T1 reference, virtualised: the 320 x 480 portrait panel, its touch
+# screen and the four controls with their roles and places. Control positions come from the case
+# layer t1-concept-case (see [[controls]]): UNVERIFIED against the enclosure. The host keyboard and
+# pointer drive the same roles.
+[layer]
+kind = "faceplate"
+id = "virtual-touch"
+name = "Virtual touch faceplate"
+connector = "faceplate"
+
+[display]
+width_px = 320
+height_px = 480
+width_mm = 48.96
+height_mm = 73.44
+shape = "rectangle"
+technology = "lcd"
+distance = "handheld"
+
+# The touch panel: QEMU's virtio-multitouch reports positions 0 to 32767 on each axis and tracks
+# 10 slots (QEMU 11.1 include/ui/input.h, INPUT_EVENT_ABS_MAX and INPUT_EVENT_SLOTS_MAX).
+# The front, as the simulator window draws it (odap-vdev frame; never in the device description):
+# the cover glass fills the case's opening, the display's active area is centred under it, and the
+# front details sit where FPT-023 and FPT-024 put them, at the concept model's positions and sizes
+# (set by eye, UNVERIFIED). Millimetres from the device centre, y up (T1-021).
+[front]
+# The faceplate's surface in the case's opening: here, cover glass over the whole front.
+surface = "glass"
+color = "#020203"
+
+# What the front carries, by kind: the display, sensors, the status LED, the microphone, and on
+# other faceplates their own controls (`button`, `dial`, with a role, as the description names it).
+[[front.parts]]
+kind = "display"
+x_mm = 0.0
+y_mm = 0.0
+
+[[front.parts]]
+kind = "sensor"
+name = "ambient light"
+x_mm = 0.0
+y_mm = 41.435
+d_mm = 1.6
+color = "#1a1214"
+
+[[front.parts]]
+kind = "led"
+name = "status"
+x_mm = 16.0
+y_mm = 41.435
+d_mm = 1.2
+color = "#3b3f44"
+
+[[front.parts]]
+kind = "mic"
+name = "main"
+x_mm = 0.0
+y_mm = -41.435
+d_mm = 0.8
+color = "#050505"
+
+# The status LED and the ambient light sensor, as Linux exposes them in the guest: the virtual
+# board makes them as HID devices (board/crates/odap-vdev-hw) that hid-led and hid-sensor-als
+# drive. The microphone's privacy light is hardware-tied and never described (BRD-027).
+[[indicators]]
+role = "status"
+colors = "rgb"
+# hid-led numbers its devices and never reuses a number, so the board names it by prefix.
+linux = "thingm*"
+
+[[sensors]]
+kind = "ambient-light"
+iio = "als"
+
+# The signals the faceplate carries that the simulator observes (VD-010; the board layer says how).
+[[probes]]
+name = "mic-adc"
+kind = "pcm"
+what = "Microphone to ADC: what the device records"
+source = "audio:in"
+
+[[probes]]
+name = "status-led"
+kind = "rgb"
+what = "Status LED: its colour"
+source = "board:led"
+
+[[probes]]
+name = "ambient-light"
+kind = "lux"
+what = "Ambient light sensor: the light on it"
+source = "board:als"
+
+[touch]
+resolution_x = 32768
+resolution_y = 32768
+contacts = 10
+
+# kind, role, Linux code, edge, offset and length in mm, and the QEMU key (qcode) that produces the
+# code, which only the runner uses. Offset: the control's centre, from the top of the display's
+# visible area; length: the key as it shows, bevels included. Both from the case layer
+# t1-concept-case (the concept model's keys, measured, moved so Action's top meets the status bar).
+[[controls]]
+role = "action"
+kind = "button"
+code = "KEY_PLAYPAUSE"
+qcode = "audioplay"
+edge = "left"
+offset_mm = 10.784
+length_mm = 13.0
+[[controls]]
+role = "volume-up"
+kind = "rocker-half"
+code = "KEY_VOLUMEUP"
+qcode = "volumeup"
+edge = "left"
+offset_mm = 26.972
+length_mm = 12.28
+[[controls]]
+role = "volume-down"
+kind = "rocker-half"
+code = "KEY_VOLUMEDOWN"
+qcode = "volumedown"
+edge = "left"
+offset_mm = 39.597
+length_mm = 12.28
+[[controls]]
+role = "main"
+kind = "button"
+code = "KEY_POWER"
+qcode = "power"
+edge = "right"
+offset_mm = 18.784
+length_mm = 15.8
+# The simulator window's keyboard: each host key presses the control of its role. Runner only, never in the
+# device description (the device has four keys).
+[[host_keys]]
+key = "spc"
+role = "action"
+[[host_keys]]
+key = "up"
+role = "volume-up"
+[[host_keys]]
+key = "down"
+role = "volume-down"
+[[host_keys]]
+key = "p"
+role = "main"
+
+[qemu]
+args = [
+  # The panel: the GPU starts at, and prefers, the panel's size, so the window never changes size and
+  # odap-composer finds the panel's mode without a kernel option; the firmware
+  # does not drive this MMIO GPU (it needs at least 80 x 25 text cells), so boot shows no text.
+  "-device", "virtio-gpu-device,xres={display.width_px},yres={display.height_px}",
+  "-device", "virtio-multitouch-pci", "-device", "virtio-keyboard-pci",
+  # The simulator window's pointer, which odap-composer treats as one finger.
+  "-device", "virtio-tablet-pci",
+]

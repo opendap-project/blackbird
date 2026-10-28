@@ -1,0 +1,111 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// The blueprint mode of the components (system SYS-070, blackbird-ui ADR 0002): the debug UI
+// mode draws every element as a technical drawing of itself. The geometry never changes, only the
+// drawing: each element keeps its size, radii and place, drawn as hairlines in ink on the
+// blueprint paper, its states as strokes instead of fills. What it measures appears on demand.
+//
+// An application turns it on from the system's flag (`/run/opendap/debug-ui` or `ODAP_DEBUG_UI`):
+// `Blueprint.on = true`.
+
+import { Tokens } from "tokens.slint";
+
+// The drawing's semantics, one meaning per colour and line, the same for every element and for
+// the composer's references:
+//   ink, hairline       structure: containers, text, dimensions
+//   interactive         an area with event handlers: a button, a line, a toggle, a slider, a
+//                       segment, a physical control
+//   live                input on it now: pressed, touched, held
+//   region (info)       the composer's regions: the status bar; and an element's measure
+//   margin (warning)    the side margins, dotted
+//   edge (processing)   the edge-gesture zones
+export global Blueprint {
+    in-out property <bool> on;
+    // The paper and the ink.
+    out property <color> paper: #0b2547;
+    out property <color> ink: #ffffff;
+    out property <color> interactive: Tokens.state-success;
+    out property <color> live: Tokens.brand-base;
+    // Opacity levels, from the loudest layer to the quietest.
+    out property <float> text: 0.92;
+    out property <float> secondary: 0.62;
+    out property <float> outline: 0.38;
+    out property <float> faint: 0.16;
+    out property <float> fill: 0.06;
+    out property <float> grid-major: 0.10;
+    out property <float> grid-minor: 0.035;
+}
+
+// An element's measure, drawn over it while a pointer or a finger is on it: its box, and its
+// width and height in design pixels at its top left.
+export component Measure inherits Rectangle {
+    in property <bool> shown;
+    // Logical pixels per design pixel (the window's scale over the hardware's, as the testbed
+    // calibrates it); 1 when the window's scale is the hardware's.
+    in property <float> unit: 1.0;
+    if root.shown && Blueprint.on: Rectangle {
+        border-width: 1px;
+        border-color: Tokens.state-info.with-alpha(0.8);
+        Rectangle {
+            x: 0;
+            y: -self.height;
+            width: tag.preferred-width + 6px;
+            height: 14px;
+            background: Blueprint.paper;
+            tag := Text {
+                x: 3px;
+                height: parent.height;
+                vertical-alignment: center;
+                text: round(root.width / root.unit / 1px) + " × " + round(root.height / root.unit / 1px);
+                font-family: Tokens.font-family-mono;
+                font-size: 10px;
+                color: Tokens.state-info;
+            }
+        }
+    }
+}
+
+// Grid lines every `step`, at `alpha`.
+export component BlueprintGrid inherits Rectangle {
+    in property <length> step: 8px;
+    in property <float> alpha: Blueprint.grid-minor;
+    for i in floor(root.width / root.step) + 1: Rectangle {
+        x: i * root.step;
+        width: 1px;
+        background: Blueprint.ink.with-alpha(root.alpha);
+    }
+    for i in floor(root.height / root.step) + 1: Rectangle {
+        y: i * root.step;
+        height: 1px;
+        background: Blueprint.ink.with-alpha(root.alpha);
+    }
+}
+
+// Snap lines at the screen's key points, for whoever lays out a screen against the drawing (the
+// guides of a design tool): the centre axes, which split it into quadrants; the quarter lines
+// through each quadrant's centre; the side margins; and the system's bands (the status bar, a
+// header under it, the playing strip at the bottom). They sit on the 8 px grid wherever the screen
+// does, so a snapped element lands on both.
+export component SnapLines inherits Rectangle {
+    // Logical pixels per design pixel.
+    in property <float> unit: 1.0;
+    // Off where the margins are drawn already (the composer draws them dotted).
+    in property <bool> margins: true;
+    property <length> margin: Tokens.space-margin * root.unit;
+    property <length> status: Tokens.size-status-bar * root.unit;
+    property <length> header: root.status + Tokens.size-header * root.unit;
+    property <length> strip: root.height - Tokens.size-playing-strip * root.unit;
+    // The centre axes: the strongest guides.
+    Rectangle { x: root.width / 2; width: 1px; background: Blueprint.ink.with-alpha(Blueprint.faint * 1.6); }
+    Rectangle { y: root.height / 2; height: 1px; background: Blueprint.ink.with-alpha(Blueprint.faint * 1.6); }
+    // The quarter lines: each quadrant's centre.
+    for f in [0.25, 0.75]: Rectangle { x: root.width * f; width: 1px; background: Blueprint.ink.with-alpha(Blueprint.grid-major); }
+    for f in [0.25, 0.75]: Rectangle { y: root.height * f; height: 1px; background: Blueprint.ink.with-alpha(Blueprint.grid-major); }
+    // The side margins.
+    if root.margins: Rectangle { x: root.margin; width: 1px; background: Tokens.state-warning.with-alpha(0.28); }
+    if root.margins: Rectangle { x: root.width - root.margin; width: 1px; background: Tokens.state-warning.with-alpha(0.28); }
+    // The system's bands.
+    for y in [root.status, root.header, root.strip]: Rectangle { y: y; height: 1px; background: Tokens.state-info.with-alpha(0.28); }
+}
+

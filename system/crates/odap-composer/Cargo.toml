@@ -1,0 +1,44 @@
+[package]
+name = "odap-composer"
+version = "0.0.1"
+description = "Blackbird OS compositor and system layers (bring-up)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+opendap-platform.workspace = true
+opendap-device.workspace = true
+opendap-input.workspace = true
+opendap-motion.workspace = true
+opendap-splash.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+smithay = { workspace = true, features = [
+    "backend_drm",
+    "backend_gbm",
+    "backend_libinput",
+    "backend_udev",
+    "backend_session_libseat",
+    "desktop",
+    "renderer_gl",
+    "wayland_frontend",
+] }
+tracing-journald.workspace = true
+# Smithay's event loop, with its signal source (SIGTERM: hand the display over before exiting).
+calloop = { version = "0.14", features = ["signals"] }
+# The kernel's uevents and the local time for the status bar (status.rs).
+libc = "0.2"
+# The system layers, drawn by Slint's software renderer into a buffer the compositor places above
+# every client (ADR 0002, spec §7).
+slint = { workspace = true, features = ["std", "compat-1-2", "renderer-software"] }
+# Screenshots (Main + Volume −) as PNG.
+png = "0.18"
+
+[build-dependencies]
+opendap-workspace.workspace = true
+slint-build.workspace = true

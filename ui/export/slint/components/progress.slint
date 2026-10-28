@@ -1,0 +1,67 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Progress and status: the progress bar, the loading line and the status indicator.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint } from "../blueprint.slint";
+import { Motion, Layout, DirRow } from "foundation.slint";
+import { Label } from "text.slint";
+
+// A determinate bar (storage, indexing, a dose): its value over its maximum.
+export component ProgressBar inherits Rectangle {
+    in property <float> value;
+    in property <float> maximum: 1.0;
+    in property <color> tint: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+    height: 4px;
+    border-radius: 2px;
+    background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.faint) : Tokens.surface-active;
+    accessible-role: progress-indicator;
+    accessible-value: round(100 * root.value / max(0.0001, root.maximum)) + " %";
+    // It fills from the start edge (§9.5).
+    Rectangle {
+        x: Layout.rtl ? parent.width - self.width : 0;
+        width: parent.width * max(0, min(1, root.value / max(0.0001, root.maximum)));
+        border-radius: 2px;
+        background: root.tint;
+        animate width { duration: Motion.reduce ? 0 : Tokens.motion-duration-standard; }
+    }
+}
+
+// Loading of unknown length (ADR 0003): a 2 px line under the header, in `state-info`, shown past
+// 300 ms; it holds still under reduce-motion (`moving: false`).
+export component LoadingLine inherits Rectangle {
+    in property <bool> moving: true;
+    height: 2px;
+    clip: true;
+    accessible-role: progress-indicator;
+    accessible-label: "Loading";
+    property <float> t: root.moving ? mod(animation-tick(), 1400ms) / 1400ms : 0.35;
+    Rectangle {
+        property <length> from-start: (parent.width * 1.4) * root.t - parent.width * 0.4;
+        x: Layout.rtl ? parent.width - self.from-start - self.width : self.from-start;
+        width: parent.width * 0.4;
+        background: Tokens.state-info;
+    }
+}
+
+// A state in semantic colour, never by colour alone (DS-010, §15): its icon and its word.
+// `kind`: "success", "warning", "error", "info", "processing".
+export component StatusIndicator inherits DirRow {
+    in property <string> kind: "info";
+    in property <string> label;
+    property <color> tint: root.kind == "success" ? Tokens.state-success : (root.kind == "warning" ? Tokens.state-warning : (root.kind == "error" ? Tokens.state-error : (root.kind == "processing" ? Tokens.state-processing : Tokens.state-info)));
+    spacing: Tokens.space-unit;
+    height: 24px;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.label;
+    Image {
+        source: root.kind == "success" ? @image-url("../../icons/24/done.svg") : (root.kind == "warning" ? @image-url("../../icons/24/warning.svg") : (root.kind == "error" ? @image-url("../../icons/24/error.svg") : (root.kind == "processing" ? @image-url("../../icons/24/loading.svg") : @image-url("../../icons/24/info.svg"))));
+        width: 18px;
+        height: 18px;
+        cross-axis-self-alignment: CrossAxisAlignment.center;
+        colorize: root.tint;
+    }
+    Label { role: "label"; text: root.label; vertical-alignment: center; color: root.tint; wrap: no-wrap; overflow: elide; }
+}

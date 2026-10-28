@@ -1,0 +1,208 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Surfaces: the screen, its header, the panel, layers and groups (ui-model §9).
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint, Measure, BlueprintGrid } from "../blueprint.slint";
+import { Layout, DirRow, Ink } from "foundation.slint";
+import { FocusVisible, FocusNav, FocusTarget, EndStop, TapArea } from "focus.slint";
+import { Label } from "text.slint";
+
+// The ground of a screen; in the blueprint mode, the paper and its 8 px grid (the composer draws
+// the snap lines over it). It also takes what the focused element leaves (system input events
+// §4.2, design system §8.4), as the bubble phase does:
+// - Action (Enter, Space) while the focus is hidden: the screen's primary action where it
+//   declares one (`has-primary`, T1-061); else it only reveals the focus. With the focus shown,
+//   the focused element takes Action itself.
+// - Escape: back, where there is a way back (`can-back`).
+// - A touch on its bare ground hides the focus ring, as a touch anywhere does.
+// - The ends: Volume past the first or the last element stays there (system input events §3.7;
+//   only a modal wraps). Slint's chain wraps around the window, so an invisible stop sits at each
+//   end; when it takes the focus, `edge(end)` asks the runtime to send the opposite key, which
+//   gives the focus back to the element at that end (a Slint gap, ui-model §6.3).
+export component Screen inherits Rectangle {
+    in property <float> unit: 1.0;
+    in property <bool> has-primary;
+    in property <bool> can-back;
+    callback primary();
+    callback back();
+    // `end` true: past the last element; false: before the first.
+    callback edge(bool);
+    background: Ink.ground;
+    if Blueprint.on: BlueprintGrid { step: 8px * root.unit; alpha: Blueprint.grid-minor; }
+    EndStop { end: false; reached(e) => { root.edge(e); } }
+    // It only receives what bubbles up: never focused itself, by Tab or by touch.
+    FocusScope {
+        focus-on-tab-navigation: false;
+        focus-on-click: false;
+        // Before any element sees it: the direction a Tab moves the focus in.
+        capture-key-pressed(e) => {
+            if e.text == Key.Tab || e.text == Key.Backtab {
+                FocusNav.backward = e.text == Key.Backtab || e.modifiers.shift;
+                FocusNav.shift = e.modifiers.shift;
+            }
+            reject
+        }
+        key-pressed(e) => {
+            if e.text == Key.Return || e.text == " " {
+                if root.has-primary && !FocusVisible.on { root.primary(); } else { FocusVisible.on = true; }
+                return accept;
+            }
+            if e.text == Key.Escape && root.can-back { root.back(); return accept; }
+            reject
+        }
+        TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+        @children
+    }
+    // The end stops, outside the content so the chain runs: start, the content, end.
+    EndStop { end: true; reached(e) => { root.edge(e); } }
+}
+
+// A screen's header: back (when the screen has somewhere to go back to) and its title.
+export component Header inherits Rectangle {
+    in property <string> title;
+    in property <bool> can-back: true;
+    in property <float> unit: 1.0;
+    callback back();
+    height: Tokens.size-header;
+    // Focus on entry lands on the way back when the screen has nothing else first.
+    public function focus-back() { if root.can-back { back-fs.focus(); } }
+    DirRow {
+        // The way back sits at the start edge, without the margin; the title keeps it at the end.
+        padding-left: Layout.rtl ? Tokens.space-margin : (root.can-back ? 0 : Tokens.space-margin);
+        padding-right: Layout.rtl ? (root.can-back ? 0 : Tokens.space-margin) : Tokens.space-margin;
+        spacing: Tokens.space-unit;
+        if root.can-back: Rectangle {
+            width: Tokens.size-target-min;
+            accessible-role: button;
+            accessible-label: "Back";
+            accessible-action-default => { root.back(); }
+            background: back-touch.pressed ? (Blueprint.on ? Blueprint.live.with-alpha(0.2) : Tokens.surface-active) : transparent;
+            border-width: Blueprint.on ? 1px : 0;
+            border-color: back-touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(back-touch.has-hover ? 0.9 : 0.35);
+            // A chevron, as the icon set draws it (2 px, round ends).
+            Path {
+                width: 24px;
+                height: 24px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                viewbox-width: 24;
+                viewbox-height: 24;
+                commands: Layout.rtl ? "M 9 6 L 15 12 L 9 18" : "M15 6 L9 12 L15 18";
+                stroke: Ink.text;
+                stroke-width: 2px;
+                stroke-line-cap: round;
+                stroke-line-join: round;
+                fill: transparent;
+            }
+            Measure { width: parent.width; height: parent.height; shown: back-touch.has-hover || back-touch.pressed; unit: root.unit; }
+        }
+        Label { role: "title"; text: root.title; vertical-alignment: center; horizontal-stretch: 1; wrap: no-wrap; overflow: elide; }
+    }
+    if Blueprint.on: Rectangle { y: parent.height - 1px; height: 1px; background: Ink.line; }
+    // The way back takes the focus as any other control (focus on entry, design system §8.4).
+    // One area takes the touch and the focus: the focus scope holds the touch area, so a tap
+    // goes back instead of only focusing. Nothing of it exists where there is no way back.
+    back-fs := FocusTarget {
+        x: Layout.rtl ? root.width - self.width : 0;
+        width: root.can-back ? Tokens.size-target-min : 0;
+        // Out of the focus chain where there is no way back. Never disabled or hidden while it may
+        // hold the focus: Slint then keeps its `has-focus` after the focus moves on, and its ring
+        // stayed on the next screen.
+        live: root.can-back;
+        // Outside the scroll area: nothing scrolls for it.
+        fixed: true;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { root.back(); return accept; }
+            reject
+        }
+        back-touch := TapArea {
+        unit: root.unit; down => { back-fs.focus(); } enabled: root.can-back; tapped => { root.back(); } }
+    }
+    if root.can-back && back-fs.ring: Rectangle { x: Layout.rtl ? root.width - self.width : 0; width: Tokens.size-target-min; border-width: 2px; border-color: Tokens.focus; }
+}
+
+
+// A tonal panel (§10.2, §15): graphite, consistent radius, no card inside a card.
+export component Panel inherits Rectangle {
+    border-radius: Tokens.radius-card;
+    background: Blueprint.on ? transparent : Tokens.surface-base;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: Blueprint.ink.with-alpha(Blueprint.outline);
+    @children
+}
+
+
+// Elements that belong together: the side margins, an optional title, and a state that cascades.
+// Disabled, everything in it dims to 45 % and its touches stop at the group, so no child can act
+// or re-enable itself inside it; Action and Enter stop there too, while the focus can still reach
+// the children to read them (ADR 0003); its reason shows once, under the title. It creates no
+// stacking context: children keep their order. Its box is their local origin.
+export component Group inherits Rectangle {
+    in property <string> title;
+    in property <bool> enabled: true;
+    // Why it is disabled, shown once (ADR 0003).
+    in property <string> reason;
+    in property <float> unit: 1.0;
+    // Side margins belong to groups (§15.2), so a list under them runs the full width.
+    in property <length> inset: Tokens.space-margin;
+    accessible-role: groupbox;
+    accessible-label: root.title;
+    accessible-enabled: root.enabled;
+    accessible-description: root.enabled ? "" : root.reason;
+    VerticalLayout {
+        spacing: Tokens.space-unit;
+        padding-left: root.inset;
+        padding-right: root.inset;
+        if root.title != "": Label { role: "caption"; muted: true; text: root.title; }
+        if !root.enabled && root.reason != "": Label { role: "caption"; text: root.reason; }
+        FocusScope {
+            focus-on-tab-navigation: false;
+            focus-on-click: false;
+            // Disabled: Action and Enter stop here on their way down, before any child.
+            capture-key-pressed(e) => {
+                if root.enabled || !FocusVisible.on { return reject; }
+                if e.text == Key.Tab || e.text == Key.Backtab || e.text == Key.Escape { return reject; }
+                accept
+            }
+            // Its children take its `enabled` explicitly (Slint has no inherited context, ui-model
+            // §6.3): each dims itself and leaves the focus chain, so the group does not dim them
+            // twice. It still stops their keys and touches, should one be left enabled.
+            VerticalLayout {
+                spacing: Tokens.space-unit;
+                @children
+            }
+        }
+    }
+    // Disabled: the touches meant for its children stop at the group.
+    if !root.enabled: TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+    if Blueprint.on: Rectangle {
+        border-width: 1px;
+        border-color: Blueprint.ink.with-alpha(Blueprint.faint);
+    }
+}
+
+// A band of a screen above the content (a sticky header, the playing strip): declared after the
+// content, so it draws and takes touches above it, in one order. `hit` says what its empty parts
+// do with a touch: `self` takes it, `through` lets it reach what is below. Nothing invisible
+// takes touches: hide a layer with `visible: false`, never with opacity.
+export component Layer inherits Rectangle {
+    in property <string> hit: "through";
+    in property <string> name: "raised";
+    if root.hit == "self": TouchArea { pointer-event(e) => { if e.kind == PointerEventKind.down { FocusVisible.on = false; } } }
+    @children
+    if Blueprint.on: Rectangle {
+        border-width: 1px;
+        border-color: Tokens.state-info.with-alpha(0.5);
+        Text {
+            x: 4px;
+            y: 2px;
+            text: root.name;
+            font-family: Tokens.font-family-mono;
+            font-size: 10px;
+            color: Tokens.state-info;
+        }
+    }
+}

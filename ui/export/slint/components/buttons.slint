@@ -1,0 +1,303 @@
+// SPDX-FileCopyrightText: 2026 The OpenDAP Project
+// SPDX-License-Identifier: MPL-2.0
+//
+// Buttons and navigation: the button, the primary action, the segment of a button group, the
+// icon button and the tab.
+// One family of Blackbird UI's Slint components; `../components.slint` re-exports every name.
+
+import { Tokens } from "../tokens.slint";
+import { Blueprint, Measure } from "../blueprint.slint";
+import { Layout, Ink } from "foundation.slint";
+import { FocusTarget, TapArea } from "focus.slint";
+import { Label } from "text.slint";
+
+// A secondary action (§15): a graphite surface with its label; in blueprint, its outline.
+export component Button inherits Rectangle {
+    in property <string> label;
+    in property <float> unit: 1.0;
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the button.
+    in property <string> reason;
+    // No fill at rest (an action inside a toast); the press and the hover still show.
+    in property <bool> quiet;
+    property <bool> live: root.enabled && root.reason == "";
+    callback clicked();
+    // The touch minimum (§8.3) as the default; a screen may give it more.
+    height: Tokens.size-target-min;
+    border-radius: Tokens.radius-control;
+    border-width: 1px;
+    border-color: Blueprint.on
+        ? (touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.6))
+        : Tokens.border-base;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-raised.brighter(8%) : (root.quiet ? transparent : Tokens.surface-raised)));
+    opacity: root.live ? 1 : 0.45;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    HorizontalLayout {
+        padding-left: Tokens.space-group;
+        padding-right: Tokens.space-group;
+        Label { role: "label"; text: root.label; horizontal-alignment: center; vertical-alignment: center; wrap: no-wrap; overflow: elide; }
+    }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// The screen's one primary action (§15): orange, round, 64 px, dark label on the fill; in
+// blueprint, its outline in the accent.
+// Its shape follows its content (§15): a word makes a full-width capsule; an icon alone (with
+// its accessible `label` as `name`) makes a 64 px circle.
+export component PrimaryButton inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <string> label;
+    in property <image> icon;
+    // The accessible name when it shows an icon only.
+    in property <string> name;
+    in property <float> unit: 1.0;
+    callback clicked();
+    // Focus on entry (design system §8.4): a screen's primary action takes the focus when the
+    // screen arrives, whatever comes before it; without one, the first element does. Off for a
+    // primary-styled control that is not the screen's primary action (a catalogue of them).
+    in property <bool> default-focus: true;
+    init => { if root.default-focus { fs.focus(); } }
+    property <bool> round: root.label == "" && root.icon.width > 0;
+    height: Tokens.size-target-primary;
+    min-width: self.height;
+    max-width: root.round ? self.height : 100000px;
+    horizontal-stretch: root.round ? 0 : 1;
+    border-radius: self.height / 2;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: Blueprint.on && !touch.pressed ? Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.6) : Blueprint.live;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.brand-pressed : (touch.has-hover ? Tokens.brand-hover : Tokens.brand-base));
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-role: button;
+    accessible-label: root.round ? root.name : root.label;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    if root.round: Image {
+        source: root.icon;
+        width: 32px;
+        height: 32px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        colorize: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-on-brand;
+    }
+    if !root.round: HorizontalLayout {
+        padding-left: Tokens.space-section;
+        padding-right: Tokens.space-section;
+        Text {
+            text: root.label;
+            font-family: Tokens.font-family-ui;
+            font-size: Tokens.font-size-body-large;
+            font-weight: Tokens.font-weight-semibold;
+            color: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-on-brand;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    // Outside the button, with a gap: the ring is the accent's lighter tone, which an accent fill
+    // would swallow (WCAG 2.4.13: the focused state must stand out from the unfocused one).
+    if fs.ring: Rectangle {
+        x: -4px;
+        y: -4px;
+        width: parent.width + 8px;
+        height: parent.height + 8px;
+        border-radius: root.border-radius + 4px;
+        border-width: 2px;
+        border-color: Tokens.focus;
+    }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// One segment of a button group (§15.1): the capsule's outer ends on the first and last segment,
+// flat inner edges, a 1 px split.
+export component Segment inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <string> label;
+    in property <bool> selected;
+    in property <bool> first;
+    in property <bool> last;
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: Tokens.size-target-min;
+    // The capsule's ends follow the direction: the first segment is at the right, right to left.
+    property <bool> round-left: Layout.rtl ? root.last : root.first;
+    property <bool> round-right: Layout.rtl ? root.first : root.last;
+    border-top-left-radius: root.round-left ? self.height / 2 : 0;
+    border-bottom-left-radius: root.round-left ? self.height / 2 : 0;
+    border-top-right-radius: root.round-right ? self.height / 2 : 0;
+    border-bottom-right-radius: root.round-right ? self.height / 2 : 0;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover || root.selected ? 0.9 : 0.6);
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.ink.with-alpha(root.selected ? 0.14 : (touch.has-hover ? Blueprint.fill : 0)))
+        : (touch.pressed ? Tokens.surface-active : (root.selected ? Tokens.surface-active : Tokens.surface-raised));
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-checked: root.selected;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    Text {
+        text: root.label;
+        font-family: Tokens.font-family-ui;
+        font-size: Tokens.font-size-label;
+        // The selected segment's non-colour cue: its weight (§15.1).
+        font-weight: root.selected ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
+        color: root.selected ? Ink.text : Ink.secondary;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    // Focusable (focus on entry, design system §8.4): Enter or Space takes it; the ring shows it.
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-radius: min(root.height / 2, 8px); border-width: 2px; border-color: Tokens.focus; }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+
+// An icon-only action (§15.3): a 24 px glyph in a 48 px hit area, with its accessible name.
+export component IconButton inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <image> icon;
+    in property <string> name;
+    in property <float> unit: 1.0;
+    callback clicked();
+    width: Tokens.size-target-min;
+    height: Tokens.size-target-min;
+    border-radius: Tokens.radius-control;
+    border-width: Blueprint.on ? 1px : 0;
+    border-color: touch.pressed ? Blueprint.live : Blueprint.interactive.with-alpha(touch.has-hover ? 0.9 : 0.35);
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : (touch.pressed ? Tokens.surface-active : (touch.has-hover ? Tokens.surface-raised : transparent));
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-role: button;
+    accessible-label: root.name;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    Image {
+        source: root.icon;
+        width: 24px;
+        height: 24px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        colorize: Ink.text;
+    }
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-radius: root.border-radius; border-width: 2px; border-color: Tokens.focus; }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}
+
+// One tab (§15): views of the same level. Text, the current one in `text` with a 2 px underline,
+// the others `text-muted`; no container; at least 48 × 48.
+export component Tab inherits Rectangle {
+    in property <bool> enabled: true;
+    // Why it is disabled (ADR 0003): shown to the screen reader, and it disables the control.
+    in property <string> reason;
+    property <bool> live: root.enabled && root.reason == "";
+    in property <string> label;
+    in property <bool> current;
+    in property <float> unit: 1.0;
+    callback clicked();
+    height: Tokens.size-target-min;
+    min-width: Tokens.size-target-min;
+    background: Blueprint.on
+        ? (touch.pressed ? Blueprint.live.with-alpha(0.2) : Blueprint.interactive.with-alpha(touch.has-hover ? 0.1 : 0))
+        : transparent;
+    opacity: root.live ? 1 : 0.45;
+    accessible-enabled: root.live;
+    accessible-description: root.reason;
+    accessible-role: tab;
+    accessible-label: root.label;
+    accessible-checked: root.current;
+    accessible-action-default => { if root.live { root.clicked(); } }
+    HorizontalLayout {
+        padding-left: Tokens.space-unit;
+        padding-right: Tokens.space-unit;
+        Text {
+            text: root.label;
+            font-family: Tokens.font-family-ui;
+            font-size: Tokens.font-size-body;
+            font-weight: root.current ? Tokens.font-weight-semibold : Tokens.font-weight-regular;
+            color: root.current ? Ink.text : Ink.muted;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+    if root.current: Rectangle {
+        y: parent.height - 2px;
+        height: 2px;
+        background: Blueprint.on ? Blueprint.ink.with-alpha(Blueprint.text) : Tokens.text-primary;
+    }
+    if Blueprint.on && !root.current: Rectangle { y: parent.height - 1px; height: 1px; background: Blueprint.interactive.with-alpha(0.35); }
+    forward-focus: fs;
+    fs := FocusTarget {
+        live: root.live;
+        key(e) => {
+            if e.text == Key.Return || e.text == " " { if root.live { root.clicked(); } return accept; }
+            reject
+        }
+    }
+    if fs.ring: Rectangle { border-width: 2px; border-color: Tokens.focus; }
+    touch := TapArea {
+        unit: root.unit; down => { fs.focus(); } enabled: root.live; tapped => { root.clicked(); } }
+    Measure { width: parent.width; height: parent.height; shown: touch.has-hover || touch.pressed; unit: root.unit; }
+}

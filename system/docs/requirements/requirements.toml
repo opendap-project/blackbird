@@ -1,0 +1,409 @@
+schema = "opendap.requirements/v1"
+
+[[block]]
+markdown = "# System requirements\n\nRequirements for Blackbird OS system software. Most of these record the maintainers' intent; the software stack is not defined yet.\n"
+
+[[block]]
+[[block.requirement]]
+id = "SYS-001"
+text = "Developers shall extend the system with **capabilities** (business logic, user-space drivers, …) instead of standalone apps."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-002"
+text = "Each capability shall declare in a manifest what it needs and what it provides."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-003"
+text = "Services shall follow the Unix philosophy. They may be ephemeral (CLI-like) or persistent (engines), and run in the foreground or as background tasks."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-004"
+text = "Services shall talk over a bus with a standardized API."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-005"
+text = "Data schemas and UI components shall be versioned and published in a signed, versioned index."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-006"
+text = "The UI shall show **activities** instead of windows. Activities pause, resume and are destroyed on demand as they enter or leave the foreground."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-007"
+text = "Capabilities shall be able to add tasks to existing activities. Example: on the now-playing activity, one service adds a \"like\" action and another adds a lyrics tab."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-008"
+text = "The UI runtime shall support dynamic two-way data binding."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-009"
+text = "All UI shall follow the official design system."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-010"
+text = "There shall be no app store. Packages are fetched over HTTP using a reverse-domain / well-known scheme."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-011"
+text = "Package downloads shall always go through the package endpoint configured in the image, and the device shall verify signed, expiring metadata and honour signed recalls."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-012"
+text = "Hearing safety (required for personal music players): sound-dose management per EN 50332-3 through IEC 62368-1 clause 10.6, computed locally over a rolling seven days with per-headphone profiles: power-on level at or below RS1, warnings above RS2 and at every 100 % of the dose, full hardware output after the listener's acknowledgement, a gradual return to RS1 without it; the metering is passive and acts only on the DAC volume (T1-072, T1-073)."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-013"
+text = "When a HAT is connected, the UI shall show that it is verified, its signature status, power draw, permissions and where its capabilities appear."
+priority = "must"
+status = "withdrawn"
+[[block.requirement]]
+id = "SYS-014"
+text = "Errors shall be explained in a human sentence with the next step, never blaming the user."
+priority = "must"
+status = "withdrawn"
+[[block.requirement]]
+id = "SYS-015"
+text = "Button behavior: Action ×1/×2/×3 = play-pause / next / previous; holding Action captures an idea; Volume − always lowers the volume."
+priority = "should"
+status = "withdrawn"
+[[block.requirement]]
+id = "SYS-016"
+text = "Activities instead of icons: Listen, Watch, Read, Create and Day, plus Advanced."
+priority = "should"
+status = "withdrawn"
+[[block.requirement]]
+id = "SYS-017"
+text = "The UI shall not look or behave like an operating system (no launcher, app grid or app icons): it shall feel like the dedicated, purpose-specific interface of a consumer electronic product."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-018"
+text = "Dynamic UI components are key: capabilities and HATs shall be able to bring versioned UI components from the registry at runtime, without rebuilding the composer, within the design system."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-019"
+text = "Developers shall create services, UI components, data schemas and bindings in a simplified way, in Rust, through the official SDK."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-020"
+text = "Using the SDK shall enforce the project's optimizations, practices and patterns."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-021"
+text = "The UI shall provide its own on-screen keyboard, designed for the T1's display and interaction, as part of the product UI system."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-022"
+text = "Third parties shall be able to provide custom keyboards, installed and selected like other capabilities."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-023"
+text = "The default keyboard shall be a mini QWERTY layout."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-024"
+text = "The keyboard shall offer contextual variants chosen by the field it serves (for example text, search, email, URL, number, phone, PIN and password) and by the activity's context."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-025"
+text = "The whole UI shall be i18n-first: every user-facing string, format and layout is localizable from the start, with locale-aware dates, numbers, units and plural rules, right-to-left layouts, and fonts for the supported scripts. This applies to the system, the templates and capabilities built with the SDK."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-026"
+text = "The keyboard shall be i18n-first too: layouts per language, input methods that compose text (for example Chinese, Japanese and Korean), and switching between the user's languages; third-party keyboards can add languages."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-027"
+text = "The default language shall be English."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-028"
+text = "The UI and the keyboard shall ship with the five most spoken languages in the world, by total speakers: English, Mandarin Chinese, Hindi, Spanish and Arabic."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-029"
+text = "Language data (translations, keyboard dictionaries and prediction models) shall be optimised for progressive loading: a small core first, the rest loaded on demand."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-030"
+text = "There shall be one official theme. The UI architecture shall still support community themes from the start (themes as design-system token sets and template-based layouts), because an open platform will attract them."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-031"
+text = "Installing software from outside the package endpoint shall be possible in developer mode, and developer mode shall be simple to turn on."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-032"
+text = "Permissions shall eventually be capability-based and granular; until that system exists, capabilities shall simply work, and the missing permission system shall never block them."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-033"
+text = "Every service and UI component shall work in bounded memory and time regardless of data size: indexed queries, paginated and incremental loading, virtualised lists, streaming instead of loading whole collections, and no O(n) work on the UI thread."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-034"
+text = "Every service shall run indefinitely without degradation: no memory or file-descriptor leaks, bounded caches and logs, and resource use exposed so tests and users can see it."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-035"
+text = "OpenDAP builds and supports its own software ecosystem: the OS, SDK, UI, services and first-party capabilities. Third-party apps, alternative shells and custom distributions are the community's scope: the architecture shall allow them (documented image build, separable board support, owner-controlled boot), but OpenDAP does not support them."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-036"
+text = "The UI shall never wait on work: the render and input path has priority over every background task, no blocking call runs on the UI thread, and background work (indexing, artwork, network, updates) is scheduled so it can never take frames from the UI or samples from audio."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-037"
+text = "Large audio buffers used to save power shall never delay a user action: volume is applied in the DAC immediately, and play, pause, seek and track changes flush or bypass the buffer instead of waiting for it to drain."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-038"
+text = "The status bar at the top of the screen should show, at the start: the time, the microSD card status and a speaker icon with the volume level, in that order; and at the end: the Bluetooth status, the Wi-Fi status, the battery percentage and the battery icon, in that order. The volume indicator uses the semantic colours to show whether the level is within the safe-listening limit or in the warning range (SYS-012)."
+priority = "should"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-039"
+text = "The touch UI should support gesture navigation: from the leading edge, back; from the trailing edge, the screen's companion screen (from Now Playing, the queue); from the bottom, more of the current screen; from the status bar, notifications and quick settings. Draggable controls near an edge exclude their area from the edge gestures, and every gesture has a visible single-tap alternative."
+priority = "should"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-040"
+text = "Blackbird OS and OpenDAP software shall not be tied to one hardware design: they detect what the hardware can do and adapt to it automatically. Hardware limits never limit the software's capabilities: a capability the hardware lacks is disabled in software, not left out of it."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-041"
+text = "Audio UX runs on one axis, from the audiophile (enjoying music with sparkle and high quality, for listening) to the engineer (monitoring, analysing, comparing, finding the smallest detail). Defaults always serve the audiophile; every engineering capability stays one step away, never hard to reach."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-042"
+text = "Playback shall be synchronised in real time across all of the listener's devices: what is playing, its position, the queue and the playback state are the same on every device, and any device can take over playback where another left it."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-043"
+text = "OpenDAP shall support a shared household: one shared music collection, with each member's personal state (playlists, ratings, history, audio profiles, device selections) kept apart."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-044"
+text = "A household should have family members, in the manner of streaming services' profiles: the owner adds members, each with their own personal state, and a shared device can switch between them."
+priority = "should"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-045"
+text = "Every third-party service (metadata such as MusicBrainz and AcoustID, stores, streaming, scrobbling and any other) shall be integrated as a provider: optional, opt-in and never part of the core."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-046"
+text = "Several of the listener's devices should be able to play the same music at the same time, in sync (multi-room)."
+priority = "should"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-047"
+text = "Everything OpenDAP offers shall work without an account or a signed-in session of any kind. Accounts, and every feature that depends on one, are opt-in."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-048"
+text = "Everything the listener sees (folders, file and playlist formats, exports, pairing, sync status, deletion and undo, updates) shall use formats, standards and conventions people already know. Internal formats may differ, and no listener who is not a developer ever needs to know them."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-049"
+text = "The listener's collection shall never change without their action: tag edits, renames, moves, deduplication and conversions are previewed and applied only on request, every batch can be undone, and sync never deletes, replaces or converts an original as a side effect."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-050"
+text = "Deleting music or playlists shall be recoverable: deleted items stay in Recently Deleted for 30 days on every device; destructive device actions (erase, reset, remove all music) are confirmed on the device itself, never only over the network."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-051"
+text = "Sync, transfer and pairing shall show their state the same way on every surface (synced, syncing, waiting, paused, can't sync with the reason), with what is on which device one step away."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-052"
+text = "Changes made on several devices, even offline, shall never be lost: they merge where the intent is clear; otherwise both versions are kept and the conflict is shown once."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-053"
+text = "Plays and skips shall be recorded as events with the time they happened and merged across devices without losing that time."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-054"
+text = "Everything the listener owns or creates (playlists, history, ratings, audio profiles, settings, backups) shall export in documented, widely used formats from every surface and re-import without loss."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-055"
+text = "Privacy by default: listening data stays on the listener's devices; any network use is opt-in and listed with its endpoint; nothing is reachable from the internet by default."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-056"
+text = "A device's identity shall be its key, recorded at pairing; every control and data endpoint requires a paired key; links (Wi-Fi, Bluetooth, USB networking) are protected by authenticated encryption at the application layer; there are no default credentials, and file and remote services are off until enabled."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-057"
+text = "No vendor, store or provider shall be able to delete or disable the listener's content remotely, and nothing acquired depends on a server to play."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-058"
+text = "No function of the T1, OpenDAP Desktop or the CLI shall depend on an online service to keep working: online services add reach and capacity, never a capability."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-059"
+text = "No surface shall use dark patterns (nagging, obstruction, sneaking, interface interference, forced action), and no provider is placed or ranked by commercial arrangement."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-060"
+text = "A redesign or rewrite of any user-facing surface shall ship only at parity with a written list of the features it replaces; an accessibility regression blocks the release."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-061"
+text = "The interface shall meet WCAG 2.2 AA as WCAG2ICT applies it to non-web software and EN 301 549, with AT-SPI semantics (role, name, state, value, actions) for every element and accessible documentation, whether or not a law requires it."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-062"
+text = "Blackbird OS shall provide built-in voice guidance, operable from the buttons and by touch, that can be turned on without sight at first run and at any time."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-063"
+text = "Text size shall be adjustable in steps up to about 200 % with layouts that reflow, plus a large-text mode with an x-height of at least 2.38 mm (EN 301 549 V4.1.1 5.1.4)."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-064"
+text = "Display options shall include increased contrast, bold text, reduced motion, transparency and effects; a light, high-contrast appearance and colour filters should also be offered."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-065"
+text = "Audio accessibility shall include mono and left/right balance, bit-transparent when off; hearing-aid support (LE Audio hearing access, ASHA) should be offered where the radio supports it."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-066"
+text = "Press, hold and repeat timings of the buttons and the touch screen shall be adjustable."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-067"
+text = "Hardware shall be described by data and served by adapters: no part of Blackbird OS or OpenDAP software hard-codes a board's, component's, faceplate's or HAT's characteristics; any combination of hardware is supported through its descriptions."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-068"
+text = "The interface shall adapt to the hardware it finds (display size, density, shape, technology or absence; input set; the position of physical controls) and be optimised for each characteristic, never assuming one hardware as the only valid one."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-069"
+text = "System views (the power menu, restart and boot-mode choices) shall stand outside the OS Shell's chrome, preceding it: full screen, without the status bar or any other OS Shell layer."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-070"
+text = "Blackbird OS shall have a debug UI mode, off by default and turned on by a flag, that draws over the real interface at run time its blueprint references: the composer's regions, margins and edge zones, grids, the physical controls where the description places them (showing when each is pressed), touches and recognised gestures (as toasts), and the layers and elements of the UI."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-071"
+text = "Blackbird OS shall include developer activities that exercise the UI primitives (gestures, sliders and drag, transitions, morph, focus traversal, multitouch, input primitives), separate from the debug UI mode."
+priority = "must"
+status = "draft"
+[[block.requirement]]
+id = "SYS-072"
+text = "While an activity leaves the composer's check after a key unanswered, further keys to it shall be dropped, never queued, so nothing acts seconds later."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-073"
+text = "A held button's focus step shall repeat with increasing speed and stop where the button is released, with no inertia."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-074"
+text = "Releasing a button shall leave the focus where it is, with no further step."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-075"
+text = "In the debug UI mode a recognised gesture shall stay shown while its contact lasts and briefly after it ends, as feedback for the eye rather than a message to read, and a newer gesture shall replace it at once."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-076"
+text = "While discharging, the system shall show the battery as low at 15 % or less and warn once at 15 % and once at 5 %."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-077"
+text = "Every level of the interface (the screen, an activity, a container, an element) shall have its own box, coordinates and regions, and recognise gestures only within its own box."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-078"
+text = "Button navigation shall have levels: the focus moves among the stops of the current level, Action engages a stop to work inside it one level down, and leaving returns to the level above."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-079"
+text = "Every coordinate shall be relative to a frame placed in its parent by an offset, a scale and a direction; no position is absolute, and a position always names its frame."
+priority = "must"
+status = "confirmed"
+[[block.requirement]]
+id = "SYS-080"
+text = "A scroll container shall be two frames, its viewport and its content, so the same contact has a position in each."
+priority = "must"
+status = "confirmed"
+
+[[block]]
+markdown = "\n## Open questions\n\n- SYS-070, SYS-071: their priority (stated as how the work proceeds, not as must or should).\n- SYS-070: how the mode detects any element, whatever draws it, by its primitives (interactive areas with event handlers, gesture-exclusion areas and others), and not only the elements built from Blackbird UI's components (maintainers, 2026-10-23: the drawing uses a plan's semiotics and semantics, line types, weights, patterns and semantic colours). Candidates: the accessibility tree each application publishes (AT-SPI), or an introspection of the UI toolkit's items in each process.\n\n- SYS-038: whether the microSD, Bluetooth and Wi-Fi indicators are always shown or only when a card is inserted or the radio is on.\n- SYS-038: the unit of the volume level (steps, percent or dB) and where the safe and warning thresholds sit, which depend on SYS-012 and the headphone profile.\n\n## Context\n\n- SYS-072 to SYS-080 (2026-10-27): recorded from the composer's and the input specification's decisions. SYS-073, SYS-074, SYS-075, SYS-077, SYS-079 and SYS-080 are the maintainers' (2026-10-23). SYS-072, SYS-076 and SYS-078 were confirmed by the maintainers on 2026-10-27 (SYS-076: T1-044 states no thresholds; these are Android's defaults and the status LED's). The values (the 100 ms and 500 ms of SYS-072, the repeat curve of SYS-073, the 800 ms of SYS-075) are in the [composer specification](../specs/composer-and-ui-runtime.md) and the [input events specification](../specs/input-events.md), and adjustable where SYS-066 asks.\n- SYS-071 (maintainers, 2026-10-23): until the activity launcher exists, a flag of the composer starts the activity in place of the product. SYS-070: the components draw themselves as blueprints and the composer draws its references above (blackbird-ui ADR 0002).\n- SYS-069 to SYS-071 (maintainers, 2026-10-23): the blueprint test screen becomes the real OS's debug UI mode, drawn over the running interface when its flag is on; the tests it carried become some of the first developer activities, included in the OS but not part of the debug UI mode; system views such as the power menu precede the OS Shell, so they carry no status bar.\n\n- SYS-067, SYS-068 (maintainers, 2026-10-23): the T1 is the reference hardware, but Blackbird OS must not be limited to it; hardware-specific things are subordinate to the OS, and the UI and design system optimise for each characteristic instead of assuming one. Structure: [hardware support spec](../specs/hardware-support.md), ADR 0013.\n- SYS-061 to SYS-066 (2026-10-23): Linux has no touch screen reader (GNOME Orca issue 207), so voice guidance is OpenDAP's own, built on AT-SPI. The light appearance and colour filters are the should parts of SYS-064; hearing aids the should part of SYS-065.\n- SYS-049 to SYS-060 (2026-10-23): confirmed. The user-facing forms are in the [conventions spec](../specs/user-facing-conventions.md).\n- SYS-048 (maintainers, 2026-10-23): every user-facing choice cites the convention it follows; internal representations are documented separately for developers.\n- SYS-047 (maintainers, 2026-10-23): no account is ever required. Pairing, sync between the owner's devices, the shared household (SYS-043) and every core feature work without one; features that need an account (for example family members, SYS-044) are opt-in, like every third-party provider (SYS-045).\n- SYS-044 (maintainers, 2026-10-23): a should, because members need an identity of their own across devices, which is opt-in (SYS-047); the shared household itself (SYS-043) is a must and works without it.\n- SYS-046 (maintainers, 2026-10-23): multi-room is a should, separate from the real-time playback sync of SYS-042, which is a must. Open precedents: Sendspin and Snapcast.\n- SYS-042 to SYS-045 (maintainers, 2026-10-23). SYS-042: playback continuing across all the owner's devices in real time is a must. Simultaneous, sample-synchronised playback on several devices (multi-room) is a different feature and is not recorded here. SYS-045: third parties can all be integrated, but always as opt-in providers; the core works with none of them.\n- SYS-040 (maintainers, 2026-10-23): the software is written for capabilities, not for one board; it turns on what the hardware it runs on provides, and the rest stays in the code, disabled. It complements T1-045 (software never limits the hardware) from the other side (hardware never limits the software).\n- SYS-041 (maintainers, 2026-10-23): the rule of audio UX. Applied first in the [audio profiles spec](https://github.com/opendap-project/system/blob/main/docs/specs/audio-profiles.md).\n- SYS-039 (maintainers, 2026-10-23): the T1 has no phone-style home, so the bottom swipe opens more of the screen, as streaming players do.\n- SYS-038 (maintainers, 2026-10-23): a volume indicator (speaker icon and level) joins the start of the bar after the microSD status, coloured by the semantic colours for safe and warning.\n- SYS-035 (maintainers, 2026-10-22): the default experience is OpenDAP's own ecosystem; everything third-party stays out of it. The rule \"100 % of the hardware, never software limits\" (T1-045) still applies to OpenDAP's own software.\n- SYS-012 (2026-10-24): aligned with [T1-072 and T1-073](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md); the earlier wording's fixed 85 dB(A) weekly figure is replaced by the standard's RS1/RS2 thresholds and dose.\n- SYS-030 to SYS-032 and SYS-012 (maintainers, 2026-10-22): hearing safety is important. The limits required by law (EN 50332) are fixed and always visible to the user; everything beyond them is adjustable (T1-045).\n- SYS-028 language list (maintainers, 2026-10-22): English, Mandarin Chinese, Hindi, Spanish and Arabic. Arabic makes right-to-left layout (SYS-025) a requirement from the first release: Slint does not mirror layouts yet (issue #2294), so OpenDAP provides mirroring in its own generator, and upstreams it without waiting for acceptance (patched Slint in its own packages meanwhile, OS-023). Language data licensing: [ADR 0007](../adr/0007-language-data-licensing.md).\n- SYS-024 to SYS-026 (2026-10-22), proposed direction, details still open: the field's purpose and hints travel through `text-input-v3` (content purpose and hints), so the keyboard picks its variant without app code. Locale data from Unicode CLDR; formatting, plural rules and text segmentation through ICU4X (the Unicode Consortium's Rust implementation); message translation through Slint's built-in translation support or Project Fluent. Every choice here is **UNVERIFIED** until it is confirmed.\n- SYS-021 to SYS-023 (2026-10-22), proposed direction, details still open: the keyboard is an input method on the standard Wayland protocols (`zwp_input_method_v2` on the compositor side, `text-input-v3` in apps; Smithay and Slint support is **UNVERIFIED**), so every activity gets text entry without its own keyboard. Third-party keyboards are capabilities with a privileged `input.method` permission, because a keyboard sees everything typed; password and other sensitive fields always use the system keyboard, as on Android and iOS. Faceplates without touch (cassette, classic) need a non-touch text entry method on the same input-method interface (for example a character wheel driven by HID controls).\n- Withdrawn on 2026-10-21: SYS-015, SYS-016.\n- Withdrawn on 2026-10-21: SYS-013 and SYS-014. SYS-012 stays because EN 50332 requires it.\n- The SDK plays the role the Android SDK plays for Kotlin/Java, or SwiftUI and Apple's frameworks for Swift: Rust is the language; the OpenDAP SDK is the platform layer (services, schemas, bindings) and the declarative UI framework (components) that developers build with.\n"
