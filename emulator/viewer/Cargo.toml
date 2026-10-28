@@ -13,10 +13,10 @@ license = "GPL-3.0-or-later"
 opendap-qemu-display = { path = "crates/opendap-qemu-display" }
 # The OpenDAP CLI's crates (rfcs 0008): the use cases and adapters `opendap` and OpenDAP Desktop
 # run, consumed as published, never from a checkout's sources.
-opendap-model = { git = "https://github.com/opendap-project/cli", rev = "14ded06" }
-opendap-core = { git = "https://github.com/opendap-project/cli", rev = "14ded06" }
-opendap-transport-ssh = { git = "https://github.com/opendap-project/cli", rev = "14ded06" }
-opendap-transport-vm = { git = "https://github.com/opendap-project/cli", rev = "14ded06" }
+opendap-model = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-core = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-transport-ssh = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-transport-vm = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
 # OpenDAP's audio measurements (system), as published: the instruments' meters and spectra.
 opendap-audio-analysis = { git = "https://github.com/opendap-project/system", rev = "2da450f" }
 # The host's audio, to play the device's output and record its input (CoreAudio, ALSA, PulseAudio).

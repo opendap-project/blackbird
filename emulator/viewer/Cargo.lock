@@ -3282,7 +3282,7 @@ dependencies = [
 [[package]]
 name = "opendap-core"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
+source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
 dependencies = [
  "opendap-model",
  "serde_json",
@@ -3291,7 +3291,7 @@ dependencies = [
 [[package]]
 name = "opendap-host"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
+source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
 dependencies = [
  "opendap-core",
  "opendap-model",
@@ -3300,7 +3300,7 @@ dependencies = [
 [[package]]
 name = "opendap-model"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
+source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
 dependencies = [
  "opendap-bus-model",
  "serde",
@@ -3320,7 +3320,7 @@ dependencies = [
 [[package]]
 name = "opendap-transport-ssh"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
+source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
 dependencies = [
  "opendap-core",
  "opendap-host",
@@ -3330,7 +3330,7 @@ dependencies = [
 [[package]]
 name = "opendap-transport-vm"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/cli?rev=14ded06#14ded0666dbe81391a5f5de30451118dc01e433b"
+source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
 dependencies = [
  "opendap-core",
  "opendap-host",
