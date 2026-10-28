@@ -1,0 +1,23 @@
+// An OS Shell draft hosted by the composer (RFC 0012; OS Shell drafts spec): toasts.
+
+import { Tokens } from "@blackbird/slint/tokens.slint";
+
+// A short bar that leaves by itself, with no input (user-facing conventions: Material's snackbar).
+export component Toast inherits Rectangle {
+    in property <string> text;
+    height: 48px;
+    border-radius: Tokens.radius-control;
+    background: Tokens.surface-raised;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+    Text {
+        x: Tokens.space-margin;
+        width: parent.width - 2 * Tokens.space-margin;
+        height: parent.height;
+        vertical-alignment: center;
+        text: root.text;
+        font-family: Tokens.font-family-ui;
+        font-size: Tokens.font-size-body;
+        color: Tokens.text-primary;
+    }
+}
