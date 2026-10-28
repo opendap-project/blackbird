@@ -31,6 +31,7 @@ use smithay::{
 use tracing::warn;
 
 use crate::tokens;
+use crate::touch_marks::{Shape, ease, lerp, progress, shade};
 
 /// The runtime switch; the environment's default is `ODAP_SHOW_TOUCHES`.
 const SWITCH_PATH: &str = opendap_platform::run::SHOW_TOUCHES;
@@ -47,17 +48,6 @@ const HIDE_AFTER: Duration = Duration::from_millis(1500);
 /// Opacity of the ring at rest and of the fill in contact.
 const RING_ALPHA: f32 = 0.85;
 const FILL_ALPHA: f32 = 0.35;
-
-/// The ring's white band and its dark outer edge (for light content), in logical pixels.
-const RING_WIDTH: f64 = 2.0;
-const EDGE_WIDTH: f64 = 1.0;
-
-/// The two shapes, drawn at each diameter they are shown at (in physical pixels) and kept.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-enum Shape {
-    Ring,
-    Disc,
-}
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Source {
@@ -249,60 +239,6 @@ impl Touches {
     }
 }
 
-fn progress(elapsed: Duration, total: Duration) -> f64 {
-    (elapsed.as_secs_f64() / total.as_secs_f64()).clamp(0.0, 1.0)
-}
-
-fn lerp(a: f64, b: f64, t: f64) -> f64 {
-    a + (b - a) * t
-}
-
-/// `motion.easing.standard`, cubic-bezier(0.2, 0, 0, 1): solve x(u) = t, return y(u).
-fn ease(t: f64) -> f64 {
-    let (x1, y1, x2, y2) = (0.2, 0.0, 0.0, 1.0);
-    let bez = |u: f64, p1: f64, p2: f64| {
-        3.0 * (1.0 - u).powi(2) * u * p1 + 3.0 * (1.0 - u) * u * u * p2 + u.powi(3)
-    };
-    let (mut lo, mut hi) = (0.0, 1.0);
-    for _ in 0..24 {
-        let mid = (lo + hi) / 2.0;
-        if bez(mid, x1, x2) < t {
-            lo = mid;
-        } else {
-            hi = mid;
-        }
-    }
-    bez((lo + hi) / 2.0, y1, y2)
-}
-
-/// The shape's premultiplied (B, G, R, A) at distance `r` from the centre, for a texture `px`
-/// physical pixels across at `scale`.
-fn shade(shape: Shape, r: f64, px: i32, scale: f64) -> [f64; 4] {
-    let outer = px as f64 / 2.0;
-    let edge = EDGE_WIDTH * scale;
-    match shape {
-        // A white band with a dark outer edge, so it shows on light content too.
-        Shape::Ring => {
-            let white = band(r, outer - edge - RING_WIDTH * scale, outer - edge);
-            let dark = band(r, outer - edge, outer) * 0.5 * (1.0 - white);
-            // Graphite 950 for the edge, in the buffer's BGRA order.
-            let c = |d: u8| white + dark * d as f64 / 255.0;
-            let [red, green, blue] = tokens::COLOR_GRAPHITE_950;
-            [c(blue), c(green), c(red), white + dark]
-        }
-        // A white disc inside the ring's edge.
-        Shape::Disc => {
-            let a = band(r, -1.0, outer - edge);
-            [a, a, a, a]
-        }
-    }
-}
-
-/// Anti-aliased coverage of the annulus between `inner` and `outer` (one pixel of smoothing).
-fn band(r: f64, inner: f64, outer: f64) -> f64 {
-    ((r - inner + 0.5).clamp(0.0, 1.0)).min((outer - r + 0.5).clamp(0.0, 1.0))
-}
-
 fn texture(shape: Shape, px: i32, scale: f64) -> MemoryRenderBuffer {
     let n = px as usize;
     let c = px as f64 / 2.0;
@@ -325,25 +261,4 @@ fn texture(shape: Shape, px: i32, scale: f64) -> MemoryRenderBuffer {
         Transform::Normal,
         None,
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn standard_easing_runs_from_0_to_1_and_front_loads() {
-        assert!(ease(0.0).abs() < 1e-6);
-        assert!((ease(1.0) - 1.0).abs() < 1e-6);
-        assert!(ease(0.5) > 0.5);
-    }
-
-    #[test]
-    fn the_ring_is_hollow_and_the_disc_is_full() {
-        let (px, scale) = (32, 1.0);
-        assert_eq!(shade(Shape::Ring, 0.0, px, scale)[3], 0.0);
-        assert!(shade(Shape::Ring, 16.0 - EDGE_WIDTH - RING_WIDTH / 2.0, px, scale)[3] > 0.99);
-        assert!(shade(Shape::Disc, 0.0, px, scale)[3] > 0.99);
-        assert_eq!(shade(Shape::Disc, 17.0, px, scale)[3], 0.0);
-    }
 }

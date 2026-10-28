@@ -9,11 +9,7 @@ mod state;
 mod status;
 mod touches;
 
-use std::{
-    path::PathBuf,
-    process::Command,
-    time::{Duration, Instant},
-};
+use std::{path::PathBuf, process::Command, time::Instant};
 
 use calloop::signals::{Signal, Signals};
 use opendap_device::Description;
@@ -157,34 +153,26 @@ pub fn main() {
     std::process::exit(1);
 }
 
-/// The first restart is quick; repeated failures wait longer, up to `RESTART_MAX`. A host that
-/// stayed up `HEALTHY` counts as recovered, and its next restart is quick again.
-const RESTART_MIN: Duration = Duration::from_millis(250);
-const RESTART_MAX: Duration = Duration::from_secs(8);
-const HEALTHY: Duration = Duration::from_secs(30);
-
-/// Runs the product host for as long as the composer runs, restarting it when it exits.
+/// Runs the product host for as long as the composer runs, restarting it when it exits, after
+/// crate::restart's backoff.
 fn supervise_product(command: Vec<String>, socket: std::ffi::OsString) {
     std::thread::Builder::new()
         .name("product-host".into())
         .spawn(move || {
             let (program, rest) = command.split_first().expect("a command");
-            let mut backoff = RESTART_MIN;
+            let mut backoff = crate::restart::Backoff::default();
             loop {
                 let started = Instant::now();
                 let outcome = Command::new(program).args(rest).env("WAYLAND_DISPLAY", &socket).spawn().and_then(|mut child| {
                     info!(pid = child.id(), %program, "product host started");
                     child.wait()
                 });
-                if started.elapsed() >= HEALTHY {
-                    backoff = RESTART_MIN;
-                }
+                let wait = backoff.after_exit(started.elapsed());
                 match outcome {
-                    Ok(status) => warn!(%status, restart_in_ms = backoff.as_millis() as u64, "product host exited"),
-                    Err(err) => error!(%err, %program, restart_in_ms = backoff.as_millis() as u64, "product host"),
+                    Ok(status) => warn!(%status, restart_in_ms = wait.as_millis() as u64, "product host exited"),
+                    Err(err) => error!(%err, %program, restart_in_ms = wait.as_millis() as u64, "product host"),
                 }
-                std::thread::sleep(backoff);
-                backoff = (backoff * 2).min(RESTART_MAX);
+                std::thread::sleep(wait);
             }
         })
         .expect("cannot start the product host's supervisor");

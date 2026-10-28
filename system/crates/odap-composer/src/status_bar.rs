@@ -9,6 +9,33 @@
 /// (familiar, early enough to act; SYS-076). At it or less, discharging, the battery's
 /// icon turns amber (and linux/status.rs warns once).
 pub const LOW_PERCENT: u8 = 15;
+/// The critically low battery, in percent: the status LED's second threshold, Android's default
+/// (SYS-076).
+pub const CRITICAL_PERCENT: u8 = 5;
+/// The warning to show when the charge goes from `before` to `after`, discharging: once when it
+/// crosses each threshold, never again until it rises above it.
+pub fn warning(before: Option<u8>, after: Option<u8>, charging: bool) -> Option<String> {
+    let (Some(before), Some(after)) = (before, after) else {
+        return None;
+    };
+    if charging {
+        return None;
+    }
+    if before > CRITICAL_PERCENT && after <= CRITICAL_PERCENT {
+        Some(format!("Battery critically low: {after} %"))
+    } else if before > LOW_PERCENT && after <= LOW_PERCENT {
+        Some(format!("Battery low: {after} %"))
+    } else {
+        None
+    }
+}
+
+/// From `since_epoch` to just after the next minute starts (20 ms in, so the clock reads the new
+/// minute): the clock's one wake a minute, never a poll.
+pub fn until_next_minute(since_epoch: std::time::Duration) -> std::time::Duration {
+    let into = since_epoch.as_millis() % 60_000;
+    std::time::Duration::from_millis((60_000 - into) as u64 + 20)
+}
 
 /// A radio as the bar shows it: one the hardware lacks is not shown (SYS-040), one that is off is
 /// dimmed (the design system's Disabled opacity), one that is on is drawn as every other item.
@@ -100,6 +127,38 @@ pub fn labels(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn warns_once_per_threshold_while_discharging() {
+        assert_eq!(
+            warning(Some(16), Some(15), false).as_deref(),
+            Some("Battery low: 15 %")
+        );
+        assert_eq!(warning(Some(15), Some(14), false), None, "once");
+        assert_eq!(
+            warning(Some(6), Some(5), false).as_deref(),
+            Some("Battery critically low: 5 %")
+        );
+        assert_eq!(
+            warning(Some(16), Some(15), true),
+            None,
+            "not while charging"
+        );
+        assert_eq!(
+            warning(None, Some(10), false),
+            None,
+            "not at the first reading"
+        );
+    }
+
+    #[test]
+    fn the_clock_wakes_just_after_each_minute() {
+        use std::time::Duration;
+        let ms = |m| Duration::from_millis(m);
+        assert_eq!(until_next_minute(ms(120_000)), ms(60_020));
+        assert_eq!(until_next_minute(ms(120_001)), ms(60_019));
+        assert_eq!(until_next_minute(ms(179_990)), ms(30));
+    }
 
     #[test]
     fn a_radio_the_hardware_lacks_is_hidden_and_an_off_one_dimmed() {

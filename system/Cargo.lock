@@ -3320,6 +3320,7 @@ dependencies = [
  "libc",
  "opendap-device",
  "opendap-input",
+ "opendap-motion",
  "opendap-platform",
  "opendap-splash",
  "opendap-workspace",

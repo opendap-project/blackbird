@@ -1,5 +1,6 @@
 //! An OS Shell draft hosted by the composer (RFC 0012). The status bar's state (SYS-038) and the
-//! battery's warnings, from the kernel's own classes (what each item shows: status_bar.rs):
+//! battery's warnings, read from the kernel's own classes (what each item shows and when the
+//! battery warns: status_bar.rs):
 //! the clock, the microSD card (a block device of type SD, never the eMMC), Bluetooth and Wi-Fi
 //! (rfkill and the network devices), the battery and the charger (power_supply). Kernel uevents
 //! wake it, and the clock's minute; nothing polls.
@@ -15,14 +16,12 @@ use tracing::{info, warn};
 
 use super::state::Composer;
 
-use crate::status_bar::LOW_PERCENT;
+use crate::status_bar::{until_next_minute, warning};
 
-/// The critically low battery, in percent: the status LED's second threshold, Android's default
-/// (SYS-076).
-const CRITICAL_PERCENT: u8 = 5;
 /// How long a battery warning shows.
 const WARNING_FOR: Duration = Duration::from_secs(4);
 
+/// The state the bar shows, as read.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Status {
     pub time: String,
@@ -61,24 +60,6 @@ pub fn now() -> Status {
         .radio("wlan")
         .or_else(|| sys.wireless_interface().then_some(true));
     s
-}
-
-/// The warning to show when the charge goes from `before` to `after`, discharging: once when it
-/// crosses each threshold, never again until it rises above it.
-pub fn warning(before: Option<u8>, after: Option<u8>, charging: bool) -> Option<String> {
-    let (Some(before), Some(after)) = (before, after) else {
-        return None;
-    };
-    if charging {
-        return None;
-    }
-    if before > CRITICAL_PERCENT && after <= CRITICAL_PERCENT {
-        Some(format!("Battery critically low: {after} %"))
-    } else if before > LOW_PERCENT && after <= LOW_PERCENT {
-        Some(format!("Battery low: {after} %"))
-    } else {
-        None
-    }
 }
 
 /// Reads the state again and shows it; warns when the battery crosses a threshold.
@@ -176,34 +157,5 @@ fn to_next_minute() -> Duration {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default();
-    Duration::from_secs(60) - Duration::from_millis((now.as_millis() % 60_000) as u64)
-        + Duration::from_millis(20)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::warning;
-
-    #[test]
-    fn warns_once_per_threshold_while_discharging() {
-        assert_eq!(
-            warning(Some(16), Some(15), false).as_deref(),
-            Some("Battery low: 15 %")
-        );
-        assert_eq!(warning(Some(15), Some(14), false), None, "once");
-        assert_eq!(
-            warning(Some(6), Some(5), false).as_deref(),
-            Some("Battery critically low: 5 %")
-        );
-        assert_eq!(
-            warning(Some(16), Some(15), true),
-            None,
-            "not while charging"
-        );
-        assert_eq!(
-            warning(None, Some(10), false),
-            None,
-            "not at the first reading"
-        );
-    }
+    until_next_minute(now)
 }

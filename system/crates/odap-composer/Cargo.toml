@@ -11,6 +11,7 @@ publish = false
 opendap-platform.workspace = true
 opendap-device.workspace = true
 opendap-input.workspace = true
+opendap-motion.workspace = true
 opendap-splash.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true

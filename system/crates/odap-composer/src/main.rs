@@ -19,15 +19,25 @@
 mod linux;
 // Used by the Linux composer; built on other hosts only for its tests.
 #[cfg(any(target_os = "linux", test))]
+mod combinations;
+#[cfg(any(target_os = "linux", test))]
 mod display_policy;
 #[cfg(any(target_os = "linux", test))]
 mod forward;
 #[cfg(any(target_os = "linux", test))]
 mod power;
 #[cfg(any(target_os = "linux", test))]
+mod power_menu;
+#[cfg(any(target_os = "linux", test))]
+mod restart;
+#[cfg(any(target_os = "linux", test))]
+mod splash_timeline;
+#[cfg(any(target_os = "linux", test))]
 mod status_bar;
 #[cfg(any(target_os = "linux", test))]
 mod tokens;
+#[cfg(any(target_os = "linux", test))]
+mod touch_marks;
 
 fn main() {
     #[cfg(target_os = "linux")]

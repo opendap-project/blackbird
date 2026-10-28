@@ -43,7 +43,12 @@
 
 - `src/display_policy.rs`: which mode to drive and the panel's physical size, and when a frame is drawn, the last one kept, drawing goes on or a one-shot wake is armed (§5);
 - `src/forward.rs`: which keys a control's press sends the activity, whether it repeats, and the volume buttons' double press (input events §3.3, §3.4);
-- `src/status_bar.rs`: what the status bar shows and says;
+- `src/combinations.rs`: the system combinations on `main` and what each press does (T1 controls spec §1.3);
+- `src/power_menu.rs`: the power menu's focus and choices (§7);
+- `src/status_bar.rs`: what the status bar shows and says, when the battery warns and when the clock wakes;
+- `src/splash_timeline.rs`: when the splash screen shows, fades and leaves (§9);
+- `src/touch_marks.rs`: the touch indicator's shapes and motion;
+- `src/restart.rs`: when the product host is started again after it exits;
 - `linux/input/`: the adapter. Its parts:
   - `mod.rs`: libinput's events normalised and run through the stages in order;
   - `stages.rs`: the stages (display off, observe, layers, system contacts, system combinations, not responding, activity);
@@ -52,6 +57,7 @@
   - `wake.rs`: the display-off double tap;
   - `keyboard.rs`: keys and an attached keyboard's repeat;
   - `debug.rs`: the debug UI mode and the touch indicator.
+- `linux/controls.rs`, `linux/layers.rs`, `linux/status.rs`, `linux/splash.rs`, `linux/touches.rs`: the adapters that read the platform, arm the timers and draw what those decide;
 - `linux/backend/`: the display. `init.rs` brings it up in steps (the GPU and its renderer, the output and its mode, the DRM compositor, the event sources, the system layers); `render.rs` draws a frame in steps (the clients, the layers above them, a screenshot, the wakes, the frame queued).
 
 **Protocols.** The core, plus:

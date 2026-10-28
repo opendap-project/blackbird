@@ -107,7 +107,7 @@ pub struct System {
     /// The touch indicator, a developer option (touches.rs).
     pub touches: super::touches::Touches,
     /// The system control's presses (controls.rs).
-    pub controls: super::controls::Controls,
+    pub controls: crate::combinations::Combinations,
     /// What the status bar shows (status.rs).
     pub status: super::status::Status,
     /// The system layers (layers.rs), once the display is up.

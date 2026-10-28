@@ -1,6 +1,7 @@
 //! The splash screen (opendap-splash; composer and UI runtime spec §9): the composer's first frames show
 //! the same splash screen the boot UI (`odap-boot`) put on the display while the OS loaded, keep it at least
-//! `MINIMUM_MS` from when it first showed, then fade it out once the product host has drawn.
+//! `MINIMUM_MS` from when it first showed, then fade it out once the product host has drawn
+//! (crate::splash_timeline decides when).
 //! Nothing else is drawn at boot (OS-035).
 
 use std::time::{Duration, Instant};
@@ -22,18 +23,10 @@ use smithay::{
 };
 use tracing::warn;
 
-enum Phase {
-    /// On screen until `until`, and longer if the product host has not drawn yet.
-    Showing {
-        until: Instant,
-        client_ready: bool,
-    },
-    Fading(Instant),
-    Done,
-}
+use crate::splash_timeline::{Timeline, minimum_left};
 
 pub struct Splash {
-    phase: Phase,
+    timeline: Timeline,
     buffer: MemoryRenderBuffer,
 }
 
@@ -56,48 +49,32 @@ impl Splash {
             None,
         );
         // The minimum counts from when odap-boot first showed it, or from now without it.
-        let now = monotonic_ms();
-        let shown = std::fs::read_to_string(SHOWN_AT_PATH)
-            .ok()
-            .and_then(|t| t.trim().parse::<u64>().ok())
-            .filter(|&t| t <= now)
-            .unwrap_or(now);
-        let left = Duration::from_millis((shown + MINIMUM_MS).saturating_sub(now));
+        let shown = std::fs::read_to_string(SHOWN_AT_PATH).ok();
+        let left = minimum_left(shown.as_deref(), monotonic_ms(), MINIMUM_MS);
         Self {
-            phase: Phase::Showing {
-                until: Instant::now() + left,
-                client_ready: false,
-            },
+            timeline: Timeline::new(Instant::now() + left, Duration::from_millis(FADE_MS)),
             buffer,
         }
     }
 
     /// The product host drew its first frame.
     pub fn client_ready(&mut self) {
-        if let Phase::Showing { client_ready, .. } = &mut self.phase {
-            *client_ready = true;
-        }
+        self.timeline.client_ready();
     }
 
     /// Whether the splash screen has left the display for good.
     pub fn done(&self) -> bool {
-        matches!(self.phase, Phase::Done)
+        self.timeline.done()
     }
 
-    /// Whether frames must keep coming: only while fading. A static splash screen draws nothing.
+    /// Whether frames must keep coming: only while fading.
     pub fn animating(&self) -> bool {
-        matches!(self.phase, Phase::Fading(_))
+        self.timeline.animating()
     }
 
     /// When the composer must look again: the end of the minimum, once the product host is ready.
     pub fn wake_at(&self) -> Option<Instant> {
-        match self.phase {
-            Phase::Showing {
-                until,
-                client_ready: true,
-            } if Instant::now() < until => Some(until),
-            _ => None,
-        }
+        self.timeline.wake_at(Instant::now())
     }
 
     /// The splash screen's element above the client, if it is still on screen.
@@ -105,26 +82,7 @@ impl Splash {
         &mut self,
         renderer: &mut GlesRenderer,
     ) -> Option<MemoryRenderBufferRenderElement<GlesRenderer>> {
-        if let Phase::Showing {
-            until,
-            client_ready: true,
-        } = self.phase
-            && Instant::now() >= until
-        {
-            self.phase = Phase::Fading(Instant::now());
-        }
-        let alpha = match self.phase {
-            Phase::Showing { .. } => 1.0,
-            Phase::Fading(start) => {
-                let t = start.elapsed().as_secs_f32() * 1000.0 / FADE_MS as f32;
-                if t >= 1.0 {
-                    self.phase = Phase::Done;
-                    return None;
-                }
-                1.0 - t
-            }
-            Phase::Done => return None,
-        };
+        let alpha = self.timeline.alpha(Instant::now())?;
         MemoryRenderBufferRenderElement::from_buffer(
             renderer,
             (0.0, 0.0),

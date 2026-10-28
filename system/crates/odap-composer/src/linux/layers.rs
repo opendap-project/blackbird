@@ -31,6 +31,8 @@ use smithay::{
 };
 use tracing::warn;
 
+use crate::power_menu::{self, Activation, Request};
+
 slint::include_modules!();
 
 /// Slint's platform for the composer: one window, the layers, drawn on demand.
@@ -47,14 +49,6 @@ impl Platform for ComposerPlatform {
     fn duration_since_start(&self) -> std::time::Duration {
         self.start.elapsed()
     }
-}
-
-/// What a layer asked for, handled by the composer (controls.rs).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Request {
-    Restart,
-    RestartToRecovery,
-    Cancel,
 }
 
 /// The debug UI mode's runtime switch; the environment's default is `ODAP_DEBUG_UI`.
@@ -144,12 +138,7 @@ impl SystemLayers {
         let requests = Rc::new(RefCell::new(Vec::new()));
         let sink = requests.clone();
         ui.on_power_choice(move |what| {
-            let request = match what.as_str() {
-                "restart" => Request::Restart,
-                "recovery" => Request::RestartToRecovery,
-                _ => Request::Cancel,
-            };
-            sink.borrow_mut().push(request);
+            sink.borrow_mut().push(power_menu::choice(what.as_str()));
         });
         if let Err(err) = ui.show() {
             warn!(%err, "system layers");
@@ -357,45 +346,25 @@ impl SystemLayers {
         }
     }
 
-    /// The number of choices the volume buttons move through: Power off, Restart, Restart to
-    /// recovery when present, Cancel.
-    fn choices(&self) -> i32 {
-        if self.ui.get_can_recovery() { 4 } else { 3 }
-    }
-
-    /// Volume + (`-1`, up) or − (`1`, down): the focus moves, wrapping around (it starts on the
-    /// first choice; none only if something cleared it).
+    /// Volume + (`-1`, up) or − (`1`, down): the focus moves (crate::power_menu).
     pub fn move_focus(&mut self, step: i32) {
-        let n = self.choices();
-        let focus = self.ui.get_focused_choice();
-        let next = if focus < 0 {
-            if step > 0 { 0 } else { n - 1 }
-        } else {
-            (focus + step).rem_euclid(n)
-        };
+        let n = power_menu::choices(self.ui.get_can_recovery());
+        let next = power_menu::move_focus(self.ui.get_focused_choice(), step, n);
         self.ui.set_focused_choice(next);
         self.window.request_redraw();
     }
 
-    /// Action: the screen's primary action, or else the focused element (T1 controls spec §1.3).
-    /// Here the primary action is Power off, which Action only points at; with a choice focused,
-    /// Action takes it as a touch on it would.
+    /// Action: the screen's primary action, or else the focused element (T1 controls spec §1.3;
+    /// crate::power_menu).
     pub fn activate_focus(&mut self) {
-        let n = self.choices();
-        let request = match self.ui.get_focused_choice() {
-            // No focus: the menu's primary action, Power off, which only Main confirms (spec §7).
-            0 | -1 => {
+        let n = power_menu::choices(self.ui.get_can_recovery());
+        match power_menu::activate(self.ui.get_focused_choice(), n) {
+            Some(Activation::PointAtMain) => {
                 self.ui.set_point_at_main(true);
                 self.window.request_redraw();
-                None
             }
-            1 => Some(Request::Restart),
-            2 if n == 4 => Some(Request::RestartToRecovery),
-            f if f == n - 1 => Some(Request::Cancel),
-            _ => None,
-        };
-        if let Some(r) = request {
-            self.requests.borrow_mut().push(r);
+            Some(Activation::Request(r)) => self.requests.borrow_mut().push(r),
+            None => {}
         }
     }
 
