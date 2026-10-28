@@ -2,7 +2,7 @@
 
 - **Status:** Accepted ([RFC 0002](https://github.com/opendap-project/rfcs/blob/main/text/0002-rust-crate-architecture.md))
 - **Date:** 2026-10-22
-- **Applies to:** every OpenDAP Rust repository: system (services, SDK), the `opendap` CLI and its plugins (cli), OpenDAP Desktop, the toolkit repositories that ship Rust (toolkit-verify), firmware where Rust is used.
+- **Applies to:** every OpenDAP Rust repository: system (services, SDK), the `opendap` CLI and its plugins (host), OpenDAP Desktop (host), the toolkit repositories that ship Rust (toolkit-verify), firmware where Rust is used.
 
 The goal is reuse and portability: a capability is written once and reaches every surface (CLI, OpenDAP Desktop, device services, agents), and core code runs on every supported host and on the device.
 
@@ -18,12 +18,12 @@ Dependencies point inward only. An inner layer never depends on an outer one.
 
 | Layer | Contains | May depend on | Example |
 |---|---|---|---|
-| **Domain model** | Types and rules of the domain: devices, targets, modes, tracks, capabilities, errors as data. No I/O, no async runtime, no platform code | std, `serde`, small pure crates | `opendap-model` |
-| **Application core** | Use cases expressed against **ports** (traits): discover devices, run a command, transfer a file, flash an image, build an image | domain model | `opendap-core` |
-| **Adapters** | Implementations of the ports for one technology: SSH, USB/MaskROM (`rockusb`), QEMU/QMP, filesystem, network, Varlink bus | core, domain model, the technology's crates | `opendap-transport-ssh`, `opendap-transport-vm` |
-| **Interfaces** | Surfaces for people and programs: CLI, desktop UI, device services, MCP server | everything above | `opendap-cli`, OpenDAP Desktop, device services |
+| **Domain model** | Types and rules of the domain: devices, targets, modes, tracks, capabilities, errors as data. No I/O, no async runtime, no platform code | std, `serde`, small pure crates | `opendap-host-model` |
+| **Application core** | Use cases expressed against **ports** (traits): discover devices, run a command, transfer a file, flash an image, build an image | domain model | `opendap-host-core` |
+| **Adapters** | Implementations of the ports for one technology: SSH, USB/MaskROM (`rockusb`), QEMU/QMP, filesystem, network, Varlink bus | core, domain model, the technology's crates | `opendap-host-transports-ssh`, `opendap-host-transports-emulator` |
+| **Interfaces** | Surfaces for people and programs: CLI, desktop UI, device services, MCP server | everything above | `opendap-host-cli` (the `opendap` binary), OpenDAP Desktop, device services |
 
-Shared conventions of one interface kind (for example the CLI's output modes and error envelope) live in their own crate in the interface layer (`opendap-cli-kit`), not in the core.
+Shared conventions of one interface kind (for example the CLI's output modes and error envelope) live in their own crate in the interface layer (`opendap-host-command`), not in the core.
 
 ## 3. Domain model
 
@@ -41,7 +41,7 @@ Shared conventions of one interface kind (for example the CLI's output modes and
 ## 5. Conventions
 
 - Edition 2024; one Cargo workspace per repository; shared `[workspace.package]` metadata.
-- Naming: `opendap-<area>[-<part>]` (`opendap-model`, `opendap-core`, `opendap-transport-usb`).
+- Naming: `<root>-<path joined by ->` ([RFC 0017](https://github.com/opendap-project/rfcs/blob/main/text/0017-naming-and-topology.md) §3), applied to each root at its cut: the host crates are `opendap-host-*` (`opendap-host-model`, `opendap-host-core`, `opendap-host-transports-ssh`); crates of roots not yet cut keep `opendap-<area>[-<part>]`.
 - Errors: `thiserror` in libraries, `anyhow` only in binaries.
 - Features: minimal defaults; optional adapters behind features.
 - No `unsafe` without a comment that justifies it and a test that exercises it.
@@ -52,6 +52,6 @@ Shared conventions of one interface kind (for example the CLI's output modes and
 
 ## 6. Reuse across repositories
 
-- Host-side crates (`opendap-model`, `opendap-core`, adapters) live in the cli repository today and are consumed by OpenDAP Desktop by version; they move to their own repository if a third consumer appears.
+- Host-side crates (`opendap-host-model`, `opendap-host-core`, the adapters) live in the [`host`](https://github.com/opendap-project/host) root, in `crates/` (`crates/model`, `crates/core`, `crates/platform`, `crates/transports/*`, `crates/command`), with the `opendap` binary in `cli/`; OpenDAP Desktop and the emulator's viewer consume them by version (the viewer by git revision).
 - Device-side crates live in system and are the SDK.
 - A crate needed on both sides moves to the side that owns its domain and is consumed by version from the other.
