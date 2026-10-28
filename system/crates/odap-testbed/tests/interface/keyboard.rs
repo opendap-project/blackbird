@@ -107,7 +107,7 @@ pub fn next_field_and_issues(window: &Testbed, run: &mut Run) {
     );
     run.check(
         "field-shift: the edited field is revealed whole",
-        y >= 76.0 && y + h <= 480.0,
+        y >= CONTENT_TOP && y + h <= 480.0,
         || format!("{y} + {h}"),
     );
     // field-a11y: a screen reader reads the issue after the field's name: it is the field's

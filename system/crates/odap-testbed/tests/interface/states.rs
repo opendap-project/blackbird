@@ -58,39 +58,63 @@ pub fn disabled_walk(window: &Testbed, run: &mut Run) {
     for _ in 0..6 {
         if off_all(&ui)
             .iter()
-            .filter(|e| e.2 >= 0.0 && e.2 + e.4 <= 480.0)
+            .filter(|e| e.2 >= CONTENT_TOP && e.2 + e.4 <= 480.0)
             .count()
             >= 6
         {
             break;
         }
-        use slint::platform::PointerEventButton as B;
-        let p = |y: f32| slint::LogicalPosition::new(300.0, y);
-        ui.window()
-            .dispatch_event(WindowEvent::PointerMoved { position: p(420.0) });
-        ui.window().dispatch_event(WindowEvent::PointerPressed {
-            position: p(420.0),
-            button: B::Left,
-        });
-        for i in 1..=12 {
-            ui.window().dispatch_event(WindowEvent::PointerMoved {
-                position: p(420.0 - i as f32 * 25.0),
-            });
-            tick(16);
-        }
-        ui.window().dispatch_event(WindowEvent::PointerReleased {
-            position: p(120.0),
-            button: B::Left,
-        });
-        tick(400);
+        drag_up(&ui);
     }
+}
+
+/// A finger drags the content up by 300 px, on the right where no control is.
+fn drag_up(ui: &Testbed) {
+    use slint::platform::PointerEventButton as B;
+    let p = |y: f32| slint::LogicalPosition::new(300.0, y);
+    ui.window()
+        .dispatch_event(WindowEvent::PointerMoved { position: p(420.0) });
+    ui.window().dispatch_event(WindowEvent::PointerPressed {
+        position: p(420.0),
+        button: B::Left,
+    });
+    for i in 1..=12 {
+        ui.window().dispatch_event(WindowEvent::PointerMoved {
+            position: p(420.0 - i as f32 * 25.0),
+        });
+        tick(16);
+    }
+    ui.window().dispatch_event(WindowEvent::PointerReleased {
+        position: p(120.0),
+        button: B::Left,
+    });
+    tick(400);
+}
+
+/// Scrolled to its end, the screen shows its last element whole: the scroll area's height is
+/// what the screen lays out (a layout written in place under a conditional reported 19 px less in
+/// Slint 1.18, and the end of the gallery stayed out of reach).
+pub fn end_in_reach(window: &Testbed, run: &mut Run) {
+    let ui = window.clone_strong();
+    for _ in 0..4 {
+        drag_up(&ui);
+    }
+    let bottom = off_all(&ui)
+        .iter()
+        .map(|e| e.2 + e.4)
+        .fold(0.0_f32, f32::max);
+    run.check(
+        "states: the last element comes whole into view",
+        bottom > 0.0 && bottom <= 480.5,
+        || format!("its bottom at {bottom}"),
+    );
 }
 
 pub fn disabled_touch(window: &Testbed, run: &mut Run) {
     let ui = window.clone_strong();
     let visible: Vec<_> = off_all(&ui)
         .into_iter()
-        .filter(|e| e.2 >= 0.0 && e.2 + e.4 <= 480.0)
+        .filter(|e| e.2 >= CONTENT_TOP && e.2 + e.4 <= 480.0)
         .collect();
     run.check(
         "disabled: the gallery in view at the end",

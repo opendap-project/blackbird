@@ -15,6 +15,10 @@ use odap_testbed::{FocusReveal, FocusVisible, Layout, SCREENS, Testbed, wire};
 use slint::platform::{Key, WindowEvent};
 use slint::{ComponentHandle, Model, SharedString};
 
+/// Where a screen's scroll area starts, below its header: what is above it is the header's, so an
+/// element counts as in view only from here down.
+const CONTENT_TOP: f32 = 76.0;
+
 fn tick(ms: u64) {
     i_slint_backend_testing::mock_elapsed_time(Duration::from_millis(ms));
     slint::platform::update_timers_and_animations();
@@ -263,6 +267,7 @@ fn the_activity_driven_headless() {
     states::disabled_walk(&ui, &mut run);
     states::disabled_touch(&ui, &mut run);
     states::disabled_dims(&ui, &mut run);
+    states::end_in_reach(&ui, &mut run);
     arena::touch_after_buttons(&ui, &mut run);
     virtual_list::placeholder(&ui, &mut run);
     virtual_list::fling(&ui, &mut run);
