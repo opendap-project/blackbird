@@ -3266,7 +3266,6 @@ dependencies = [
 [[package]]
 name = "opendap-audio-analysis"
 version = "0.0.1"
-source = "git+https://github.com/opendap-project/system?rev=2da450f#2da450f31747b0b470994e12a8f12805a70751d0"
 dependencies = [
  "realfft",
 ]
