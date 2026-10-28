@@ -1,7 +1,7 @@
 //! The device as the sidebar knows it, kept by a worker thread so the window never waits.
 //!
 //! Every action goes through the OpenDAP CLI's crates, the same use cases `opendap` and OpenDAP
-//! Desktop run (opendap-core over opendap-transport-vm): attaching by hand (`hardware`), the
+//! Desktop run (opendap-host-core over opendap-host-transports-emulator): attaching by hand (`hardware`), the
 //! battery, restarts and power-off (`power`), the display (`screen`). The state machines that
 //! lock a control while its action is in flight come from there too: a switch stays attaching
 //! until the hardware has the card or the disk ([`Switch`]), a reboot lasts until the device
@@ -21,12 +21,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-use opendap_core::hardware::{self, Switch};
-use opendap_core::power::{self, Phase};
-use opendap_core::{Outcome, VmBackend};
-use opendap_model::{Attachment, HardwareChange, PowerAction, Transport, VmState};
-use opendap_transport_ssh::SshExec;
-use opendap_transport_vm::{Checkout, SSH_LAUNCHER, VirtualDevice};
+use opendap_host_core::hardware::{self, Switch};
+use opendap_host_core::power::{self, Phase};
+use opendap_host_core::{Outcome, VmBackend};
+use opendap_host_model::{Attachment, HardwareChange, PowerAction, Transport, VmState};
+use opendap_host_transports_emulator::{Checkout, SSH_LAUNCHER, VirtualDevice};
+use opendap_host_transports_ssh::SshExec;
 
 /// What the window shows.
 #[derive(Clone, Debug, Default)]
@@ -202,7 +202,7 @@ impl Run {
             vm: VirtualDevice::at(vd_dir.clone()),
             vd_dir,
             target: Transport::Vm {
-                name: opendap_model::vm::DEFAULT_NAME.into(),
+                name: opendap_host_model::vm::DEFAULT_NAME.into(),
             },
             state: State::default(),
             power_deadline: None,
@@ -385,15 +385,16 @@ impl Run {
         self.state.saving = true;
         publish(self.state.clone());
         let p = path.display().to_string();
-        let note = match opendap_core::screen::capture(&self.vm, self.target.clone(), &p, false) {
-            Ok(_) => format!(
-                "Saved {}",
-                path.file_name()
-                    .map(|n| n.to_string_lossy().into_owned())
-                    .unwrap_or(p)
-            ),
-            Err(e) => e.message,
-        };
+        let note =
+            match opendap_host_core::screen::capture(&self.vm, self.target.clone(), &p, false) {
+                Ok(_) => format!(
+                    "Saved {}",
+                    path.file_name()
+                        .map(|n| n.to_string_lossy().into_owned())
+                        .unwrap_or(p)
+                ),
+                Err(e) => e.message,
+            };
         self.note(note);
         self.state.saving = false;
     }
@@ -422,7 +423,7 @@ impl Run {
         self.state.note.clear();
         self.state.debug_reboot = action
             == PowerAction::Reboot {
-                mode: opendap_model::BootMode::Debug,
+                mode: opendap_host_model::BootMode::Debug,
             };
         self.power_deadline = Some(
             Instant::now()

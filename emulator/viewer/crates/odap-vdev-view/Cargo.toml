@@ -11,10 +11,10 @@ publish = false
 opendap-qemu-display.workspace = true
 opendap-audio-analysis.workspace = true
 cpal.workspace = true
-opendap-model.workspace = true
-opendap-core.workspace = true
-opendap-transport-ssh.workspace = true
-opendap-transport-vm.workspace = true
+opendap-host-model.workspace = true
+opendap-host-core.workspace = true
+opendap-host-transports-ssh.workspace = true
+opendap-host-transports-emulator.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 # ODAP_VIEW_SNAPSHOT: the window saved as PNG.

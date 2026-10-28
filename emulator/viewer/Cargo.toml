@@ -11,12 +11,12 @@ license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
 opendap-qemu-display = { path = "crates/opendap-qemu-display" }
-# The OpenDAP CLI's crates (rfcs 0008): the use cases and adapters `opendap` and OpenDAP Desktop
+# The host root's crates (RFC 0017 §3, opendap-host-*): the use cases and adapters `opendap` and OpenDAP Desktop
 # run, consumed as published, never from a checkout's sources.
-opendap-model = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
-opendap-core = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
-opendap-transport-ssh = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
-opendap-transport-vm = { git = "https://github.com/opendap-project/host", rev = "96a1b0d" }
+opendap-host-model = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
+opendap-host-core = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
+opendap-host-transports-ssh = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
+opendap-host-transports-emulator = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
 # OpenDAP's audio measurements (system/ in this repository): the instruments' meters and spectra.
 opendap-audio-analysis = { path = "../../system/crates/opendap-audio-analysis" }
 # The host's audio, to play the device's output and record its input (CoreAudio, ALSA, PulseAudio).

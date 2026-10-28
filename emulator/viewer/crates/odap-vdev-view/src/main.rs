@@ -4,7 +4,7 @@
 //! by the device as `odap-vdev frame` describes it, and sends the device's controls with real
 //! presses and releases, so long presses and combinations work as on the hardware. Everything it
 //! does to the device goes through the OpenDAP CLI's crates, the use cases `opendap` and OpenDAP
-//! Desktop share: the controls over a held QMP session (opendap-transport-vm `LiveKeys`), the rest
+//! Desktop share: the controls over a held QMP session (opendap-host-transports-emulator `LiveKeys`), the rest
 //! on a worker thread (src/device.rs).
 //!
 //! Started by `odap-vdev start --window`; it ends when the device stops.
@@ -15,11 +15,11 @@ use std::{
     sync::{Arc, mpsc},
 };
 
-use opendap_core::InputSink;
-use opendap_core::hardware::Switch;
-use opendap_core::power::Phase;
-use opendap_model::{Attachment, BootMode, InputEvent, PowerAction, Role};
-use opendap_transport_vm::live::LiveKeys;
+use opendap_host_core::InputSink;
+use opendap_host_core::hardware::Switch;
+use opendap_host_core::power::Phase;
+use opendap_host_model::{Attachment, BootMode, InputEvent, PowerAction, Role};
+use opendap_host_transports_emulator::live::LiveKeys;
 
 use serde::{Deserialize, Serialize};
 use slint::{ComponentHandle, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};

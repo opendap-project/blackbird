@@ -3241,11 +3241,11 @@ dependencies = [
  "cpal",
  "libc",
  "opendap-audio-analysis",
- "opendap-core",
- "opendap-model",
+ "opendap-host-core",
+ "opendap-host-model",
+ "opendap-host-transports-emulator",
+ "opendap-host-transports-ssh",
  "opendap-qemu-display",
- "opendap-transport-ssh",
- "opendap-transport-vm",
  "png",
  "serde",
  "serde_json",
@@ -3273,38 +3273,59 @@ dependencies = [
 [[package]]
 name = "opendap-bus-model"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/system?rev=f39aaced380392e5e3ca338a7cc1f6bf642e23e7#f39aaced380392e5e3ca338a7cc1f6bf642e23e7"
+source = "git+https://github.com/opendap-project/blackbird?rev=b7cc2065f71bb26d330162d7fb93883184292e22#b7cc2065f71bb26d330162d7fb93883184292e22"
 dependencies = [
  "serde",
 ]
 
 [[package]]
-name = "opendap-core"
+name = "opendap-host-core"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
+source = "git+https://github.com/opendap-project/host?rev=8a887a3#8a887a32d8e35398882c0afb54b54b8dd38e1bb5"
 dependencies = [
- "opendap-model",
+ "opendap-host-model",
  "serde_json",
 ]
 
 [[package]]
-name = "opendap-host"
+name = "opendap-host-model"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
-dependencies = [
- "opendap-core",
- "opendap-model",
-]
-
-[[package]]
-name = "opendap-model"
-version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
+source = "git+https://github.com/opendap-project/host?rev=8a887a3#8a887a32d8e35398882c0afb54b54b8dd38e1bb5"
 dependencies = [
  "opendap-bus-model",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "opendap-host-platform"
+version = "0.1.0"
+source = "git+https://github.com/opendap-project/host?rev=8a887a3#8a887a32d8e35398882c0afb54b54b8dd38e1bb5"
+dependencies = [
+ "opendap-host-core",
+ "opendap-host-model",
+]
+
+[[package]]
+name = "opendap-host-transports-emulator"
+version = "0.1.0"
+source = "git+https://github.com/opendap-project/host?rev=8a887a3#8a887a32d8e35398882c0afb54b54b8dd38e1bb5"
+dependencies = [
+ "opendap-host-core",
+ "opendap-host-model",
+ "opendap-host-platform",
+ "serde_json",
+]
+
+[[package]]
+name = "opendap-host-transports-ssh"
+version = "0.1.0"
+source = "git+https://github.com/opendap-project/host?rev=8a887a3#8a887a32d8e35398882c0afb54b54b8dd38e1bb5"
+dependencies = [
+ "opendap-host-core",
+ "opendap-host-model",
+ "opendap-host-platform",
 ]
 
 [[package]]
@@ -3314,27 +3335,6 @@ dependencies = [
  "libc",
  "serde_json",
  "zbus",
-]
-
-[[package]]
-name = "opendap-transport-ssh"
-version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
-dependencies = [
- "opendap-core",
- "opendap-host",
- "opendap-model",
-]
-
-[[package]]
-name = "opendap-transport-vm"
-version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=96a1b0d#96a1b0d884a64bbf3981f62d672b57a225a1345b"
-dependencies = [
- "opendap-core",
- "opendap-host",
- "opendap-model",
- "serde_json",
 ]
 
 [[package]]
