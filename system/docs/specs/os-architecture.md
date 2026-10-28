@@ -3,7 +3,7 @@
 - **Status:** Draft, 2026-10-23. Built on what is already accepted; the new decisions are recorded in ADR 0009 to ADR 0011.
   - Already accepted: [ADR 0002](../adr/0002-system-architecture.md) (systemd orchestrator, Varlink bus, Smithay and Slint composer, activities, slots, manifests, consent classes), [ADR 0003](../adr/0003-native-binaries-no-wasm.md) (native binaries), [ADR 0004](../adr/0004-hat-mode-activities-use-the-product-ui-system.md) (HAT modes), [ADR 0005](../adr/0005-sdk-defined-services-components-and-schemas.md) (SDK-defined services, schemas and components), [ADR 0006](../adr/0006-slint-as-host-renderer.md) (Slint).
 - **What this adds:** the architecture as one whole, with everything decided since ADR 0002:
-  - the dedicated-instrument interface ([interface mockups](https://github.com/opendap-project/blackbird-ui/blob/main/renders/web/ui-mockups.html), design system §8.1, §15.2);
+  - the dedicated-instrument interface ([interface mockups](../../../ui/renders/web/ui-mockups.html), design system §8.1, §15.2);
   - providers for every third party (SYS-045), no accounts (SYS-047), households (SYS-043, SYS-044);
   - the OpenDAP Protocol ([RFC 0004](https://github.com/opendap-project/rfcs/blob/main/text/0004-opendap-protocol.md)) and the keystore (OS-032, BRD-059);
   - accessibility (SYS-061 to SYS-066), hardware-agnostic software (SYS-040) and derivatives (OS-028).

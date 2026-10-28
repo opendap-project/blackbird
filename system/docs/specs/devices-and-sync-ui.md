@@ -11,8 +11,8 @@
   - DESK-011, DESK-017: sync through the client; device management.
 - **Builds on:**
   - [RFC 0004](https://github.com/opendap-project/rfcs/blob/main/text/0004-opendap-protocol.md), the OpenDAP Protocol;
-  - the [user-facing conventions](https://github.com/opendap-project/system/blob/main/docs/specs/user-facing-conventions.md);
-  - the [Engineered Matter design system](https://github.com/opendap-project/blackbird-ui/blob/main/docs/specs/design-system.md): targets §8.3, gestures §8.5, type §9.3;
+  - the [user-facing conventions](user-facing-conventions.md);
+  - the [Engineered Matter design system](../../../ui/docs/specs/design-system.md): targets §8.3, gestures §8.5, type §9.3;
   - the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md) §2.2;
 
 Everything here works with no account and no online service (SYS-047). Every touch flow has a button alternative (SYS-039), and every state the LED shows is also said in words on screen.

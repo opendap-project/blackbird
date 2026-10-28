@@ -27,7 +27,7 @@ Units: on the T1, `px` is one panel pixel (about 0.153 mm at 166 ppi). Values th
 
 The JSON file is the single source. [`generate.py`](generate.py) (Python 3, no dependencies) writes three outputs from it, which are never edited by hand:
 
-- **Slint**: `export/slint/tokens.slint`, the global `Tokens`, for Blackbird OS on the device ([system ADR 0006](https://github.com/opendap-project/system/blob/main/docs/adr/0006-slint-as-host-renderer.md)). Use it as `Tokens.text-primary`, `Tokens.space-margin`, `Tokens.font-size-body`.
+- **Slint**: `export/slint/tokens.slint`, the global `Tokens`, for Blackbird OS on the device ([system ADR 0006](../../system/docs/adr/0006-slint-as-host-renderer.md)). Use it as `Tokens.text-primary`, `Tokens.space-margin`, `Tokens.font-size-body`.
 - **CSS**: `export/css/tokens.css`, custom properties for the web, documentation and OpenDAP Desktop (`--text-primary`, `--space-margin`, `--radius-control`…).
 - **Reference**: [`docs/reference/tokens.md`](../docs/reference/tokens.md), every token with its value, its CSS and Slint names and its description. The design system links it instead of keeping its own tables of values.
 

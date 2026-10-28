@@ -8,7 +8,7 @@
   - [ADR 0005](../adr/0005-sdk-defined-services-components-and-schemas.md) and [ADR 0006](../adr/0006-slint-as-host-renderer.md): Slint behind a renderer interface;
   - [ADR 0010](../adr/0010-data-before-ui.md): data before UI;
   - the [system architecture spec](os-architecture.md);
-  - the [design system](https://github.com/opendap-project/blackbird-ui/blob/main/docs/specs/design-system.md) and the [interface mockups](https://github.com/opendap-project/blackbird-ui/blob/main/renders/web/ui-mockups.html).
+  - the [design system](../../../ui/docs/specs/design-system.md) and the [interface mockups](../../../ui/renders/web/ui-mockups.html).
 - **Hardware:** nothing here assumes one board (SYS-067, SYS-068). Display controllers, planes, panels and controls come from the merged hardware record ([hardware support spec](hardware-support.md)). The T1 reference board's values appear only as examples.
 - **Facts it relies on**, for the T1 reference board:
   - Smithay 0.7.0, with master carrying the presentation, fifo and input-method protocols;

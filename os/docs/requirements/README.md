@@ -42,7 +42,7 @@ Requirements for the Blackbird OS distribution.
 
 ## Context
 
-- OS-018, OS-033, OS-034 moved to the [virtual-devices](https://github.com/opendap-project/virtual-devices) repository (VD-001 to VD-003), with the virtual devices themselves.
+- OS-018, OS-033, OS-034 moved to the [virtual-devices](https://github.com/opendap-project/blackbird/tree/main/emulator) repository (VD-001 to VD-003), with the virtual devices themselves.
 - OS-035: like any product in production. The debug boot mode is the image's "debug" boot entry (a UKI profile on the virtual board, with consoles and full messages); a product boot is quiet, with no console on the screen or the serial port.
 - OS-021: leave out only what serves nothing in this project, without over-trimming. Left out of the default image:
   - documentation, manual pages and translations of system tools (copyright files stay);
@@ -53,7 +53,7 @@ Requirements for the Blackbird OS distribution.
   Measured on the virtual T1 on 2026-10-23, after these removals (before them in brackets): root file system 483 MB used (675 MB), ESP 87 MB used (209 MB), unified kernel image 87 MB (162 MB), image compressed with zstd 241 MB (379 MB), splash screen 1.97 s after power-on (about 3.7 s), faster because the initrd is smaller. LLVM with z3 (about 145 MB) is the largest part left. It stays until an OpenDAP build of Mesa without LLVM exists (OS-023, see Image size below), because Debian's Mesa needs it, and the virtual board renders with llvmpipe.
 
 - OS-004: tuning lives in board support packages, not in the OS (SYS-067, system ADR 0013); the T1 is the reference board.
-- OS-030, OS-031: user-facing forms in the [conventions spec](https://github.com/opendap-project/system/blob/main/docs/specs/user-facing-conventions.md) §7.
+- OS-030, OS-031: user-facing forms in the [conventions spec](https://github.com/opendap-project/blackbird/blob/main/system/docs/specs/user-facing-conventions.md) §7.
 - OS-032: keystore always, TEE when available. Today the RK3566 has no mainline OP-TEE, so the keystore starts on protected filesystem storage ([ADR 0013](../adr/0013-usb-device-mode-and-keystore.md)).
 - OS-029: the computer, when present, can prepare the index, artwork at display size and the rest, and the T1 receives them ready; when no client exists, the T1 indexes and prepares what it needs as it needs it (T1-046, T1-052).
 - OS-028: custom distributions based on Blackbird OS (themes, drivers and so on) are expected if the project grows; the repository has to be ready for them. Guide: [`derivatives.md`](../derivatives.md); decision: [ADR 0012](../adr/0012-derivable-image-definition.md).

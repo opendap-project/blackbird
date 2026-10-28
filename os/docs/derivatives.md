@@ -35,7 +35,7 @@ Checked on 2026-10-23 on macOS (Apple silicon) with Lima 2.2.1, mkosi 25.3 in th
 
    ```sh
    mkdir my-rom && cd my-rom && git init
-   git submodule add https://github.com/opendap-project/blackbird-os.git blackbird-os
+   git submodule add https://github.com/opendap-project/blackbird.git blackbird-os
    ```
 
 3. **Start from the example.** Copy it and point `Include=` at the submodule:

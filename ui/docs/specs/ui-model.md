@@ -2,7 +2,7 @@
 
 - **Status:** Draft
 - **Scope:** nesting, inheritance, override and propagation, the layout model, scrolling and motion, from the models that proved themselves
-- **Builds on:** [ADR 0002](../adr/0002-slint-components-with-a-blueprint-mode.md) (components, blueprint mode), [ADR 0003](../adr/0003-screen-states.md) (screen states), the [design system](design-system.md), system [input events](https://github.com/opendap-project/system/blob/main/docs/specs/input-events.md), system ADR 0006 (Slint)
+- **Builds on:** [ADR 0002](../adr/0002-slint-components-with-a-blueprint-mode.md) (components, blueprint mode), [ADR 0003](../adr/0003-screen-states.md) (screen states), the [design system](design-system.md), system [input events](../../../system/docs/specs/input-events.md), system ADR 0006 (Slint)
 
 How OpenDAP's interface is put together, for whoever writes an activity or a component. Each section names the models that proved themselves, what Slint already gives (1.18), and what Blackbird UI adds. Nothing here replaces a standard Slint already implements; Blackbird UI adds only what Slint leaves out.
 

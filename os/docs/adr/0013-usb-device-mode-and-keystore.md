@@ -23,7 +23,7 @@
    - while the volume is handed over, the T1 keeps playing what its cache levels hold (OS-022), and its screen shows "Connected to a computer" with **Eject**;
    - on release (eject or unplug), the T1 remounts the volume, re-indexes only what changed, and reports what it found.
 
-   The volume follows the user-facing layout of the [conventions spec](https://github.com/opendap-project/system/blob/main/docs/specs/user-facing-conventions.md) §1: exFAT, label `OPENDAP`, `Music/`, `Podcasts/`, `Audiobooks/`, `Recordings/`, `Playlists/`.
+   The volume follows the user-facing layout of the [conventions spec](../../../system/docs/specs/user-facing-conventions.md) §1: exFAT, label `OPENDAP`, `Music/`, `Podcasts/`, `Audiobooks/`, `Recordings/`, `Playlists/`.
 3. **With a client present**, OpenDAP Desktop or the CLI talk over NCM and the volume is not handed over, so nothing interrupts the device. The listener can still choose plain storage from the T1's screen.
 4. **Keys always go through a keystore** (OS-032). Services never handle key files directly:
    - every identity and pairing key lives behind one keystore interface;
