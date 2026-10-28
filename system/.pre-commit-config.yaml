@@ -18,8 +18,8 @@ repos:
     rev: v0.24.0
     hooks:
       - id: markdownlint-cli2
-  - repo: https://github.com/opendap-project/toolkit-hooks
-    rev: v0.4.1
+  - repo: https://github.com/opendap-project/tools
+    rev: v0.1.0
     hooks:
       - id: no-stray-files
   - repo: local
