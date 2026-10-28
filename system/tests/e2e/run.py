@@ -13,6 +13,7 @@ verification matrix to collect) in --out, and exits 1 when one failed.
 import argparse
 import datetime
 import json
+import os
 import subprocess
 import sys
 import time
@@ -21,6 +22,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from device import Device  # noqa: E402
 from scenarios import ALL  # noqa: E402
+
+# Never inherit a hook's GIT_* variables (HL-64): under pre-commit, git exports GIT_DIR, GIT_INDEX_FILE and
+# others, and the git that names the tested commit would read the repository being committed.
+for _k in [k for k in os.environ if k.startswith("GIT_")]:
+    del os.environ[_k]
 
 
 def main():

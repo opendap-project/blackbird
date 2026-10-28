@@ -39,6 +39,8 @@ odapkit deploy                            # cross-build and run on the running v
 
 Checks: pre-commit runs rustfmt on the Rust files a commit changes; `pre-commit install --hook-type pre-push` adds clippy (`-D warnings`) and the workspace tests before each push. [`check.toml`](check.toml) lists the stages (fast, full), including clippy for the device target through `odapkit cross`.
 
+Tests never inherit a hook's `GIT_*` variables: under pre-commit, git exports `GIT_DIR`, `GIT_INDEX_FILE` and others, and a test whose git inherits them acts on the repository being committed. The Rust tests remove them from every child process (`env_remove`), and `tests/e2e/run.py` after its imports. Each language's protection is in the Developer Toolkit's [rule](https://github.com/opendap-project/tools#tests-never-inherit-a-hooks-git-variables); `odapkit audit` flags a test file that runs git without it.
+
 `odap-product`, `odap-composer` and `opendap-splash` read Blackbird UI's published outputs (`export/`, `brand/svg/`), found through the workspace's `repos.tsv` or `ODAP_BLACKBIRD_UI_DIR`; the colours and durations they draw with themselves come from `export/css/tokens.css`, never typed by hand. `odapkit deploy` takes its default crates and the units to restart from `[workspace.metadata.odap]` in `Cargo.toml`.
 
 ## License

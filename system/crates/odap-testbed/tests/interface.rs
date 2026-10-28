@@ -167,9 +167,17 @@ impl Run {
             o
         };
         let sh = |cmd: &[&str]| {
-            std::process::Command::new(cmd[0])
-                .args(&cmd[1..])
-                .output()
+            let mut c = std::process::Command::new(cmd[0]);
+            c.args(&cmd[1..]);
+            // Tests never inherit a hook's GIT_* variables (HL-64): under pre-commit, git
+            // exports GIT_DIR, GIT_INDEX_FILE and others, and a child's git would act on the
+            // repository being committed.
+            for (k, _) in
+                std::env::vars_os().filter(|(k, _)| k.to_string_lossy().starts_with("GIT_"))
+            {
+                c.env_remove(k);
+            }
+            c.output()
                 .ok()
                 .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
                 .filter(|s| !s.is_empty())
