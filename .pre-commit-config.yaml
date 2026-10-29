@@ -50,7 +50,7 @@ repos:
         entry: sh -c 'cd emulator && cargo clippy --manifest-path viewer/Cargo.toml --workspace --all-targets -q -- -D warnings && cargo clippy --manifest-path board/Cargo.toml --workspace --all-targets -q -- -D warnings'
         language: system
         pass_filenames: false
-        types: [rust]
+        types_or: [rust, cargo, cargo-lock]
         stages: [pre-push]
         files: ^emulator/
       - id: cargo-test-emulator
@@ -58,7 +58,7 @@ repos:
         entry: sh -c 'cd emulator && cargo test --manifest-path viewer/Cargo.toml --workspace -q && cargo test --manifest-path board/Cargo.toml --workspace -q'
         language: system
         pass_filenames: false
-        types: [rust]
+        types_or: [rust, cargo, cargo-lock]
         stages: [pre-push]
         files: ^emulator/
   # os/
@@ -128,7 +128,7 @@ repos:
         entry: sh -c 'cd system && cargo clippy --workspace --all-targets -q -- -D warnings'
         language: system
         pass_filenames: false
-        types: [rust]
+        types_or: [rust, cargo, cargo-lock]
         stages: [pre-push]
         files: ^system/
       - id: cargo-test-system
@@ -136,7 +136,7 @@ repos:
         entry: sh -c 'cd system && cargo test --workspace -q'
         language: system
         pass_filenames: false
-        types: [rust]
+        types_or: [rust, cargo, cargo-lock]
         stages: [pre-push]
         files: ^system/
       - id: device-fixture-generated
