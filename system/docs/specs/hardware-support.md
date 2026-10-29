@@ -19,8 +19,8 @@
 3. **Two descriptions, one merged record.**
    - Devicetree carries what the kernel needs, with upstream userspace formats (UCM2, hwdb) where they exist.
    - An **OpenDAP device description** carries what neither does: physical layout, button positions, display shape, output jacks, audio and safety limits with their sources.
-   - The orchestrator merges both with what the hardware answers, into the `org.opendap.device.Capabilities` record every surface reads.
-4. **One adapter per component class.** A driver service implements a versioned `org.opendap.hw.<class>` interface, bound to the hardware by declared matching rules. It is the only code that knows the part.
+   - The orchestrator merges both with what the hardware answers, into the `cc.opendap.Blackbird.Device.Capabilities` record every surface reads.
+4. **One adapter per component class.** A driver service implements a versioned `cc.opendap.Blackbird.Hw.<class>` interface, bound to the hardware by declared matching rules. It is the only code that knows the part.
 5. **The UI is designed for any hardware and optimised for each.** The design system defines its values in physical and angular units and converts them for the display it finds. Layouts, input profiles and the drawing of physical controls follow the description. The T1 is the first fully optimised case, not the rule (§6).
 
 ## 2. Layers
@@ -53,7 +53,7 @@ A signed, versioned document, `opendap.device-description/v1` (TOML), with one p
 | `audio` | Per component: rates, formats, DSD modes, filters (named from the datasheet), volume range and step, gain stages, maximum output level, each with its source or **UNVERIFIED** |
 | `power` | Battery chemistry and capacity source, charging limits |
 | `safety` | Limits the hardware imposes and why (BRD-049), shown to the user |
-| `provides` | The `org.opendap.hw.*` interfaces and versions this hardware is expected to provide (§7) |
+| `provides` | The `cc.opendap.Blackbird.Hw.*` interfaces and versions this hardware is expected to provide (§7) |
 
 - **Validation:** the schema is published and checked by a validator on the developer machine and in the image build, as devicetree bindings and UCM2 configurations are checked.
 - **Fixes after release:** descriptions are L2 packages for known hardware and L6 registry artifacts for new faceplates and HATs (§5), so a description can be corrected without a new board.
@@ -66,14 +66,14 @@ A signed, versioned document, `opendap.device-description/v1` (TOML), with one p
 
   | Class | Interface | Reference implementation on the T1 |
   |---|---|---|
-  | DAC and output stage | `org.opendap.hw.audio.Dac`, `.Output` | CS43198 and the board's output stage |
-  | Display | `org.opendap.hw.Display` | The faceplate's panel through DRM |
-  | Controls | `org.opendap.hw.Controls` | `gpio-keys` and the faceplate's HID |
-  | Battery and charging | `org.opendap.hw.Battery` | Fuel gauge and charger |
-  | Status LED | `org.opendap.hw.Led` | The faceplate's RGB LED driver; `odap-statusled` shows the controls spec's states on it (§2.2), from the battery's uevents and the requests other services leave in `/run/blackbird/statusled/requests/` until the bus carries this interface |
-  | Haptics | `org.opendap.hw.Haptics` | DRV2605L |
-  | Key holder | `org.opendap.hw.KeyHolder` (behind `odap-keystore`) | TPM 2.0 |
-  | NFC | `org.opendap.hw.Nfc` | The NFC tag, and the reader where fitted |
+  | DAC and output stage | `cc.opendap.Blackbird.Hw.Audio.Dac`, `.Output` | CS43198 and the board's output stage |
+  | Display | `cc.opendap.Blackbird.Hw.Display` | The faceplate's panel through DRM |
+  | Controls | `cc.opendap.Blackbird.Hw.Controls` | `gpio-keys` and the faceplate's HID |
+  | Battery and charging | `cc.opendap.Blackbird.Hw.Battery` | Fuel gauge and charger |
+  | Status LED | `cc.opendap.Blackbird.Hw.Led` | The faceplate's RGB LED driver; `odap-statusled` shows the controls spec's states on it (§2.2), from the battery's uevents and the requests other services leave in `/run/blackbird/statusled/requests/` until the bus carries this interface |
+  | Haptics | `cc.opendap.Blackbird.Hw.Haptics` | DRV2605L |
+  | Key holder | `cc.opendap.Blackbird.Hw.KeyHolder` (behind `odap-keystore`) | TPM 2.0 |
+  | NFC | `cc.opendap.Blackbird.Hw.Nfc` | The NFC tag, and the reader where fitted |
   | Radios | Standard services (iwd, BlueZ) | The Wi-Fi and Bluetooth module |
 
 - **Declarative matching.** Each service declares the devicetree compatibles, USB identities or HAT and faceplate identities it serves, and the orchestrator binds it, in the manner of Fuchsia's bind rules. No service probes to guess a model.
@@ -102,7 +102,7 @@ One image per board, one OS for all.
 
 ## 6. What the UI receives
 
-`org.opendap.device.Capabilities` (system architecture spec §4.4) publishes the merged record:
+`cc.opendap.Blackbird.Device.Capabilities` (system architecture spec §4.4) publishes the merged record:
 
 - `display`: size in mm, pixels, shape, safe insets, technology, distance class;
 - `controls`: roles, positions, shapes;
@@ -126,7 +126,7 @@ Each layout class is optimised for its characteristics, not scaled from another.
 
 ## 7. Compatibility
 
-- **Provided:** each description declares the `org.opendap.hw.*` interfaces and versions its hardware provides.
+- **Provided:** each description declares the `cc.opendap.Blackbird.Hw.*` interfaces and versions its hardware provides.
 - **Required:** each Blackbird OS release publishes the interface version ranges, kernel options and binding versions it requires.
 - **When:**
   - checked on an L1 update before it installs (Android checks this at OTA time);
@@ -139,7 +139,7 @@ Each layout class is optimised for its characteristics, not scaled from another.
 
 ## 8. Testing
 
-- **The virtual device** (OS-018) is a description too: QEMU with a generated devicetree and fake component services implementing `org.opendap.hw.*`, run against the same description files.
+- **The virtual device** (OS-018) is a description too: QEMU with a generated devicetree and fake component services implementing `cc.opendap.Blackbird.Hw.*`, run against the same description files.
 - **Fixtures** cover more than the T1:
   - a board with no display;
   - a round OLED;

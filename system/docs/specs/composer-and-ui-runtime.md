@@ -185,7 +185,7 @@ Bounded, each with a byte cap in its manifest (A6 in the system architecture spe
 ## 8. Accessibility of what the composer draws
 
 - `odap-product` and HAT hosts expose their trees through AccessKit on winit to AT-SPI.
-- `odap-composer` publishes the semantic tree of its own layers (status bar and panel, volume, power, consent, pairing, toasts) on the bus, as `org.opendap.a11y.Tree`. It uses the same node model (role, name, state, value, actions), and `odap-voice` merges it with AT-SPI. One voice reads the whole screen (SYS-062).
+- `odap-composer` publishes the semantic tree of its own layers (status bar and panel, volume, power, consent, pairing, toasts) on the bus, as `cc.opendap.Blackbird.A11y.Tree`. It uses the same node model (role, name, state, value, actions), and `odap-voice` merges it with AT-SPI. One voice reads the whole screen (SYS-062).
 - **Recovery** speaks its few states (recovery mode, flashing, done, failed, the button to press next) with fixed phrases through the same speech engine, if the recovery image carries it. Otherwise earcons with a documented meaning. Its buttons need no touch.
 
 ## 9. Boot

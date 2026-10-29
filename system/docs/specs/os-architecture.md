@@ -85,7 +85,7 @@ Decided in ADR 0011. "Verified" means covered by a signature the device checks b
 
 | Unix idea | On Blackbird OS |
 |---|---|
-| Do one thing well | One service per job. Its interface is small and named for its job (`org.opendap.audio.Engine`, `org.opendap.library.Index`) |
+| Do one thing well | One service per job. Its interface is small and named for its job (`cc.opendap.Blackbird.Audio.Engine`, `cc.opendap.Blackbird.Library.Index`) |
 | Compose small programs | Composition happens on the bus. A service calls another's interface; no service embeds another's logic |
 | Text streams as the universal interface | Varlink is JSON, introspectable with `varlinkctl` and `opendap bus`; bulk data stays in files and typed memfd streams, never in control messages |
 | Programs that work together | Every interface is reachable by every client the grants allow: the composer, the OS Shell, the activity hosts, capabilities, the CLI, the MCP server, paired devices (RFC 0004) |
@@ -110,21 +110,21 @@ The system services of ADR 0002, with the ones decided since (new ones in bold):
 
 | Service | Job | Main interfaces |
 |---|---|---|
-| `odap-orchestrator` | Lifecycle, capability index, slot resolution, permission evaluator, power policy, bus directory | `org.opendap.system.Capabilities`, `.Activities`, `.Slots`, `.Grants`, `.Power`, `org.opendap.bus.Directory` |
-| `odap-audiod` | Playback engine, profiles and blocks, signal path, taps | `org.opendap.audio.Engine`, `.Output`, `.Profiles`, `org.opendap.media.Player` |
-| `odap-library` | Index, search, artwork, events; replica of the owner's library (OS-029) | `org.opendap.library.Index`, `.Search`, `.Events`, `.Playlists` |
-| `odap-dose` | Hearing-safety dose (SYS-012) | `org.opendap.hearing.Dose` |
-| `odap-input` | Buttons and faceplate HID to semantic actions, timings (SYS-066) | `org.opendap.input.Actions` |
-| `odap-power` | Battery, thermal, wake policy | `org.opendap.power.Battery`, `.Stats`, `.Wake` |
-| `odap-fetch` | Downloads through the package endpoint; TUF metadata; recalls | `org.opendap.packages.Fetch` |
-| `odap-hatd`, `odap-chipd` | HAT identification; chip flashing and debugging | `org.opendap.hat.Bus`, `org.opendap.chips.Chips` |
-| **`odap-peers`** | The OpenDAP Protocol: discovery, pairing, sessions, the remote side of every interface (RFC 0004) | `org.opendap.peers.Devices`, `.Pairing`, `.Sessions` |
-| **`odap-sync`** | State and index sync with peers; transfers; Recently Deleted (SYS-050 to SYS-053) | `org.opendap.sync.State`, `.Transfers` |
-| **`odap-keystore`** | Every key behind one interface; filesystem today, TPM or TEE when present (OS-032, BRD-059) | `org.opendap.keys.Store` |
-| **`odap-providers`** | The provider broker: which providers are enabled, for what, in which order (SYS-045) | `org.opendap.providers.Registry` |
-| **`odap-voice`** | Voice guidance: speaks the focused element, changes and now playing, from the AT-SPI tree and the bus (SYS-062) | `org.opendap.a11y.Voice` |
-| **`odap-notify`** | Notifications by kind, rate-limited, routed to the status panel and to peers that asked for them | `org.opendap.notify.Notifications` |
-| **`odap-usb`** | The USB gadget composite and the music volume handover (blackbird-os ADR 0013) | `org.opendap.usb.Gadget` |
+| `odap-orchestrator` | Lifecycle, capability index, slot resolution, permission evaluator, power policy, bus directory | `cc.opendap.Blackbird.System.Capabilities`, `.Activities`, `.Slots`, `.Grants`, `.Power`, `cc.opendap.Blackbird.Bus.Directory` |
+| `odap-audiod` | Playback engine, profiles and blocks, signal path, taps | `cc.opendap.Blackbird.Audio.Engine`, `.Output`, `.Profiles`, `cc.opendap.Blackbird.Media.Player` |
+| `odap-library` | Index, search, artwork, events; replica of the owner's library (OS-029) | `cc.opendap.Blackbird.Library.Index`, `.Search`, `.Events`, `.Playlists` |
+| `odap-dose` | Hearing-safety dose (SYS-012) | `cc.opendap.Blackbird.Hearing.Dose` |
+| `odap-input` | Buttons and faceplate HID to semantic actions, timings (SYS-066) | `cc.opendap.Blackbird.Input.Actions` |
+| `odap-power` | Battery, thermal, wake policy | `cc.opendap.Blackbird.Power.Battery`, `.Stats`, `.Wake` |
+| `odap-fetch` | Downloads through the package endpoint; TUF metadata; recalls | `cc.opendap.Blackbird.Packages.Fetch` |
+| `odap-hatd`, `odap-chipd` | HAT identification; chip flashing and debugging | `cc.opendap.Blackbird.Hat.Bus`, `cc.opendap.Blackbird.Chips.Chips` |
+| **`odap-peers`** | The OpenDAP Protocol: discovery, pairing, sessions, the remote side of every interface (RFC 0004) | `cc.opendap.Blackbird.Peers.Devices`, `.Pairing`, `.Sessions` |
+| **`odap-sync`** | State and index sync with peers; transfers; Recently Deleted (SYS-050 to SYS-053) | `cc.opendap.Blackbird.Sync.State`, `.Transfers` |
+| **`odap-keystore`** | Every key behind one interface; filesystem today, TPM or TEE when present (OS-032, BRD-059) | `cc.opendap.Blackbird.Keys.Store` |
+| **`odap-providers`** | The provider broker: which providers are enabled, for what, in which order (SYS-045) | `cc.opendap.Blackbird.Providers.Registry` |
+| **`odap-voice`** | Voice guidance: speaks the focused element, changes and now playing, from the AT-SPI tree and the bus (SYS-062) | `cc.opendap.Blackbird.A11y.Voice` |
+| **`odap-notify`** | Notifications by kind, rate-limited, routed to the status panel and to peers that asked for them | `cc.opendap.Blackbird.Notify.Notifications` |
+| **`odap-usb`** | The USB gadget composite and the music volume handover (blackbird-os ADR 0013) | `cc.opendap.Blackbird.Usb.Gadget` |
 | `odap-agent` | The device side of the CLI and MCP (developer mode) | Introspection, input injection, screenshots |
 
 ### 4.4 Device capabilities
@@ -133,7 +133,7 @@ The structure behind this record (hardware layers, the device description, adapt
 
 The hardware a device has is data, published once by the orchestrator from the board, the faceplate, the HATs and the probes of each service (SYS-040):
 
-- an interface, `org.opendap.device.Capabilities`, lists features and their state (`present`, `absent`, `disabled: reason`);
+- an interface, `cc.opendap.Blackbird.Device.Capabilities`, lists features and their state (`present`, `absent`, `disabled: reason`);
 - context keys expose the same facts to `when` predicates (`device.output.balanced`, `device.nfc`, `device.haptics`, `device.tpm`).
 
 A feature whose hardware is absent is shown disabled with its reason, never hidden. Peers read the same interface through the protocol, so a newer Desktop knows what an older T1 can do.
@@ -146,7 +146,7 @@ In order of preference (ADR 0010):
 
 | # | Provides | How the product uses it | Example |
 |---|---|---|---|
-| 1 | **A provider** implementing a shared `org.opendap.provider.*` interface | The product's own screens show its data, merged with others, ordered by the owner | A podcast directory as a library source; a lyrics source for the Lyrics view; a metadata service; a store; a scrobbler (SYS-045) |
+| 1 | **A provider** implementing a shared `cc.opendap.Blackbird.Provider.*` interface | The product's own screens show its data, merged with others, ordered by the owner | A podcast directory as a library source; a lyrics source for the Lyrics view; a metadata service; a store; a scrobbler (SYS-045) |
 | 2 | **Audio blocks** as data | Profiles use them like built-in blocks | A pack of headphone corrections (parametric EQ in the APO format), impulse responses for convolution |
 | 3 | **A handler** | The product routes an intent to it | Open `text/x-lrc`; a `podcast:` URI |
 | 4 | **A task in a slot** | The host renders it with a template | An action in Now Playing's More view; a settings section; a status line |
@@ -166,7 +166,7 @@ ADR 0002's `capability.toml` gains three tables:
 
 ```toml
 [[provides.provider]]              # 1: a provider
-interface = "org.opendap.provider.LibrarySource@1"
+interface = "cc.opendap.Blackbird.Provider.LibrarySource@1"
 service   = "podcastd"
 kinds     = ["podcasts"]
 network   = ["api.example.com:443"]   # opt-in: shown when the owner enables it
@@ -246,7 +246,7 @@ Templates are data, so OpenDAP Desktop and the phone app can render a capability
   - provider descriptors: which interfaces a provider kind implements and what it shows the owner before enabling it.
 - **Form:** static files with TUF-style metadata (timestamp, snapshot, targets, expiry) and a signed recall list. Any static host can serve it.
 - **Publishing:**
-  - `org.opendap.*` interfaces and templates change through RFCs.
+  - `cc.opendap.Blackbird.*` interfaces and templates change through RFCs.
   - Publishers' own interfaces live under their reverse domain, validated by `opendap schema check`.
   - Components for the design system go through review (ADR 0004).
 - **On the device:**
@@ -327,7 +327,7 @@ For paired devices:
   - socket routing into the unit's namespace (ADR 0002);
   - the SDK middleware checks the peer's credentials against the grant, at the method's level, on every call;
   - Landlock and `IPAddressAllow` for network scope.
-- **Remotely:** `odap-peers` evaluates the same grants for the session's principal before forwarding a call to the local interface. One evaluator, one grant store (`org.opendap.system.Grants`).
+- **Remotely:** `odap-peers` evaluates the same grants for the session's principal before forwarding a call to the local interface. One evaluator, one grant store (`cc.opendap.Blackbird.System.Grants`).
 - **Audit:** every grant, use of a sensitive resource and refusal is recorded locally. It is shown in "This T1 → Extensions" and "Devices", and is readable by the CLI. It never leaves the device unless the owner exports it (SYS-055).
 - **Revocation and reset:**
   - revoking removes the socket from the principal's namespace and takes effect at the next call;
@@ -354,14 +354,14 @@ For paired devices:
 A podcast provider.
 
 1. The owner enables `com.example.podcasts` in Library → More → Add a source. One screen says it will reach `api.example.com` and store subscriptions in the library (consent at enable).
-2. It implements `org.opendap.provider.LibrarySource@1` for the kind `podcasts`. Library → More shows "Podcasts", and the episodes appear in the library's own lists, played by `odap-audiod`.
+2. It implements `cc.opendap.Blackbird.Provider.LibrarySource@1` for the kind `podcasts`. Library → More shows "Podcasts", and the episodes appear in the library's own lists, played by `odap-audiod`.
 3. It contributes a settings section (refresh interval) in Library and in Extensions.
 4. Nothing of it runs until the owner opens Podcasts or its refresh timer fires, coalesced with others.
 
 A phone remote.
 
 1. The phone pairs (RFC 0004).
-2. Its principal gets Operate on `org.opendap.media.Player` and View on `org.opendap.library.Index`.
+2. Its principal gets Operate on `cc.opendap.Blackbird.Media.Player` and View on `cc.opendap.Blackbird.Library.Index`.
 3. It plays, pauses and queues through `odap-peers`.
 4. Asking to erase the T1 is refused: Administer is not granted.
 

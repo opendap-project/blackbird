@@ -9,7 +9,7 @@
 //! - What other services know (a fault, an update, recovery, eject first, pairing, activity): a
 //!   file each in `/run/blackbird/statusled/requests/`, present while the state lasts. A developer takes the LED
 //!   below priority 5 with `/run/blackbird/statusled/requests/developer` (`r g b [pattern]`, §2.2 rule 1). These
-//!   files stand in for the `org.opendap.hw.Led` interface until the bus has it.
+//!   files stand in for the `cc.opendap.Blackbird.Hw.Led` interface until the bus has it.
 //!
 //! No wakeups while nothing changes: uevents and inotify wake it, and a pattern's timer runs only
 //! while a blinking or breathing state shows.

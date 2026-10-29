@@ -4,7 +4,7 @@ schema = "opendap.device-description/v1"
 
 [identity]
 kind = "board"
-id = "org.opendap.fixture.no-display"
+id = "cc.opendap.fixture.no-display"
 name = "Fixture without display"
 version = 1
 

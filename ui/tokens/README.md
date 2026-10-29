@@ -21,7 +21,7 @@ Design tokens of the official design system: every colour, font, spacing, radius
 | `effect` | Shadow and brand glow. |
 | `plasma` | The plasma and thermal special mode, kept as one group so the reduced-effects mode can turn it off as a whole. |
 
-Units: on the T1, `px` is one panel pixel (about 0.153 mm at 166 ppi). Values the format cannot express (elliptical radial gradients, layer blur and inset) are in `$extensions` under `org.opendap.*`.
+Units: on the T1, `px` is one panel pixel (about 0.153 mm at 166 ppi). Values the format cannot express (elliptical radial gradients, layer blur and inset) are in `$extensions` under `cc.opendap.blackbird.*`.
 
 ## Generated outputs
 

@@ -136,7 +136,7 @@ Each part of the T1 reference board (board BOM v1.7) and what the `virtual-t1` m
 
 ## 7. What the toolkit shows
 
-The parts a VM cannot emulate still have their adapters on the virtual board, implementing the same `org.opendap.hw.*` interfaces (hardware support spec §4). They publish what software asks of them:
+The parts a VM cannot emulate still have their adapters on the virtual board, implementing the same `cc.opendap.Blackbird.Hw.*` interfaces (hardware support spec §4). They publish what software asks of them:
 
 - the LED's colour and pattern;
 - haptic effects;

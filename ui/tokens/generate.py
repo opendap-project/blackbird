@@ -192,7 +192,7 @@ def reference(source, version):
 
 def generate():
     source = load()
-    version = source["$extensions"]["org.opendap.theme"]["version"]
+    version = source["$extensions"]["cc.opendap.blackbird.theme"]["version"]
     tokens = resolve(list(flatten(source)))
 
     slint, slint_skipped = [], []

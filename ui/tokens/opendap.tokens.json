@@ -2,7 +2,7 @@
   "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
   "$description": "Engineered Matter (the OpenDAP design system) tokens, official theme. Draft (2026-10-22): starting values from the maintainers' design direction, to be validated on the prototype display. Spec: docs/specs/design-system.md. Slint and CSS outputs are generated from this file.",
   "$extensions": {
-    "org.opendap.theme": {
+    "cc.opendap.blackbird.theme": {
       "id": "opendap-official",
       "name": "OpenDAP",
       "status": "draft",
@@ -923,7 +923,7 @@
         ],
         "$description": "Reference plasma gradient (radial)",
         "$extensions": {
-          "org.opendap.radial": {
+          "cc.opendap.blackbird.radial": {
             "shape": "ellipse",
             "center": [
               0.46,
@@ -1002,14 +1002,14 @@
         ],
         "$description": "Plasma glow layer (radial), drawn blurred behind content",
         "$extensions": {
-          "org.opendap.radial": {
+          "cc.opendap.blackbird.radial": {
             "shape": "ellipse",
             "center": [
               0.48,
               0.5
             ]
           },
-          "org.opendap.layer": {
+          "cc.opendap.blackbird.layer": {
             "inset": 0.08,
             "blur": {
               "value": 22,
@@ -1064,7 +1064,7 @@
           }
         ],
         "$extensions": {
-          "org.opendap.radial": {
+          "cc.opendap.blackbird.radial": {
             "shape": "ellipse",
             "center": [
               0.35,
@@ -1104,7 +1104,7 @@
           }
         ],
         "$extensions": {
-          "org.opendap.radial": {
+          "cc.opendap.blackbird.radial": {
             "shape": "ellipse",
             "center": [
               0.67,
@@ -1144,7 +1144,7 @@
           }
         ],
         "$extensions": {
-          "org.opendap.radial": {
+          "cc.opendap.blackbird.radial": {
             "shape": "ellipse",
             "center": [
               0.6,

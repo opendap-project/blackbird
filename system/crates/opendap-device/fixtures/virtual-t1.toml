@@ -4,7 +4,7 @@ schema = "opendap.device-description/v1"
 
 [identity]
 kind = "board"
-id = "org.opendap.virtual-t1"
+id = "cc.opendap.virtual-t1"
 name = "Virtual T1"
 version = 1
 
