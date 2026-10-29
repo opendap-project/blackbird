@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2026 The OpenDAP Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 """tokens.py: the design tokens the scenarios look for, from Blackbird UI's published tokens."""
+import os
 import pathlib
 import sys
 import tempfile
@@ -41,6 +42,23 @@ class Tokens(unittest.TestCase):
             (ws / "repos.tsv").write_text("path\trepository\npublic/blackbird\topendap-project/blackbird\n")
             self.assertEqual(tokens.repo("virtual-devices", ws / "public/other"), ws / "public/blackbird/emulator")
 
+
+    def test_a_merged_repository_ignores_its_old_variable_and_row(self):
+        with tempfile.TemporaryDirectory() as d:
+            ws = pathlib.Path(d)
+            (ws / "public/virtual-devices").mkdir(parents=True)
+            (ws / "public/other").mkdir()
+            (ws / "repos.tsv").write_text("path\trepository\npublic/virtual-devices\topendap-project/virtual-devices\n")
+            old = os.environ.pop("ODAP_VIRTUAL_DEVICES_DIR", None), os.environ.pop("ODAP_BLACKBIRD_DIR", None)
+            os.environ["ODAP_VIRTUAL_DEVICES_DIR"] = str(ws / "public/virtual-devices")
+            try:
+                with self.assertRaises(SystemExit):
+                    tokens.repo("virtual-devices", ws / "public/other")
+            finally:
+                os.environ.pop("ODAP_VIRTUAL_DEVICES_DIR")
+                for k, v in zip(("ODAP_VIRTUAL_DEVICES_DIR", "ODAP_BLACKBIRD_DIR"), old):
+                    if v is not None:
+                        os.environ[k] = v
 
 if __name__ == "__main__":
     unittest.main()

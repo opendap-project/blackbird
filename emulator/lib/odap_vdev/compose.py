@@ -155,7 +155,7 @@ def frame(model):
     d = display(model)
     if case is None or front is None or d is None:
         return None
-    return {"schema": "opendap.vdev-frame/v2", "case": case, "front": front, "display": d, "controls": controls(model),
+    return {"schema": "blackbird.emulator-frame/v2", "case": case, "front": front, "display": d, "controls": controls(model),
             "host_keys": host_keys(model), "probes": probes(model)}
 
 

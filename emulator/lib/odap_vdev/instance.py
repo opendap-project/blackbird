@@ -90,7 +90,7 @@ class Instance:
         except workspace.NotFound as e:
             image, image_present = str(e), False
         return {
-            "schema": "opendap.vdev-status/v1",
+            "schema": "blackbird.emulator-status/v1",
             "model": self.model["model"]["id"],
             "name": self.name,
             "state": "running" if pid else "stopped",
@@ -263,7 +263,7 @@ class Instance:
             raise InstanceError((r.stderr or "").strip() or "the reboot failed")
 
     def hardware(self):
-        """The virtual hardware's physical state (`opendap.vdev-hardware/v1`), not what the
+        """The virtual hardware's physical state (`blackbird.emulator-hardware/v1`), not what the
         device's system makes of it: the card in the socket and the USB devices on the port
         (QEMU), the charger and the battery (the board's battery model, test_power)."""
         if not self.pid():
@@ -284,7 +284,7 @@ class Instance:
             light = int(lines[3]) if lines[3].isdigit() else None
             mic = {"1": True, "0": False}.get(lines[4])
         # The status LED shows (r, g, b, 0–255); light is the lux the ambient light sensor sees.
-        return {"schema": "opendap.vdev-hardware/v1", "sd": sd, "usb": usb, "charger": charger, "battery": battery,
+        return {"schema": "blackbird.emulator-hardware/v1", "sd": sd, "usb": usb, "charger": charger, "battery": battery,
                 "led": led, "light": light, "mic": mic}
 
     def boot_modes(self):

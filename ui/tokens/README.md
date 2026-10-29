@@ -43,7 +43,7 @@ python3 -m unittest tokens/test_generate.py     # tests of the reference output
 
 Pre-commit runs the check and the tests on every commit that touches `tokens/` or the outputs.
 
-Other repositories read `export/`, never the token file (`system` finds it through `ODAP_BLACKBIRD_UI_DIR` or the workspace's `repos.tsv`).
+Other repositories read `export/`, never the token file (`system` finds it through `ODAP_BLACKBIRD_DIR` or the workspace's `repos.tsv`).
 
 ## Themes
 

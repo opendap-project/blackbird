@@ -2,9 +2,9 @@
 """Generate virtual-t1.toml, the test fixture of the virtual T1's device description, from virtual-devices.
 
 Usage: generate.py [--check]
-The description is what virtual-devices composes and hands to the guest (`odap-vdev describe`), found through
-ODAP_VIRTUAL_DEVICES_DIR or the workspace's repos.tsv (since the blackbird cut, the root's emulator/ folder). --check exits 1 when the committed fixture differs, and 0
-with a notice when no virtual-devices checkout is available.
+The description is what the emulator composes and hands to the guest (`odap-vdev describe`), found in the
+emulator/ folder of the blackbird root: this checkout, ODAP_BLACKBIRD_DIR or the workspace's blackbird row.
+--check exits 1 when the committed fixture differs, and 0 with a notice when no emulator is available.
 """
 import os
 import pathlib
@@ -28,11 +28,8 @@ def _row(tsv_dir, suffix):
 
 
 def virtual_devices():
-    """The virtual-devices checkout; since the blackbird cut (RFC 0017) the emulator/ folder of the same
-    checkout, of ODAP_BLACKBIRD_DIR or of the workspace's blackbird row."""
-    env = os.environ.get("ODAP_VIRTUAL_DEVICES_DIR")
-    if env:
-        return pathlib.Path(env)
+    """The emulator/ folder of the same checkout, of ODAP_BLACKBIRD_DIR or of the workspace's blackbird row
+    (RFC 0017; the old virtual-devices variable and row are not read any more, HL-91)."""
     top = next((p for p in (HERE, *HERE.parents) if (p / ".git").exists()), None)
     if top and (top / "emulator/bin/odap-vdev").is_file():
         return top / "emulator"
@@ -40,9 +37,8 @@ def virtual_devices():
         return pathlib.Path(os.environ["ODAP_BLACKBIRD_DIR"]) / "emulator"
     for p in (HERE, *HERE.parents):
         if (p / "repos.tsv").is_file():
-            vd = _row(p, "/virtual-devices")
             root = _row(p, "/blackbird")
-            return vd or (root / "emulator" if root else None)
+            return root / "emulator" if root else None
     return None
 
 

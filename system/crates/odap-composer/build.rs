@@ -1,5 +1,5 @@
 // The system layers' design tokens and fonts come from Blackbird UI's published outputs (its
-// export/), found through ODAP_BLACKBIRD_UI_DIR or the workspace's repos.tsv, never its sources.
+// export/), found through ODAP_BLACKBIRD_DIR or the workspace's repos.tsv, never its sources.
 // Glyphs are embedded for the software renderer: the composer needs no font files at run time.
 // The tokens the compositor draws with itself come from the same export, as Rust constants.
 use std::path::PathBuf;

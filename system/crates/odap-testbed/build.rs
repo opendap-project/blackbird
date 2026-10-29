@@ -1,5 +1,5 @@
 // The design tokens, fonts and icons come from Blackbird UI's published outputs (its export/),
-// found through ODAP_BLACKBIRD_UI_DIR or the workspace's repos.tsv, never from its sources.
+// found through ODAP_BLACKBIRD_DIR or the workspace's repos.tsv, never from its sources.
 use std::path::PathBuf;
 
 fn main() {

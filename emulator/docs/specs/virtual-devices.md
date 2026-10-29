@@ -22,7 +22,7 @@
 | `layers/faceplates/` | H3: `virtual-touch`, with the panel, touch, the controls with roles and places, and the host's keys and pointer |
 | `layers/hats/` | H4: none yet |
 | `models/` | `virtual-t1`: its identity, and one layer per kind |
-| `bin/odap-vdev` | The tool, one domain per subcommand: `models`, `describe`, `start [--window] [--no-frame] [--no-on-top] [--wait]`, `window`, `frame`, `stop`, `reboot [--mode MODE] [--list]`, `status [--json]`, `ssh`, `console`, `screen capture`, `input press ROLE [ROLE…] / key ROLE down / key ROLE up / tap / swipe`, `usb list / plug / unplug`, `sd insert / eject`, `power battery / charger`, `hw [--json]` (the hardware's state: card, USB, charger, battery, `opendap.vdev-hardware/v1`) |
+| `bin/odap-vdev` | The tool, one domain per subcommand: `models`, `describe`, `start [--window] [--no-frame] [--no-on-top] [--wait]`, `window`, `frame`, `stop`, `reboot [--mode MODE] [--list]`, `status [--json]`, `ssh`, `console`, `screen capture`, `input press ROLE [ROLE…] / key ROLE down / key ROLE up / tap / swipe`, `usb list / plug / unplug`, `sd insert / eject`, `power battery / charger`, `hw [--json]` (the hardware's state: card, USB, charger, battery, `blackbird.emulator-hardware/v1`) |
 | `lib/odap_vdev/` | Its modules: `compose` (model and layers to description and QEMU arguments), `instance` (one running device), `qmp`, `workspace` (other repositories through `repos.tsv`), `cli` |
 | `export/bsp/` | The virtual board's support package for Blackbird OS images (a mkosi config directory): the description from fw_cfg, the network links, the USB device port, the initrd's drivers |
 

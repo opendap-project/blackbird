@@ -27,11 +27,21 @@ class RepoDir(unittest.TestCase):
         self.addCleanup(p.stop)
 
     def test_a_repository_listed_in_repos_tsv(self):
+        (self.ws / "public/hats").mkdir(parents=True)
+        (self.ws / "public/other").mkdir(parents=True)
+        (self.ws / "repos.tsv").write_text("path\trepository\npublic/hats\topendap-project/hats\n")
+        self.at("public/other")
+        self.assertEqual(workspace.repo_dir("hats"), self.ws / "public/hats")
+
+    def test_a_merged_repository_ignores_its_old_variable_and_row(self):
         (self.ws / "public/blackbird-os").mkdir(parents=True)
-        (self.ws / "public/virtual-devices").mkdir(parents=True)
+        (self.ws / "elsewhere").mkdir()
         (self.ws / "repos.tsv").write_text("path\trepository\npublic/blackbird-os\topendap-project/blackbird-os\n")
-        self.at("public/virtual-devices")
-        self.assertEqual(workspace.repo_dir("blackbird-os"), self.ws / "public/blackbird-os")
+        os.environ["ODAP_BLACKBIRD_OS_DIR"] = str(self.ws / "public/blackbird-os")
+        self.at("elsewhere")
+        with self.assertRaises(workspace.NotFound) as e:
+            workspace.repo_dir("blackbird-os")
+        self.assertIn("ODAP_BLACKBIRD_DIR", str(e.exception))
 
     def test_a_merged_repository_in_the_same_checkout(self):
         for sub in (".git", "os", "emulator"):

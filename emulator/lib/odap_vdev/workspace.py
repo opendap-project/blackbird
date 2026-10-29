@@ -1,9 +1,10 @@
 """Finding the other repositories a virtual device needs, and the host-wide state and keys.
 
-A repository is found through ODAP_<NAME>_DIR (for example ODAP_BLACKBIRD_OS_DIR), else through the
+A repository is found through ODAP_<NAME>_DIR (for example ODAP_HATS_DIR), else through the
 workspace's repos.tsv (the folder above this checkout that lists every repository), never by a
-guessed relative path (RFC 0008). A repository merged into the blackbird root (RFC 0017) is its folder
-there: in this same checkout, else under ODAP_BLACKBIRD_DIR or the root's repos.tsv row.
+guessed relative path (RFC 0008). A repository merged into the blackbird root (RFC 0017) is only its
+folder there: in this same checkout, else under ODAP_BLACKBIRD_DIR or the root's repos.tsv row; its old
+variable and row are not read any more (HL-91).
 """
 import os
 import pathlib
@@ -56,12 +57,19 @@ def _merged(name, ws):
 
 
 def repo_dir(name):
-    """The checkout of the GitHub repository `name` (for example "blackbird-os")."""
+    """The checkout of the GitHub repository `name` (for example "blackbird-os", the os/ folder of blackbird)."""
+    ws = workspace()
+    if name in MERGED:
+        root, folder = MERGED[name]
+        found = _merged(name, ws)
+        if found:
+            return found
+        raise NotFound(f"no {folder}/ folder of {root}: set ODAP_{root.upper()}_DIR, "
+                       "or run scripts/bootstrap.sh in the workspace")
     var = "ODAP_" + name.upper().replace("-", "_") + "_DIR"
     if os.environ.get(var):
         return _env_dir(var)
-    ws = workspace()
-    found = (_row(ws, name) if ws else None) or (_merged(name, ws) if name in MERGED else None)
+    found = _row(ws, name) if ws else None
     if found:
         return found
     raise NotFound(f"no {name} checkout: set {var}, or run scripts/bootstrap.sh in the workspace")

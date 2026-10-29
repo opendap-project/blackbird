@@ -1,15 +1,20 @@
 //! Finding another repository's checkout, for build scripts that consume its published outputs
 //! (RFC 0008): `ODAP_<NAME>_DIR` when set, else the workspace's `repos.tsv` above `start`.
-//! A repository merged into the `blackbird` root (RFC 0017) is its folder there: in the same
-//! checkout as `start`, else under `ODAP_BLACKBIRD_DIR` or the root's `repos.tsv` row.
-//! Never a guessed relative path.
+//! A repository merged into the `blackbird` root (RFC 0017) is only its folder there: in the same
+//! checkout as `start`, else under `ODAP_BLACKBIRD_DIR` or the root's `repos.tsv` row; its old
+//! variable and row are not read any more (HL-91). Never a guessed relative path.
 
 use std::path::{Path, PathBuf};
 
 pub mod tokens;
 
-/// The environment variable that points at repository `name`'s checkout.
+/// The environment variable that points at repository `name`'s checkout: for a merged
+/// repository, its root's (`ODAP_BLACKBIRD_DIR`).
 pub fn env_var(name: &str) -> String {
+    let name = MERGED
+        .iter()
+        .find(|(n, _, _)| *n == name)
+        .map_or(name, |(_, root, _)| *root);
     format!("ODAP_{}_DIR", name.to_uppercase().replace('-', "_"))
 }
 
@@ -75,15 +80,19 @@ fn merged(
 /// The checkout of the GitHub repository `name` (for example "blackbird-ui").
 pub fn repo_dir(name: &str, start: &Path) -> Result<PathBuf, String> {
     let var = env_var(name);
-    if let Some(found) = env_dir(&var) {
-        return found;
-    }
     let ws = workspace(start);
-    if let Some(dir) = ws.as_ref().and_then(|(w, t)| row(w, t, name)) {
-        return Ok(dir);
-    }
-    if let Some(found) = merged(name, start, ws.as_ref()) {
-        return found;
+    let is_merged = MERGED.iter().any(|(n, _, _)| *n == name);
+    if is_merged {
+        if let Some(found) = merged(name, start, ws.as_ref()) {
+            return found;
+        }
+    } else {
+        if let Some(found) = env_dir(&var) {
+            return found;
+        }
+        if let Some(dir) = ws.as_ref().and_then(|(w, t)| row(w, t, name)) {
+            return Ok(dir);
+        }
     }
     Err(match ws {
         Some((dir, _)) => format!(
@@ -119,22 +128,23 @@ mod tests {
 
     #[test]
     fn names_the_variable_after_the_repository() {
-        assert_eq!(env_var("blackbird-ui"), "ODAP_BLACKBIRD_UI_DIR");
+        assert_eq!(env_var("hats"), "ODAP_HATS_DIR");
+        assert_eq!(env_var("blackbird-ui"), "ODAP_BLACKBIRD_DIR"); // merged: its root's
     }
 
     #[test]
     fn finds_a_repository_through_repos_tsv() {
         let root = std::env::temp_dir().join(format!("odap-ws-{}", std::process::id()));
-        std::fs::create_dir_all(root.join("public/blackbird-ui")).unwrap();
-        std::fs::create_dir_all(root.join("public/system/crates/x")).unwrap();
+        std::fs::create_dir_all(root.join("public/hats")).unwrap();
+        std::fs::create_dir_all(root.join("public/other/crates/x")).unwrap();
         std::fs::write(
             root.join("repos.tsv"),
-            "path\trepository\npublic/blackbird-ui\topendap-project/blackbird-ui\n",
+            "path\trepository\npublic/hats\topendap-project/hats\n",
         )
         .unwrap();
-        let found = repo_dir("blackbird-ui", &root.join("public/system/crates/x")).unwrap();
-        assert_eq!(found, root.join("public/blackbird-ui"));
-        assert!(repo_dir("nothing", &root.join("public/system")).is_err());
+        let found = repo_dir("hats", &root.join("public/other/crates/x")).unwrap();
+        assert_eq!(found, root.join("public/hats"));
+        assert!(repo_dir("nothing", &root.join("public/other")).is_err());
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -173,16 +183,31 @@ mod tests {
     }
 
     #[test]
-    fn published_paths_must_exist() {
-        let root = std::env::temp_dir().join(format!("odap-ws-pub-{}", std::process::id()));
-        std::fs::create_dir_all(root.join("public/blackbird-ui/export")).unwrap();
-        std::fs::create_dir_all(root.join("public/system")).unwrap();
+    fn a_merged_repository_ignores_its_old_row() {
+        let root = std::env::temp_dir().join(format!("odap-ws-old-{}", std::process::id()));
+        std::fs::create_dir_all(root.join("public/blackbird-ui")).unwrap();
+        std::fs::create_dir_all(root.join("public/other")).unwrap();
         std::fs::write(
             root.join("repos.tsv"),
             "path\trepository\npublic/blackbird-ui\topendap-project/blackbird-ui\n",
         )
         .unwrap();
-        let start = root.join("public/system");
+        let err = repo_dir("blackbird-ui", &root.join("public/other")).unwrap_err();
+        assert!(err.contains("ODAP_BLACKBIRD_DIR"), "{err}");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn published_paths_must_exist() {
+        let root = std::env::temp_dir().join(format!("odap-ws-pub-{}", std::process::id()));
+        std::fs::create_dir_all(root.join("public/blackbird/ui/export")).unwrap();
+        std::fs::create_dir_all(root.join("public/other")).unwrap();
+        std::fs::write(
+            root.join("repos.tsv"),
+            "path\trepository\npublic/blackbird\topendap-project/blackbird\n",
+        )
+        .unwrap();
+        let start = root.join("public/other");
         assert!(published("blackbird-ui", &start, &["export"], "run the generators").is_ok());
         let err = published(
             "blackbird-ui",

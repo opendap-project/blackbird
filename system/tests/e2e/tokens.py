@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 The OpenDAP Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Other repositories' checkouts (ODAP_<NAME>_DIR, else the workspace's repos.tsv; a repository merged
-into the blackbird root is its folder there), and the design tokens the scenarios look for on the
+into the blackbird root is only its folder there), and the design tokens the scenarios look for on the
 display, read from Blackbird UI's published tokens (export/css/tokens.css) as the composer reads
 them: never typed by hand."""
 
@@ -31,19 +31,22 @@ def _row(start, name):
 
 def repo(name, start=None):
     """The checkout of the GitHub repository `name`, or exit with how to provide it. A merged repository is
-    its folder in the checkout that holds `start`, else in its root's checkout."""
-    var = "ODAP_" + name.upper().replace("-", "_") + "_DIR"
-    if os.environ.get(var):
-        return Path(os.environ[var])
+    only its folder in the checkout that holds `start`, else in its root's checkout (ODAP_BLACKBIRD_DIR or
+    the root's row); its old variable and row are not read any more (HL-91)."""
     start = Path(start or Path(__file__).resolve().parent)
-    found = _row(start, name)
-    if found is None and name in MERGED:
+    if name in MERGED:
         root, folder = MERGED[name]
+        var = "ODAP_" + root.upper() + "_DIR"
         top = next((d for d in (start, *start.parents) if (d / ".git").exists()), None)
-        base, row = os.environ.get("ODAP_" + root.upper() + "_DIR"), _row(start, root)
+        base, row = os.environ.get(var), _row(start, root)
         for cand in (top and top / folder, base and Path(base) / folder, row and row / folder):
             if cand and cand.is_dir():
                 return cand
+        sys.exit(f"e2e: {name} not found (the {folder}/ folder of {root}: {var}, or a workspace checkout)")
+    var = "ODAP_" + name.upper().replace("-", "_") + "_DIR"
+    if os.environ.get(var):
+        return Path(os.environ[var])
+    found = _row(start, name)
     if found is None:
         sys.exit(f"e2e: {name} not found ({var}, or a workspace checkout)")
     return found

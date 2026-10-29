@@ -36,7 +36,7 @@
 | Gestures | Recognises swipes that start in the 20 px edge zones (design system §8.5), minus the exclusion rectangles each surface declares (seek bar, A–Z index). Between places it moves buffers itself; within a place it forwards `gesture(kind, phase, progress, velocity)` to the host |
 | System layers | Status bar and status panel; the volume level beside the volume controls and power beside the `main` control, wherever the hardware record places them (on screen when a role has no physical control); consent; pairing code and confirmation; toasts with Undo; the keyboard's layer (`/usr/lib/blackbird/keyboard`, text-input and input-method protocols) |
 | Input | An activity that does not respond gets no input: 100 ms after a key the composer pings it (`xdg_wm_base`), and while a ping stays unanswered past 500 ms, keys are dropped, never queued, so nothing acts seconds later (SYS-072); nothing is sent at rest. Touch through libinput; buttons and faceplate HID as semantic actions from `odap-input`; adjustable press, hold and repeat timings (SYS-066) |
-| Lifecycle hints | `odap-activity-v1`: activate, background and suspended, plus gestures and element rectangles, to hosts and to the orchestrator |
+| Lifecycle hints | `blackbird-activity-v1`: activate, background and suspended, plus gestures and element rectangles, to hosts and to the orchestrator |
 | Display power | Screen off and on, DPMS, idle, lock; the screen-off playback path |
 
 **Where the decisions live.** The composer's decisions are platform-agnostic and tested on any host; its Linux side only applies them (the Rust crate architecture: core and adapters):
@@ -69,7 +69,7 @@
 - `text-input-v3`, `input-method-v2`, a filtered `virtual-keyboard-v1`;
 - `wlr-layer-shell`, filtered to `/usr/lib/blackbird/keyboard` only;
 - `wp_security_context_v1`;
-- the private `odap-activity-v1`.
+- the private `blackbird-activity-v1`.
 
 Not offered: fractional scale, decorations, foreign-toplevel management, idle inhibition for clients.
 

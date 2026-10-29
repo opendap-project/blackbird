@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The virtual T1 as an end-to-end scenario sees it (ADR 0014, level L3): its controls and touch in,
 its display and journal out, through virtual-devices' own library over one QMP connection and one
-SSH master (no process per key, no polling). Found through ODAP_VIRTUAL_DEVICES_DIR or the
-workspace's repos.tsv (tokens.py)."""
+SSH master (no process per key, no polling). Found in the emulator/ folder of blackbird: this checkout,
+ODAP_BLACKBIRD_DIR or the workspace's repos.tsv (tokens.py)."""
 
 import sys
 import time

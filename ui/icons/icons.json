@@ -1,5 +1,5 @@
 {
-  "schema": "opendap.icons/v1",
+  "schema": "blackbird.icons/v1",
   "icons": [
     {
       "name": "play",

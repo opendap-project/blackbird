@@ -1,5 +1,5 @@
 // The splash screen's lockup and the tokens it draws with are Blackbird UI's published outputs (its
-// brand file and export/css/tokens.css), found through ODAP_BLACKBIRD_UI_DIR or the workspace's
+// brand file and export/css/tokens.css), found through ODAP_BLACKBIRD_DIR or the workspace's
 // repos.tsv, never its sources.
 use std::path::PathBuf;
 

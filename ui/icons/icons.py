@@ -247,7 +247,7 @@ def outputs():
                           "style": style, "source": source})
     names = [c["name"] for c in catalogue]
     assert len(names) == len(set(names)), "duplicate icon names"
-    files[HERE / "icons.json"] = json.dumps({"schema": "opendap.icons/v1", "icons": catalogue}, indent=2, ensure_ascii=False) + "\n"
+    files[HERE / "icons.json"] = json.dumps({"schema": "blackbird.icons/v1", "icons": catalogue}, indent=2, ensure_ascii=False) + "\n"
     files[HERE.parent / "renders" / "web" / "icons.html"] = preview()
     return files, len(catalogue)
 
