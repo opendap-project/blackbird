@@ -183,6 +183,22 @@ pub fn parse(lines: &[String]) -> Option<Frame> {
     (f.mem_total_mib > 0.0).then_some(f)
 }
 
+/// The user's whole name: `top` cuts a name longer than its column to its first characters and a `+`
+/// (the session user `blackbird` shows as `blackbi+`), so a cut name becomes the one user of the
+/// device it can be; with none or several, it stays as `top` shows it.
+pub fn full_user(shown: &str, users: &[String]) -> String {
+    let Some(start) = shown.strip_suffix('+') else {
+        return shown.to_string();
+    };
+    let mut fits = users
+        .iter()
+        .filter(|u| u.len() > start.len() && u.starts_with(start));
+    match (fits.next(), fits.next()) {
+        (Some(u), None) => u.clone(),
+        _ => shown.to_string(),
+    }
+}
+
 /// Follows the device's `top` while it runs; dropping it ends the session.
 pub struct Watch {
     child: Arc<Mutex<Option<Child>>>,
@@ -198,7 +214,8 @@ impl Watch {
             .args([
                 "ssh",
                 "--",
-                "b=/sys/class/power_supply/test_battery; \
+                "echo \"@users $(cut -d: -f1 /etc/passwd | tr '\\n' ' ')\"; \
+                 b=/sys/class/power_supply/test_battery; \
                  (while [ -r $b/uevent ]; do echo \"@power $(tr '\\n' ' ' < $b/uevent) \
                  usb=$(cat /sys/class/power_supply/test_usb/online 2>/dev/null) \
                  ac=$(cat /sys/class/power_supply/test_ac/online 2>/dev/null)\"; sleep 1; done) & \
@@ -220,15 +237,23 @@ impl Watch {
                 let mut lines: Vec<String> = Vec::new();
                 let mut first = true;
                 let mut power = None;
+                let mut users: Vec<String> = Vec::new();
                 for line in BufReader::new(out).lines().map_while(Result::ok) {
                     if line.starts_with("@power ") {
                         power = parse_power(&line);
+                        continue;
+                    }
+                    if let Some(names) = line.strip_prefix("@users ") {
+                        users = names.split_whitespace().map(String::from).collect();
                         continue;
                     }
                     if line.starts_with("top - ") && !lines.is_empty() {
                         // The first frame's %CPU counts since boot: skipped.
                         if !first && let Some(mut f) = parse(&lines) {
                             f.power = power.clone();
+                            for p in &mut f.processes {
+                                p.user = full_user(&p.user, &users);
+                            }
                             on_frame(f);
                         }
                         first = false;
@@ -319,12 +344,22 @@ MiB Mem :   3903.4 total,   3302.3 free,    403.1 used,    333.3 buff/cache
 MiB Swap:      0.0 total,      0.0 free,      0.0 used.   3500.3 avail Mem
 
     PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
-    812 blackbird 20   0  900000  81240  40000 S  12.3   2.0   1:02.45 composer
-    901 blackbird 20   0  700000   1.2g  30000 S   3.0   1.0   0:10.00 testbed
+    812 blackbi+  20   0  900000  81240  40000 S  12.3   2.0   1:02.45 composer
+    901 blackbi+  20   0  700000   1.2g  30000 S   3.0   1.0   0:10.00 testbed
       1 root      20   0   23900  12640   9280 S   0.0   0.3   0:00.45 systemd";
 
     fn lines(s: &str) -> Vec<String> {
         s.lines().map(String::from).collect()
+    }
+
+    #[test]
+    fn a_cut_user_name_is_the_one_user_it_can_be() {
+        let users: Vec<String> = ["root", "blackbird", "messagebus"].map(String::from).into();
+        assert_eq!(full_user("blackbi+", &users), "blackbird");
+        assert_eq!(full_user("root", &users), "root");
+        assert_eq!(full_user("nobody+", &users), "nobody+");
+        let twins: Vec<String> = ["blackbird", "blackbirds"].map(String::from).into();
+        assert_eq!(full_user("blackbi+", &twins), "blackbi+");
     }
 
     #[test]
@@ -343,7 +378,7 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   3500.3 avail Mem
             f.processes[0],
             Process {
                 pid: 812,
-                user: "blackbird".into(),
+                user: "blackbi+".into(),
                 nice: 0,
                 state: 'S',
                 name: "composer".into(),

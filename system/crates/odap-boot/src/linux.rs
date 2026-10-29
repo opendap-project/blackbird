@@ -286,7 +286,8 @@ pub fn handoff() -> i32 {
     0
 }
 
-/// Waits until `path` appears in /run/blackbird, through inotify, or until `timeout` passes.
+/// Waits until `path` appears in its folder of /run/blackbird, through inotify on that folder, or
+/// until `timeout` passes.
 fn wait_for(path: &str, timeout: Duration) -> bool {
     if Path::new(path).exists() {
         return true;
@@ -295,9 +296,13 @@ fn wait_for(path: &str, timeout: Duration) -> bool {
         std::thread::sleep(timeout);
         return Path::new(path).exists();
     };
+    let dir = Path::new(path)
+        .parent()
+        .unwrap_or(Path::new(blackbird_platform::run::DIR));
+    let _ = std::fs::create_dir_all(dir);
     if inotify::add_watch(
         &fd,
-        blackbird_platform::run::DIR,
+        dir,
         inotify::WatchFlags::CREATE | inotify::WatchFlags::MOVED_TO,
     )
     .is_err()
