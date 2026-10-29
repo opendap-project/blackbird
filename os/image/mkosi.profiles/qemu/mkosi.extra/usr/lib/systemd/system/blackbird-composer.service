@@ -13,7 +13,7 @@ After=systemd-user-sessions.service systemd-logind.service systemd-sysext.servic
 # the debug boot's console. The two exclude each other by condition (blackbird.debug).
 
 [Service]
-User=odap
+User=blackbird
 # What the composer says to other services (ui-ready: its first frame is on screen).
 RuntimeDirectory=blackbird/composer
 RuntimeDirectoryPreserve=restart

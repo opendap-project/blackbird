@@ -490,7 +490,7 @@ def system_controls(d):
     close_menu()
     if not same(still(d.capture("ctl-menu-closed", settle=0.6), None), still(home, None), set(range(8))):
         bad.append("the power menu did not close with Cancel")
-    count = lambda: int(d.ssh("ls /var/lib/blackbird/Pictures/Screenshots 2>/dev/null | wc -l; ls ~odap/Pictures/Screenshots 2>/dev/null | wc -l").split()[-1])
+    count = lambda: int(d.ssh("ls /var/lib/blackbird/Pictures/Screenshots 2>/dev/null | wc -l; ls ~blackbird/Pictures/Screenshots 2>/dev/null | wc -l").split()[-1])
     shots = count()
     combo(0.2)
     if count() != shots + 1:

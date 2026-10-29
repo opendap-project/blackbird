@@ -319,8 +319,8 @@ MiB Mem :   3903.4 total,   3302.3 free,    403.1 used,    333.3 buff/cache
 MiB Swap:      0.0 total,      0.0 free,      0.0 used.   3500.3 avail Mem
 
     PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
-    812 odap      20   0  900000  81240  40000 S  12.3   2.0   1:02.45 blackbird-composer
-    901 odap      20   0  700000   1.2g  30000 S   3.0   1.0   0:10.00 blackbird-apps-testbed
+    812 blackbird 20   0  900000  81240  40000 S  12.3   2.0   1:02.45 composer
+    901 blackbird 20   0  700000   1.2g  30000 S   3.0   1.0   0:10.00 testbed
       1 root      20   0   23900  12640   9280 S   0.0   0.3   0:00.45 systemd";
 
     fn lines(s: &str) -> Vec<String> {
@@ -343,10 +343,10 @@ MiB Swap:      0.0 total,      0.0 free,      0.0 used.   3500.3 avail Mem
             f.processes[0],
             Process {
                 pid: 812,
-                user: "odap".into(),
+                user: "blackbird".into(),
                 nice: 0,
                 state: 'S',
-                name: "blackbird-composer".into(),
+                name: "composer".into(),
                 cpu_percent: 12.3,
                 resident_mib: 81240.0 / 1024.0,
                 kernel: false
