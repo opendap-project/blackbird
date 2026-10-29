@@ -248,7 +248,7 @@ pub fn cover() -> i32 {
         return 0;
     }
     let started = std::process::Command::new("systemctl")
-        .args(["start", "--no-block", "odap-boot-cover.service"])
+        .args(["start", "--no-block", "blackbird-boot-cover.service"])
         .status()
         .is_ok_and(|s| s.success());
     if !started {

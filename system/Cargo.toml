@@ -22,7 +22,7 @@ members = [
 # What toolkit-image odapkit-deploy puts on a running device by default, and what it restarts.
 [workspace.metadata.odap]
 deploy = ["odap-boot", "odap-composer", "odap-product", "odap-testbed", "odap-statusled"]
-restart = ["odap-composer.service", "odap-statusled.service"]
+restart = ["blackbird-composer.service", "blackbird-statusled.service"]
 
 [workspace.package]
 edition = "2024"

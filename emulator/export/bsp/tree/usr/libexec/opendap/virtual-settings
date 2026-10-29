@@ -7,7 +7,7 @@
 # frame already follows it.
 # Usage: virtual-settings set KEY VALUE | get KEY | restore
 #   KEY      debug-ui (0 or 1), battery (0 to 100), charger (on or off), light (lux)
-#   restore  put every recorded setting back (odap-vdev-settings.service, at boot)
+#   restore  put every recorded setting back (blackbird-emulator-settings.service, at boot)
 # The light is restored by odap-vdev-hw itself, which reads it from this file when it starts.
 set -eu
 file=/var/lib/odap-vdev/settings

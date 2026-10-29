@@ -40,7 +40,7 @@ pub mod run {
 
     /// Requests to the status LED, one file per requester.
     pub const LED_REQUESTS: &str = "/run/opendap/led";
-    /// The power service's socket (blackbird-os `odap-power.socket`).
+    /// The power service's socket (blackbird-os `blackbird-power.socket`).
     pub const POWER_SOCKET: &str = "/run/opendap/power.sock";
 
     /// Every path above, for checks.

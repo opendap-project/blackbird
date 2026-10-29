@@ -6,7 +6,7 @@
 Description=Device description of the virtual board
 DefaultDependencies=no
 After=systemd-modules-load.service
-Before=sysinit.target odap-composer.service
+Before=sysinit.target blackbird-composer.service
 ConditionPathExists=/sys/firmware/qemu_fw_cfg/by_name/opt/org.opendap/device-description/raw
 
 [Service]

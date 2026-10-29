@@ -1,4 +1,4 @@
-//! Requests to the power service (blackbird-os `odap-power.socket`): the composer's user cannot power
+//! Requests to the power service (blackbird-os `blackbird-power.socket`): the composer's user cannot power
 //! off or pick a boot mode itself; the service, as root, runs `odap-reboot` for it.
 //!
 //! Nothing here blocks the caller (T1-047): power-off and reboot are sent from a thread of their own,

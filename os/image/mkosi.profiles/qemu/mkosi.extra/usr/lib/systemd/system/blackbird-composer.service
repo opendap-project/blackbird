@@ -8,7 +8,7 @@ Description=Blackbird OS composer
 ConditionPathExists=/usr/bin/odap-composer
 # The debug boot mode shows a console on the screen instead (getty@tty1).
 ConditionKernelCommandLine=!blackbird.debug
-After=systemd-user-sessions.service systemd-logind.service systemd-sysext.service odap-boot.service
+After=systemd-user-sessions.service systemd-logind.service systemd-sysext.service blackbird-boot.service
 # No Conflicts= with getty@tty1: systemd applies a conflict before conditions, so it would stop
 # the debug boot's console. The two exclude each other by condition (blackbird.debug).
 

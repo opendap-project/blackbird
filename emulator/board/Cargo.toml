@@ -13,4 +13,4 @@ license = "GPL-3.0-or-later"
 
 [workspace.metadata.odap]
 deploy = ["odap-vdev-hw"]
-restart = ["odap-vdev-hw.service"]
+restart = ["blackbird-emulator-hw.service"]
