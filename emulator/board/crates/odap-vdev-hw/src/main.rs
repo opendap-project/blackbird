@@ -5,19 +5,19 @@
 //!
 //! - **The status LED**, an RGB LED: a ThingM blink(1) (USB 27b8:01ed), which `hid-led` drives
 //!   as three LED class devices, `thingm0:red`, `thingm0:green`, `thingm0:blue`. Whatever the
-//!   guest writes to them is mirrored to `/run/opendap/vdev/led` (`r g b`, 0–255) for the host,
-//!   and each change is also written as `led r g b` to the FIFO `/run/opendap/vdev/events`
+//!   guest writes to them is mirrored to `/run/blackbird/emulator/led` (`r g b`, 0–255) for the host,
+//!   and each change is also written as `led r g b` to the FIFO `/run/blackbird/emulator/events`
 //!   when a reader holds it open (the simulator window, which so follows it with no polling).
 //! - **The ambient light sensor**: a HID sensor hub with an ambient light sensor, which
 //!   `hid-sensor-hub` and `hid-sensor-als` expose as an IIO device (`in_illuminance_raw`, lux).
-//!   The host sets its reading by writing `als <lux>` to the FIFO `/run/opendap/vdev/hw`; the
-//!   current value is in `/run/opendap/vdev/als`. It starts at the light last set, kept across
-//!   reboots in `/var/lib/odap-vdev/settings` (the board's `virtual-settings`), else 120 lx.
+//!   The host sets its reading by writing `als <lux>` to the FIFO `/run/blackbird/emulator/hw`; the
+//!   current value is in `/run/blackbird/emulator/als`. It starts at the light last set, kept across
+//!   reboots in `/var/lib/blackbird/emulator/settings` (the board's `virtual-settings`), else 120 lx.
 //!
 //! - **The microphone's privacy light**, which the hardware ties to the microphone's power
 //!   (BRD-027): on the virtual board, the microphone is live while a capture stream runs. procfs
 //!   gives no notice of that, so while a capture device exists its state is read once a second
-//!   (the virtual board's own cost, not the product's), published in `/run/opendap/vdev/mic`
+//!   (the virtual board's own cost, not the product's), published in `/run/blackbird/emulator/mic`
 //!   (`0` or `1`) and as `mic 0|1` on the events FIFO.
 //!
 //! One thread, blocked in poll(2) on the two uhid descriptors and the command FIFO: no wakeups
@@ -31,7 +31,7 @@ use std::{
     path::Path,
 };
 
-const DIR: &str = "/run/opendap/vdev";
+const DIR: &str = "/run/blackbird/emulator";
 
 // linux/uhid.h: event types, report types, and the packed event's size and field offsets.
 const UHID_START: u32 = 2;
@@ -349,7 +349,7 @@ fn microphone() -> (bool, bool) {
 
 /// The light the simulator last set, kept across reboots by the board's `virtual-settings`.
 fn saved_light() -> Option<u32> {
-    let text = fs::read_to_string("/var/lib/odap-vdev/settings").ok()?;
+    let text = fs::read_to_string("/var/lib/blackbird/emulator/settings").ok()?;
     text.lines()
         .filter_map(|l| l.strip_prefix("light="))
         .next_back()?

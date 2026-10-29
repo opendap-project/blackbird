@@ -11,7 +11,7 @@ IBM Plex, the design system's type (design system §9), vendored so that the pro
 | `IBMPlexSansDevanagari-Regular.otf`, `IBMPlexSansDevanagari-SemiBold.otf` | IBM Plex Sans Devanagari (OTF, 1.1.0) | [IBM/plex](https://github.com/IBM/plex) `packages/plex-sans-devanagari/fonts/complete/otf/`, same commit |
 
 - **Licence:** SIL Open Font License 1.1 ([`LICENSES/OFL-1.1.txt`](../../LICENSES/OFL-1.1.txt)), © 2017–2019 IBM Corp., with Reserved Font Name "Plex"; upstream's licence file is kept as [`OFL.txt`](OFL.txt). The files are unmodified, as downloaded on 2026-10-23 (Sans, Mono) and 2026-10-25 (the companions).
-- **Script companions** (design system §9.4: the launch scripts' families, Regular and SemiBold, the weights the type scale uses), stored with Git LFS. Slint falls back only to fonts it loads at run time, never to fonts compiled in, so they are not imported by `slint/fonts.slint`: the image installs this folder at `/usr/share/fonts/opendap` and the session points `SLINT_FONT_PATH` at it, one copy for every process that draws text. SHA-256, as downloaded on 2026-10-25:
+- **Script companions** (design system §9.4: the launch scripts' families, Regular and SemiBold, the weights the type scale uses), stored with Git LFS. Slint falls back only to fonts it loads at run time, never to fonts compiled in, so they are not imported by `slint/fonts.slint`: the image installs this folder at `/usr/share/fonts/blackbird` and the session points `SLINT_FONT_PATH` at it, one copy for every process that draws text. SHA-256, as downloaded on 2026-10-25:
 
   | File | SHA-256 |
   |---|---|

@@ -195,7 +195,7 @@ class Instance:
         argv += ["-name", self.name, "-accel", accel,
                  "-drive", f"if=pflash,format=raw,readonly=on,file={fw}",
                  "-drive", f"if=pflash,format=raw,file={vars_fd}",
-                 "-fw_cfg", f"name=opt/org.opendap/device-description,file={description}",
+                 "-fw_cfg", f"name=opt/cc.opendap/device-description,file={description}",
                  *display, "-vnc", f"127.0.0.1:{self.vnc_display}",
                  "-qmp", f"unix:{self.qmp_socket},server=on,wait=off",
                  # A monitor of its own for the simulator window, which keeps its connection open:
@@ -269,7 +269,7 @@ class Instance:
         charger, battery, led, light, mic = False, None, None, None, None
         # One round trip: the battery model, then the faceplate (odap-vdev-hw), each line or "-".
         r = self.ssh("for f in /sys/module/test_power/parameters/usb_online /sys/module/test_power/parameters/battery_capacity "
-                     "/run/opendap/vdev/led /run/opendap/vdev/als /run/opendap/vdev/mic; do (cat $f 2>/dev/null || echo -) | head -1; done", check=False)
+                     "/run/blackbird/emulator/led /run/blackbird/emulator/als /run/blackbird/emulator/mic; do (cat $f 2>/dev/null || echo -) | head -1; done", check=False)
         if r.returncode == 0:
             lines = [l.strip() for l in r.stdout.splitlines()] + ["-"] * 5
             charger = lines[0] in ("on", "1")

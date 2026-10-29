@@ -9,15 +9,15 @@ use slint::ComponentHandle;
 pub fn debug_ui() -> bool {
     // The switch file overrides the environment's default: `1` on, `0` off (a simulator's
     // switch can turn off what the board's support package turned on).
-    match std::fs::read_to_string("/run/opendap/debug-ui") {
+    match std::fs::read_to_string("/run/blackbird/debug/ui") {
         Ok(v) => v.trim() != "0",
-        Err(_) => std::env::var("ODAP_DEBUG_UI").is_ok_and(|v| v == "1"),
+        Err(_) => std::env::var("BLACKBIRD_DEBUG_UI").is_ok_and(|v| v == "1"),
     }
 }
 
 /// The debug jump's request (`watch_debug`).
 #[cfg(target_os = "linux")]
-const DEBUG_JUMP: &str = "/run/opendap/debug-jump";
+const DEBUG_JUMP: &str = "/run/blackbird/testbed/debug-jump";
 
 #[cfg(target_os = "linux")]
 pub fn watch_debug(weak: slint::Weak<Testbed>) {
@@ -27,12 +27,15 @@ pub fn watch_debug(weak: slint::Weak<Testbed>) {
         if fd < 0 {
             return;
         }
-        let dir = std::ffi::CString::new("/run/opendap").expect("no NUL");
-        libc::inotify_add_watch(
-            fd,
-            dir.as_ptr(),
-            libc::IN_CLOSE_WRITE | libc::IN_CREATE | libc::IN_DELETE | libc::IN_MOVED_TO,
-        );
+        // The debug UI switch's directory and the debug jump's.
+        for dir in ["/run/blackbird/debug", "/run/blackbird/testbed"] {
+            let dir = std::ffi::CString::new(dir).expect("no NUL");
+            libc::inotify_add_watch(
+                fd,
+                dir.as_ptr(),
+                libc::IN_CLOSE_WRITE | libc::IN_CREATE | libc::IN_DELETE | libc::IN_MOVED_TO,
+            );
+        }
         let mut buf = [0u8; 4096];
         let mut last = debug_ui();
         while libc::read(fd, buf.as_mut_ptr().cast(), buf.len()) > 0 {
@@ -51,7 +54,7 @@ pub fn watch_debug(weak: slint::Weak<Testbed>) {
     }
 }
 
-/// The debug jump: `start`, `end` or an index written to /run/opendap/debug-jump puts the focus
+/// The debug jump: `start`, `end` or an index written to /run/blackbird/testbed/debug-jump puts the focus
 /// on that item of the long list (the Virtual screen's), shown, the view there at once; read
 /// once, then removed. For tests that need the middle or the end of a hundred thousand rows
 /// without walking there.

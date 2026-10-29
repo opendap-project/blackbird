@@ -56,7 +56,7 @@ fn step(v: &mut Virtual, kind: &str) -> Option<vfocus::Step> {
         "prev" => Some(vfocus::step(v.focused, -1, VCOUNT, vfocus::Ends::Stop)),
         "enter-down" => Some(vfocus::step(None, 1, VCOUNT, vfocus::Ends::Stop)),
         "enter-up" => Some(vfocus::step(None, -1, VCOUNT, vfocus::Ends::Stop)),
-        // A keyboard's Home and End, and the debug jump to an index (/run/opendap/debug-jump).
+        // A keyboard's Home and End, and the debug jump to an index (/run/blackbird/testbed/debug-jump).
         "home" => Some(vfocus::jump(vfocus::Jump::Start, VCOUNT)),
         "end" => Some(vfocus::jump(vfocus::Jump::End, VCOUNT)),
         k if k.starts_with("jump:") => k["jump:".len()..]

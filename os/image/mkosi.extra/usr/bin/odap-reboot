@@ -11,7 +11,7 @@
 # Modes:
 #   normal    the product boot
 #   debug     the debug boot mode, once (the boot entry's "debug" profile, OS-035), if the image has it
-#   others    from the board support package: an executable /usr/lib/opendap/boot-modes.d/<MODE>
+#   others    from the board support package: an executable /usr/lib/blackbird/boot-modes.d/<MODE>
 #             that prepares the next boot into it (recovery, maskrom…); without one, the mode is absent
 #
 # Errors carry a stable code, a hint and a fix (mode.unknown, mode.no_debug_entry, boot.select_failed,
@@ -19,7 +19,7 @@
 #
 # Exit status: 0 the restart is under way, 1 it failed, 2 the mode is unknown on this device.
 set -eu
-modes_dir=/usr/lib/opendap/boot-modes.d
+modes_dir=/usr/lib/blackbird/boot-modes.d
 
 # fail CODE MESSAGE HINT FIX [STATUS]: an error an agent can act on (command standard §5).
 fail() { printf 'odap-reboot: error %s: %s\n  hint: %s\n  fix: %s\n' "$1" "$2" "$3" "$4" >&2; exit "${5:-1}"; }

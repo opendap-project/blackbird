@@ -106,8 +106,8 @@ class Device:
 
     def jump(self, to):
         """The debug jump: the long list's focus straight to `start`, `end` or an index (the UI
-        primitives activity's /run/opendap/debug-jump), shown, the view there at once."""
-        self.ssh(f"echo {to} > /run/opendap/debug-jump")
+        primitives activity's /run/blackbird/testbed/debug-jump), shown, the view there at once."""
+        self.ssh(f"echo {to} > /run/blackbird/testbed/debug-jump")
         time.sleep(0.6)
 
     def ssh(self, command):

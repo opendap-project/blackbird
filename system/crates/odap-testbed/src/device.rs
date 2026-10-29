@@ -7,8 +7,8 @@ use slint::SharedString;
 
 /// Where the device description is, first match wins (as the composer reads it).
 const DESCRIPTIONS: &[&str] = &[
-    "/run/opendap/device/description.toml",
-    "/usr/share/opendap/device/description.toml",
+    "/run/blackbird/device/description.toml",
+    "/usr/share/blackbird/device/description.toml",
 ];
 
 pub fn description() -> Option<Description> {

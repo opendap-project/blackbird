@@ -10,7 +10,7 @@
 # Until dap-usb composes the gadget itself, this script stands in for it on the virtual board only.
 set -eu
 g=/sys/kernel/config/usb_gadget/opendap
-store=/var/lib/virtual-usb/storage.img
+store=/var/lib/blackbird/emulator/usb-storage.img
 
 create() {
   modprobe dummy_hcd

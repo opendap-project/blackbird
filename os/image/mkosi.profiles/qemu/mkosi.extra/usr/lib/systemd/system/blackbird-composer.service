@@ -15,7 +15,8 @@ After=systemd-user-sessions.service systemd-logind.service systemd-sysext.servic
 [Service]
 User=odap
 # What the composer says to other services (ui-ready: its first frame is on screen).
-RuntimeDirectory=opendap/composer
+RuntimeDirectory=blackbird/composer
+RuntimeDirectoryPreserve=restart
 PAMName=odap-composer
 TTYPath=/dev/tty1
 TTYReset=yes
@@ -30,11 +31,11 @@ Environment=XDG_SESSION_TYPE=wayland XDG_SESSION_CLASS=user
 # The script companions of the design system's type (IBM Plex Sans SC, Arabic, Devanagari), which
 # the image installs from Blackbird UI (odapkit image): Slint falls back to fonts loaded from here
 # for any glyph Plex Sans lacks, and the activities and the product inherit it.
-Environment=SLINT_FONT_PATH=/usr/share/fonts/opendap
+Environment=SLINT_FONT_PATH=/usr/share/fonts/blackbird
 # The composer runs the product host. The activity flag starts a developer activity in its place
-# (system SYS-071): ODAP_ACTIVITY=ui-primitives in a drop-in, or the name in /run/opendap/activity
+# (system SYS-071): BLACKBIRD_ACTIVITY=ui-primitives in a drop-in, or the name in /run/blackbird/composer/activity
 # on a running device, then a restart of this unit. The debug UI mode (SYS-070) is its own flag:
-# ODAP_DEBUG_UI=1, or /run/opendap/debug-ui.
+# BLACKBIRD_DEBUG_UI=1, or /run/blackbird/debug/ui.
 ExecStart=/usr/bin/odap-composer -- /usr/bin/odap-product
 # The boot UI hands the display over and confirms before the composer starts (odap-boot handoff);
 # without a boot UI it returns at once. Privileged ('+'), and not fatal ('-') without odap-boot.

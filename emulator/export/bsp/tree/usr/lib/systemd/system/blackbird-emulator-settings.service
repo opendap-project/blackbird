@@ -7,7 +7,7 @@ DefaultDependencies=no
 After=systemd-modules-load.service local-fs.target
 Before=blackbird-composer.service
 RequiresMountsFor=/var/lib
-ConditionPathExists=/var/lib/odap-vdev/settings
+ConditionPathExists=/var/lib/blackbird/emulator/settings
 
 [Service]
 Type=oneshot

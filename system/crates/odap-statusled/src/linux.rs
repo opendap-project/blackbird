@@ -1,5 +1,5 @@
 //! The status LED on Linux: the LED class devices the description names, the battery through
-//! `power_supply` uevents, requests through inotify on `/run/opendap/led/`.
+//! `power_supply` uevents, requests through inotify on `/run/blackbird/statusled/requests/`.
 
 use std::{
     fs, io,

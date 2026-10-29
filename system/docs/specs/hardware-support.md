@@ -57,7 +57,7 @@ A signed, versioned document, `opendap.device-description/v1` (TOML), with one p
 
 - **Validation:** the schema is published and checked by a validator on the developer machine and in the image build, as devicetree bindings and UCM2 configurations are checked.
 - **Fixes after release:** descriptions are L2 packages for known hardware and L6 registry artifacts for new faceplates and HATs (§5), so a description can be corrected without a new board.
-- **Where programs find it:** the merged description the hardware hands over at boot, `/run/opendap/device/description.toml`, else the one the image ships, `/usr/share/opendap/device/description.toml`, first match wins. Every program reads it through one lookup, `opendap_device::locate`, never through a list of its own.
+- **Where programs find it:** the merged description the hardware hands over at boot, `/run/blackbird/device/description.toml`, else the one the image ships, `/usr/share/blackbird/device/description.toml`, first match wins. Every program reads it through one lookup, `opendap_device::locate`, never through a list of its own.
 - **Owner overrides:** live in L7 and are documented and visible, never silent.
 
 ## 4. Adapters
@@ -70,7 +70,7 @@ A signed, versioned document, `opendap.device-description/v1` (TOML), with one p
   | Display | `org.opendap.hw.Display` | The faceplate's panel through DRM |
   | Controls | `org.opendap.hw.Controls` | `gpio-keys` and the faceplate's HID |
   | Battery and charging | `org.opendap.hw.Battery` | Fuel gauge and charger |
-  | Status LED | `org.opendap.hw.Led` | The faceplate's RGB LED driver; `odap-statusled` shows the controls spec's states on it (§2.2), from the battery's uevents and the requests other services leave in `/run/opendap/led/` until the bus carries this interface |
+  | Status LED | `org.opendap.hw.Led` | The faceplate's RGB LED driver; `odap-statusled` shows the controls spec's states on it (§2.2), from the battery's uevents and the requests other services leave in `/run/blackbird/statusled/requests/` until the bus carries this interface |
   | Haptics | `org.opendap.hw.Haptics` | DRV2605L |
   | Key holder | `org.opendap.hw.KeyHolder` (behind `odap-keystore`) | TPM 2.0 |
   | NFC | `org.opendap.hw.Nfc` | The NFC tag, and the reader where fitted |

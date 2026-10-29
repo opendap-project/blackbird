@@ -9,39 +9,43 @@ pub mod sysfs;
 /// The run directory: runtime state that lives until the next boot.
 pub mod run {
     /// The run directory itself.
-    pub const DIR: &str = "/run/opendap";
+    pub const DIR: &str = "/run/blackbird";
 
     /// The device description the hardware hands over at boot (read through `opendap_device::locate`).
-    pub const DEVICE_DESCRIPTION: &str = "/run/opendap/device/description.toml";
+    pub const DEVICE_DESCRIPTION: &str = "/run/blackbird/device/description.toml";
 
+    /// The boot UI's directory: the hand-over and the cover's state.
+    pub const BOOT_DIR: &str = "/run/blackbird/boot";
     /// Written by `odap-boot handoff` to ask the boot UI for the display.
-    pub const BOOT_HANDOFF: &str = "/run/opendap/boot-handoff";
+    pub const BOOT_HANDOFF: &str = "/run/blackbird/boot/handoff";
     /// Written by the boot UI once it has released the display.
-    pub const BOOT_RELEASED: &str = "/run/opendap/boot-released";
+    pub const BOOT_RELEASED: &str = "/run/blackbird/boot/released";
     /// The running boot UI's process id, so a hand-over knows whether to wait.
-    pub const BOOT_PID: &str = "/run/opendap/boot.pid";
+    pub const BOOT_PID: &str = "/run/blackbird/boot/pid";
     /// The boot UI covering a composer restart is armed: display open, splash ready, waiting for DRM master.
-    pub const BOOT_ARMED: &str = "/run/opendap/boot-armed";
+    pub const BOOT_ARMED: &str = "/run/blackbird/boot/armed";
     /// The boot UI's splash screen is on the display.
-    pub const BOOT_ON_SCREEN: &str = "/run/opendap/boot-on-screen";
+    pub const BOOT_ON_SCREEN: &str = "/run/blackbird/boot/on-screen";
     /// When the splash screen first showed, in CLOCK_MONOTONIC milliseconds (written by `odap-boot`).
-    pub const SPLASH_SHOWN: &str = "/run/opendap/splash-shown";
+    pub const SPLASH_SHOWN: &str = "/run/blackbird/boot/splash-shown";
 
     /// The composer's runtime directory.
-    pub const COMPOSER_DIR: &str = "/run/opendap/composer";
+    pub const COMPOSER_DIR: &str = "/run/blackbird/composer";
     /// Written by the composer at its first frame on screen: booting ends (read by the status LED).
-    pub const COMPOSER_UI_READY: &str = "/run/opendap/composer/ui-ready";
+    pub const COMPOSER_UI_READY: &str = "/run/blackbird/composer/ui-ready";
     /// The activity the composer starts in place of the product, kept across composer restarts.
-    pub const ACTIVITY: &str = "/run/opendap/activity";
-    /// The debug UI mode's runtime switch (the environment's default is `ODAP_DEBUG_UI`).
-    pub const DEBUG_UI: &str = "/run/opendap/debug-ui";
-    /// The show-touches runtime switch (the environment's default is `ODAP_SHOW_TOUCHES`).
-    pub const SHOW_TOUCHES: &str = "/run/opendap/show-touches";
+    pub const ACTIVITY: &str = "/run/blackbird/composer/activity";
+    /// The debug switches' directory (created at boot, `tmpfiles.d`).
+    pub const DEBUG_DIR: &str = "/run/blackbird/debug";
+    /// The debug UI mode's runtime switch (the environment's default is `BLACKBIRD_DEBUG_UI`).
+    pub const DEBUG_UI: &str = "/run/blackbird/debug/ui";
+    /// The show-touches runtime switch (the environment's default is `BLACKBIRD_SHOW_TOUCHES`).
+    pub const SHOW_TOUCHES: &str = "/run/blackbird/composer/show-touches";
 
     /// Requests to the status LED, one file per requester.
-    pub const LED_REQUESTS: &str = "/run/opendap/led";
+    pub const LED_REQUESTS: &str = "/run/blackbird/statusled/requests";
     /// The power service's socket (blackbird-os `blackbird-power.socket`).
-    pub const POWER_SOCKET: &str = "/run/opendap/power.sock";
+    pub const POWER_SOCKET: &str = "/run/blackbird/power/control.sock";
 
     /// Every path above, for checks.
     pub const ALL: &[&str] = &[

@@ -130,9 +130,11 @@ pub fn start(composer: &mut Composer) {
 }
 
 fn watch_debug(composer: &mut Composer) {
-    let Ok(fd) = opendap_platform::kernel::inotify(&[opendap_platform::run::DIR]) else {
+    // The debug UI switch and the show-touches switch (opendap-platform run).
+    let Ok(fd) = opendap_platform::kernel::inotify(&[opendap_platform::run::COMPOSER_DIR]) else {
         return;
     };
+    opendap_platform::kernel::watch(&fd, opendap_platform::run::DEBUG_DIR);
     let inserted = composer.handle.insert_source(
         Generic::new(fd, Interest::READ, Mode::Level),
         |_, fd, composer| {

@@ -184,7 +184,7 @@ pub fn main() -> i32 {
         log("cannot create a framebuffer");
         return 1;
     };
-    let _ = std::fs::create_dir_all(opendap_platform::run::DIR);
+    let _ = std::fs::create_dir_all(opendap_platform::run::BOOT_DIR);
     let _ = std::fs::write(COVER_ARMED_PATH, "");
     // At boot nobody holds the display. When the boot UI covers a restart of the composer, DRM master
     // may still be on its way out of the old composer: wait for it, then show the splash screen.
@@ -271,7 +271,7 @@ fn boot_ui_running() -> bool {
 
 /// The composer side of the hand-over: ask, then wait for the release, if a boot UI is running.
 pub fn handoff() -> i32 {
-    let _ = std::fs::create_dir_all(opendap_platform::run::DIR);
+    let _ = std::fs::create_dir_all(opendap_platform::run::BOOT_DIR);
     // A boot UI covering a restart may still be armed, waiting for the old composer's DRM master,
     // with no process id recorded yet: it is about to take the display, so wait for it too
     // (otherwise the new composer and the cover race for the display and the composer fails to start).
@@ -286,7 +286,7 @@ pub fn handoff() -> i32 {
     0
 }
 
-/// Waits until `path` appears in /run/opendap, through inotify, or until `timeout` passes.
+/// Waits until `path` appears in /run/blackbird, through inotify, or until `timeout` passes.
 fn wait_for(path: &str, timeout: Duration) -> bool {
     if Path::new(path).exists() {
         return true;

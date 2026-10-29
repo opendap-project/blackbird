@@ -23,9 +23,9 @@ use state::Composer;
 /// the orchestrator's activity launcher exists.
 const ACTIVITIES: &[(&str, &str)] = &[("ui-primitives", "/usr/bin/odap-testbed")];
 
-/// The activity asked for by the flag: `ODAP_ACTIVITY`, or the name in `/run/opendap/activity`.
+/// The activity asked for by the flag: `BLACKBIRD_ACTIVITY`, or the name in `/run/blackbird/composer/activity`.
 fn activity() -> Option<&'static str> {
-    let name = std::env::var("ODAP_ACTIVITY")
+    let name = std::env::var("BLACKBIRD_ACTIVITY")
         .ok()
         .or_else(|| std::fs::read_to_string(opendap_platform::run::ACTIVITY).ok())?;
     let name = name.trim();

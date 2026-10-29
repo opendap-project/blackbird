@@ -5,8 +5,8 @@
 //! every touch. Fingers show the same bubble while they touch, and it goes with the finger. The
 //! pointer's fades out once the pointer rests, which also covers it leaving the screen.
 //!
-//! On when the board's support package sets `ODAP_SHOW_TOUCHES=1` for the composer (the virtual
-//! board does), or while `/run/opendap/show-touches` exists, so it can be turned on and off on a
+//! On when the board's support package sets `BLACKBIRD_SHOW_TOUCHES=1` for the composer (the virtual
+//! board does), or while `/run/blackbird/composer/show-touches` exists, so it can be turned on and off on a
 //! running device for debugging. Off, it draws nothing; idle, it asks for no frames.
 
 use std::{
@@ -33,7 +33,7 @@ use tracing::warn;
 use crate::tokens;
 use crate::touch_marks::{Shape, ease, lerp, progress, shade};
 
-/// The runtime switch; the environment's default is `ODAP_SHOW_TOUCHES`.
+/// The runtime switch; the environment's default is `BLACKBIRD_SHOW_TOUCHES`.
 const SWITCH_PATH: &str = opendap_platform::run::SHOW_TOUCHES;
 
 /// Diameters, in logical pixels: at rest, in contact, at the end of the ripple.
@@ -102,7 +102,7 @@ pub struct Touches {
 impl Touches {
     pub fn new() -> Self {
         Self {
-            default_on: std::env::var("ODAP_SHOW_TOUCHES").is_ok_and(|v| v == "1"),
+            default_on: std::env::var("BLACKBIRD_SHOW_TOUCHES").is_ok_and(|v| v == "1"),
             textures: HashMap::new(),
             spots: HashMap::new(),
         }

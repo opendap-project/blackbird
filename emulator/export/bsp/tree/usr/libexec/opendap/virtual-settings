@@ -10,7 +10,7 @@
 #   restore  put every recorded setting back (blackbird-emulator-settings.service, at boot)
 # The light is restored by odap-vdev-hw itself, which reads it from this file when it starts.
 set -eu
-file=/var/lib/odap-vdev/settings
+file=/var/lib/blackbird/emulator/settings
 power=/sys/module/test_power/parameters
 
 valid() {
@@ -42,8 +42,8 @@ case "${1:-}" in
   restore)
     v=$(get debug-ui)
     if [ -n "$v" ]; then
-      mkdir -p /run/opendap
-      echo "$v" > /run/opendap/debug-ui
+      mkdir -p /run/blackbird
+      echo "$v" > /run/blackbird/debug/ui
     fi
     v=$(get battery)
     c=$(get charger)

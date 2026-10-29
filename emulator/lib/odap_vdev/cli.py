@@ -198,21 +198,21 @@ def run(args):
         # A drop-in, so the choice survives a reboot (the /run flag lasts one boot).
         dropin = "/etc/systemd/system/blackbird-composer.service.d/activity.conf"
         if args.name == "off":
-            inst.ssh(f"rm -f {dropin} /run/opendap/activity && systemctl daemon-reload && systemctl restart blackbird-composer")
+            inst.ssh(f"rm -f {dropin} /run/blackbird/composer/activity && systemctl daemon-reload && systemctl restart blackbird-composer")
         elif args.name:
             if not re.fullmatch(r"[a-z0-9-]+", args.name):
                 sys.exit(f"odap-vdev: not an activity name: {args.name}")
-            inst.ssh(f"mkdir -p {dropin.rsplit('/', 1)[0]} && printf '[Service]\\nEnvironment=ODAP_ACTIVITY={args.name}\\n' > {dropin}"
+            inst.ssh(f"mkdir -p {dropin.rsplit('/', 1)[0]} && printf '[Service]\\nEnvironment=BLACKBIRD_ACTIVITY={args.name}\\n' > {dropin}"
                      " && systemctl daemon-reload && systemctl restart blackbird-composer")
-        r = inst.ssh("systemctl show -p Environment blackbird-composer | grep -o 'ODAP_ACTIVITY=[^ ]*' | cut -d= -f2; cat /run/opendap/activity 2>/dev/null", check=False)
+        r = inst.ssh("systemctl show -p Environment blackbird-composer | grep -o 'BLACKBIRD_ACTIVITY=[^ ]*' | cut -d= -f2; cat /run/blackbird/composer/activity 2>/dev/null", check=False)
         print(r.stdout.split()[0] if r.stdout.split() else "off (the product)")
     elif c == "ui":
         if args.state:
             # The switch file overrides the board's default; the composer and the activity watch it and
             # switch in place: nothing restarts, so the mode looks at whatever state is on screen.
             v = 1 if args.state == 'on' else 0
-            inst.ssh(f"echo {v} > /run/opendap/debug-ui && {remember('debug-ui', v)}")
-        r = inst.ssh("cat /run/opendap/debug-ui 2>/dev/null || (systemctl show -p Environment blackbird-composer | grep -q 'ODAP_DEBUG_UI=1' && echo 1 || echo 0)", check=False)
+            inst.ssh(f"echo {v} > /run/blackbird/debug/ui && {remember('debug-ui', v)}")
+        r = inst.ssh("cat /run/blackbird/debug/ui 2>/dev/null || (systemctl show -p Environment blackbird-composer | grep -q 'BLACKBIRD_DEBUG_UI=1' && echo 1 || echo 0)", check=False)
         print("on" if r.stdout.strip() == "1" else "off")
     elif c == "hw":
         hw = inst.hardware()
@@ -232,10 +232,10 @@ def run(args):
         if args.lux is not None:
             if not 0 <= args.lux <= 100000:
                 raise ValueError("light: 0 to 100000 lux")
-            inst.ssh(f"echo 'als {args.lux}' > /run/opendap/vdev/hw && {remember('light', args.lux)}")
-        print(inst.ssh("cat", "/run/opendap/vdev/als").stdout.strip() + " lx")
+            inst.ssh(f"echo 'als {args.lux}' > /run/blackbird/emulator/hw && {remember('light', args.lux)}")
+        print(inst.ssh("cat", "/run/blackbird/emulator/als").stdout.strip() + " lx")
     elif c == "led":
-        print(inst.ssh("cat", "/run/opendap/vdev/led").stdout.strip())
+        print(inst.ssh("cat", "/run/blackbird/emulator/led").stdout.strip())
     elif c == "ssh":
         argv = args.argv[1:] if args.argv[:1] == ["--"] else args.argv
         os.execvp("ssh", inst.ssh_argv(argv))

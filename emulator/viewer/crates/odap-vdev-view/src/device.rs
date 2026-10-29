@@ -133,7 +133,7 @@ fn watch_board(vd_dir: PathBuf, jobs: Sender<Job>, linked: Arc<AtomicBool>) {
                 "ssh",
                 "--",
                 // The current state first, then each change as it happens.
-                "until [ -p /run/opendap/vdev/events ]; do sleep 2; done; cd /run/opendap/vdev; \
+                "until [ -p /run/blackbird/emulator/events ]; do sleep 2; done; cd /run/blackbird/emulator; \
                  exec 3<>events; echo \"led $(cat led)\"; echo \"mic $(cat mic)\"; exec cat <&3",
             ])
             .stdin(std::process::Stdio::null())

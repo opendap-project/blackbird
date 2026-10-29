@@ -51,7 +51,7 @@ impl Platform for ComposerPlatform {
     }
 }
 
-/// The debug UI mode's runtime switch; the environment's default is `ODAP_DEBUG_UI`.
+/// The debug UI mode's runtime switch; the environment's default is `BLACKBIRD_DEBUG_UI`.
 const DEBUG_SWITCH: &str = opendap_platform::run::DEBUG_UI;
 
 /// Whether the debug UI mode is on: the switch file, or the environment.
@@ -60,7 +60,7 @@ pub fn debug_ui() -> bool {
     // switch can turn off what the board's support package turned on).
     match std::fs::read_to_string(DEBUG_SWITCH) {
         Ok(v) => v.trim() != "0",
-        Err(_) => std::env::var("ODAP_DEBUG_UI").is_ok_and(|v| v == "1"),
+        Err(_) => std::env::var("BLACKBIRD_DEBUG_UI").is_ok_and(|v| v == "1"),
     }
 }
 
