@@ -103,5 +103,5 @@ Tapping the sync line opens one screen:
 
 ## 9. Open points
 
-- First drawn layouts at 320 × 480 in the design system tokens: [`renders/web/devices-and-sync.html`](https://github.com/opendap-project/t1/blob/main/product/renders/web/devices-and-sync.html) (10 screens). Next: a usability check on the virtual T1.
+- First drawn layouts at 320 × 480 in the design system tokens: [`renders/web/devices-and-sync.html`](../../../ui/renders/web/devices-and-sync.html) (10 screens). Next: a usability check on the virtual T1.
 - The wording of every message, in all five shipped languages (SYS-028).
