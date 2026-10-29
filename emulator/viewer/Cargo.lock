@@ -525,6 +525,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "blackbird-bus-model"
+version = "0.1.0"
+source = "git+https://github.com/opendap-project/blackbird?rev=732394415610a27eb92ca72cd1163d4d34c595a1#732394415610a27eb92ca72cd1163d4d34c595a1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "blackbird-emulator-audio"
 version = "0.1.0"
 dependencies = [
@@ -3280,17 +3288,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "opendap-bus-model"
-version = "0.1.0"
-source = "git+https://github.com/opendap-project/blackbird?rev=b7cc2065f71bb26d330162d7fb93883184292e22#b7cc2065f71bb26d330162d7fb93883184292e22"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "opendap-host-core"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=4409aea#4409aeaaa1211fd29abc7df09b2607d707d59595"
+source = "git+https://github.com/opendap-project/host?rev=9d9d519#9d9d5199bbb8fdd16530ea541f3bc1d83c9d51b2"
 dependencies = [
  "opendap-host-model",
  "serde_json",
@@ -3299,9 +3299,9 @@ dependencies = [
 [[package]]
 name = "opendap-host-model"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=4409aea#4409aeaaa1211fd29abc7df09b2607d707d59595"
+source = "git+https://github.com/opendap-project/host?rev=9d9d519#9d9d5199bbb8fdd16530ea541f3bc1d83c9d51b2"
 dependencies = [
- "opendap-bus-model",
+ "blackbird-bus-model",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -3310,7 +3310,7 @@ dependencies = [
 [[package]]
 name = "opendap-host-platform"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=4409aea#4409aeaaa1211fd29abc7df09b2607d707d59595"
+source = "git+https://github.com/opendap-project/host?rev=9d9d519#9d9d5199bbb8fdd16530ea541f3bc1d83c9d51b2"
 dependencies = [
  "opendap-host-core",
  "opendap-host-model",
@@ -3319,7 +3319,7 @@ dependencies = [
 [[package]]
 name = "opendap-host-transports-emulator"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=4409aea#4409aeaaa1211fd29abc7df09b2607d707d59595"
+source = "git+https://github.com/opendap-project/host?rev=9d9d519#9d9d5199bbb8fdd16530ea541f3bc1d83c9d51b2"
 dependencies = [
  "opendap-host-core",
  "opendap-host-model",
@@ -3330,7 +3330,7 @@ dependencies = [
 [[package]]
 name = "opendap-host-transports-ssh"
 version = "0.1.0"
-source = "git+https://github.com/opendap-project/host?rev=4409aea#4409aeaaa1211fd29abc7df09b2607d707d59595"
+source = "git+https://github.com/opendap-project/host?rev=9d9d519#9d9d5199bbb8fdd16530ea541f3bc1d83c9d51b2"
 dependencies = [
  "opendap-host-core",
  "opendap-host-model",
