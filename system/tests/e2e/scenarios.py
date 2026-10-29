@@ -424,10 +424,10 @@ def display_off_focus(d):
     d.open_screen("Controls")
     d.press("volume-down", 2)  # the range's high knob
     before = d.ring("doff-range-0")
-    steps = d.ssh("journalctl -u blackbird-composer.service --no-pager | grep -c 'volume step'").strip()
+    steps = d.ssh("journalctl -t composer --no-pager | grep -c 'volume step'").strip()
     off_on(3)
     after = d.ring("doff-range-1")
-    steps_after = d.ssh("journalctl -u blackbird-composer.service --no-pager | grep -c 'volume step'").strip()
+    steps_after = d.ssh("journalctl -t composer --no-pager | grep -c 'volume step'").strip()
     if after != before:
         bad.append(f"off and on, the focus moved: {before} -> {after}")
     if int(steps_after or 0) - int(steps or 0) != 3:
@@ -509,7 +509,7 @@ def volume_buttons(d):
     as amended 2026-10-26). Presses apart are steps each; a third quick press is a step again.
     With nothing playing, a double press is two focus steps."""
     def log(since):
-        out = d.ssh(f"journalctl -u blackbird-composer.service --since @{since} --no-pager -o cat")
+        out = d.ssh(f"journalctl -t composer --since @{since} --no-pager -o cat")
         return {k: out.count(k) for k in ("volume step\n", "volume step, held", "volume step undone", "track, double press")}
 
     def now():
