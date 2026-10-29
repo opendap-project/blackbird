@@ -27,7 +27,7 @@ Blackbird OS system software in Rust: bus, orchestrator, UI runtime, SDK and bas
 
 ## Building
 
-Development happens on the host; the virtual T1 only runs what is built ([development workflow](https://github.com/opendap-project/tools/blob/main/host/docs/specs/development-workflow.md)).
+Development happens on the host; the virtual T1 only runs what is built ([development workflow](https://github.com/opendap-project/tools/blob/main/env/docs/guides/maintainers/development-workflow.md)).
 
 ```sh
 cargo test --workspace                 # domain and core crates, natively

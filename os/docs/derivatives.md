@@ -30,7 +30,7 @@ Its `/usr/lib/os-release` then reads `NAME="Example OS"`, `ID=example`, `ID_LIKE
 
 Checked on 2026-10-23 on macOS (Apple silicon) with Lima 2.2.1, mkosi 25.3 in the build VM and QEMU 11.1, from a folder outside the OpenDAP workspace.
 
-1. **Host tools.** QEMU, Lima and Python 3, as for Blackbird OS (`toolkit-host/setup.sh` installs them), and the `opendap` CLI.
+1. **Host tools.** QEMU, Lima and Python 3, as for Blackbird OS (the tools root's `env/setup.sh` installs them), and the `opendap` CLI.
 2. **Your repository, with Blackbird OS as a submodule.** Pin it to a release (or a commit) so your builds are reproducible:
 
    ```sh
