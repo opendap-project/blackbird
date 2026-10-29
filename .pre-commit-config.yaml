@@ -38,29 +38,6 @@ repos:
         language: system
         pass_filenames: false
         files: ^emulator/docs/requirements/
-      # Rust, in the viewer (host) and board (guest) workspaces: rustfmt on commit, clippy and tests before push.
-      - id: rustfmt-emulator
-        name: emulator rustfmt --check on changed Rust files
-        entry: rustfmt --check --edition 2024
-        language: system
-        types: [rust]
-        files: ^emulator/
-      - id: clippy-emulator
-        name: emulator cargo clippy -D warnings, viewer and board (before push)
-        entry: sh -c 'cd emulator && cargo clippy --manifest-path viewer/Cargo.toml --workspace --all-targets -q -- -D warnings && cargo clippy --manifest-path board/Cargo.toml --workspace --all-targets -q -- -D warnings'
-        language: system
-        pass_filenames: false
-        types_or: [rust, cargo, cargo-lock]
-        stages: [pre-push]
-        files: ^emulator/
-      - id: cargo-test-emulator
-        name: emulator cargo test, viewer and board (before push)
-        entry: sh -c 'cd emulator && cargo test --manifest-path viewer/Cargo.toml --workspace -q && cargo test --manifest-path board/Cargo.toml --workspace -q'
-        language: system
-        pass_filenames: false
-        types_or: [rust, cargo, cargo-lock]
-        stages: [pre-push]
-        files: ^emulator/
   # os/
   - repo: local
     hooks:
@@ -117,28 +94,6 @@ repos:
         language: system
         pass_filenames: false
         files: ^system/tests/e2e/(tokens|test_tokens|device)\.py$
-      - id: rustfmt-system
-        name: system rustfmt --check on changed Rust files
-        entry: rustfmt --check --edition 2024
-        language: system
-        types: [rust]
-        files: ^system/
-      - id: clippy-system
-        name: system cargo clippy -D warnings (before push)
-        entry: sh -c 'cd system && cargo clippy --workspace --all-targets -q -- -D warnings'
-        language: system
-        pass_filenames: false
-        types_or: [rust, cargo, cargo-lock]
-        stages: [pre-push]
-        files: ^system/
-      - id: cargo-test-system
-        name: system cargo test (before push)
-        entry: sh -c 'cd system && cargo test --workspace -q'
-        language: system
-        pass_filenames: false
-        types_or: [rust, cargo, cargo-lock]
-        stages: [pre-push]
-        files: ^system/
       - id: device-fixture-generated
         name: system virtual T1 description fixture matches virtual-devices (generate.py --check)
         entry: sh -c 'cd system && python3 crates/opendap-device/fixtures/generate.py --check'
@@ -186,3 +141,34 @@ repos:
         language: system
         pass_filenames: false
         files: ^ui/docs/requirements/
+# >>> odapkit sync: managed block from the workspace templates; edit them, not this block
+  # odw check: the stages each check.toml declares, on the changed paths (command standard §7).
+  - repo: local
+    hooks:
+      - id: odw-check-fast-emulator
+        name: emulator odw check --stage fast
+        entry: sh -c 'cd emulator && for f; do set -- "$@" "../$f"; shift; done; exec odw check --stage fast "$@"' --
+        language: system
+        require_serial: true
+        files: ^emulator/
+      - id: odw-check-full-emulator
+        name: emulator odw check --stage full (before push)
+        entry: sh -c 'cd emulator && for f; do set -- "$@" "../$f"; shift; done; exec odw check --stage full "$@"' --
+        language: system
+        require_serial: true
+        files: ^emulator/
+        stages: [pre-push]
+      - id: odw-check-fast-system
+        name: system odw check --stage fast
+        entry: sh -c 'cd system && for f; do set -- "$@" "../$f"; shift; done; exec odw check --stage fast "$@"' --
+        language: system
+        require_serial: true
+        files: ^system/
+      - id: odw-check-full-system
+        name: system odw check --stage full (before push)
+        entry: sh -c 'cd system && for f; do set -- "$@" "../$f"; shift; done; exec odw check --stage full "$@"' --
+        language: system
+        require_serial: true
+        files: ^system/
+        stages: [pre-push]
+# <<< odapkit sync
