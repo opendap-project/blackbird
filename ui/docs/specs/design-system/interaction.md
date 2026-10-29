@@ -53,7 +53,7 @@ For physical controls, evaluate actual size, finger clearance, reach and tactile
 
 ### 8.4 Feedback
 
-Every interaction gets immediate, unambiguous feedback within the [experience budgets](https://github.com/opendap-project/t1/blob/main/docs/specs/experience-budgets.md) (touch to visual response ≤ 50 ms ideal; T1-057):
+Every interaction gets immediate, unambiguous feedback within the [experience budgets](https://github.com/opendap-project/t1/blob/main/product/docs/specs/experience-budgets.md) (touch to visual response ≤ 50 ms ideal; T1-057):
 
 - a volume change shows a visible value or level change;
 - the playback state has a clear icon, and a label where it helps;

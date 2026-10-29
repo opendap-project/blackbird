@@ -13,7 +13,7 @@
   - [RFC 0004](https://github.com/opendap-project/rfcs/blob/main/text/0004-opendap-protocol.md), the OpenDAP Protocol;
   - the [user-facing conventions](user-facing-conventions.md);
   - the [Engineered Matter design system](../../../ui/docs/specs/design-system.md): targets §8.3, gestures §8.5, type §9.3;
-  - the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md) §2.2;
+  - the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md) §2.2;
 
 Everything here works with no account and no online service (SYS-047). Every touch flow has a button alternative (SYS-039), and every state the LED shows is also said in words on screen.
 
@@ -103,5 +103,5 @@ Tapping the sync line opens one screen:
 
 ## 9. Open points
 
-- First drawn layouts at 320 × 480 in the design system tokens: [`renders/web/devices-and-sync.html`](https://github.com/opendap-project/t1/blob/main/renders/web/devices-and-sync.html) (10 screens). Next: a usability check on the virtual T1.
+- First drawn layouts at 320 × 480 in the design system tokens: [`renders/web/devices-and-sync.html`](https://github.com/opendap-project/t1/blob/main/product/renders/web/devices-and-sync.html) (10 screens). Next: a usability check on the virtual T1.
 - The wording of every message, in all five shipped languages (SYS-028).

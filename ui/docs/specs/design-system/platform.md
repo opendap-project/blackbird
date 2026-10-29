@@ -4,7 +4,7 @@ Part of the [Engineered Matter design system](../design-system.md): its status, 
 
 ## 17. Performance
 
-The interface runs at the display's refresh rate under any load (60 fps; T1-056, SYS-036; [experience budgets](https://github.com/opendap-project/t1/blob/main/docs/specs/experience-budgets.md)), and nothing visual may take time from the audio path.
+The interface runs at the display's refresh rate under any load (60 fps; T1-056, SYS-036; [experience budgets](https://github.com/opendap-project/t1/blob/main/product/docs/specs/experience-budgets.md)), and nothing visual may take time from the audio path.
 
 - Static gradients are the default; animated effects are the exception and isolated from frequently redrawn content.
 - Gradients drawn by the renderer before raster images, where they fit; pre-rendered textures for effects the renderer cannot draw cheaply.
@@ -33,7 +33,7 @@ The design system is written for any display, and optimised for each one it meet
 - **Shape and insets.** Rounded corners, round displays and cutouts come from the description as safe insets; content and targets stay inside them.
 - **Technology.** OLED, LCD, e-paper and monochrome displays get their own treatment of colour, motion and refresh (an e-paper class draws no motion; an OLED class keeps large dark areas truly black).
 - **The T1 reference panel:**
-  - 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi, so 48 px ≈ 7.4 mm and the scale is 1 ([faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md));
+  - 3.5", 320 × 480 portrait, active area 48.96 × 73.44 mm, about 166 ppi, so 48 px ≈ 7.4 mm and the scale is 1 ([faceplate-touch ADR 0001](https://github.com/opendap-project/t1/blob/main/faceplates/touch/docs/adr/0001-focus-lcds-e35gh-display.md));
   - its on-screen keyboard's 32 px keys (4.9 mm) are the documented exception, compensated by 46 px rows, long-press alternates and hit-target correction;
   - on OpenDAP Desktop and the web, design pixels follow the host's scaling and distance class.
 
@@ -45,7 +45,7 @@ The design system is written for any display, and optimised for each one it meet
 
 ### 18.4 Semantic colours and the status LED
 
-The status LED follows IEC 60073 ([controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md)). The on-screen semantic colours use the same families for the same meanings: red for fault or danger (`error`), amber for warning (`warning`), green for normal (`success`), blue for a state that needs the user's action or patience (`info`, as for pairing, recovery or an update in progress), and neutral white for neutral information. `processing` (violet) has no LED counterpart; see §20. The screen never contradicts the LED.
+The status LED follows IEC 60073 ([controls and status LED spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md)). The on-screen semantic colours use the same families for the same meanings: red for fault or danger (`error`), amber for warning (`warning`), green for normal (`success`), blue for a state that needs the user's action or patience (`info`, as for pairing, recovery or an update in progress), and neutral white for neutral information. `processing` (violet) has no LED counterpart; see §20. The screen never contradicts the LED.
 
 ### 18.5 Languages and scripts
 

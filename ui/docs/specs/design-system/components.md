@@ -16,7 +16,7 @@ Part of the [Engineered Matter design system](../design-system.md): its status, 
 
 ### 15.1 Button groups: the segmented capsule
 
-Button groups, physical and digital, use one pattern (DS-013): **one capsule split into segments**. The outer ends are rounded; the inner edges at each split are flat; every segment is its own button; splits are marked by a consistent gap or divider. The T1's Volume + / Volume − pair is the reference instance ([controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md)).
+Button groups, physical and digital, use one pattern (DS-013): **one capsule split into segments**. The outer ends are rounded; the inner edges at each split are flat; every segment is its own button; splits are marked by a consistent gap or divider. The T1's Volume + / Volume − pair is the reference instance ([controls and status LED spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md)).
 
 On screen this covers button groups and segmented controls, for example gain, filter, output or mode selectors:
 

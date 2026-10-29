@@ -64,7 +64,7 @@ Requirements for the Blackbird OS distribution.
 - The virtual T1 emulates the battery with the kernel's `test_power` module, built at image time against the image's own kernel headers (qemu profile only, [ADR 0007](../adr/0007-kernel-modules-through-dkms.md)): `test_battery`, `test_ac` and `test_usb` appear in `/sys/class/power_supply`, driven through `/sys/module/test_power/parameters/` (capacity, status, AC/USB online, voltage, current).
 - Audio direction: PipeWire processes audio as 32-bit float, so bit-perfect 32-bit PCM and DSD need a playback engine with exclusive, direct ALSA access, next to PipeWire for shared use.
 - Image size: acceptable as long as it works well and is not excessive for the device; reduce further only if needed. Dropping LLVM by default may require an OpenDAP build of Mesa limited to Panfrost, because Debian's Mesa depends on LLVM.
-- The T1's needs from the image (DKMS modules, charger and current-monitor settings, coprocessor I/O voltage) are in the T1 [OS support spec](https://github.com/opendap-project/t1/blob/main/docs/specs/os-support.md).
+- The T1's needs from the image (DKMS modules, charger and current-monitor settings, coprocessor I/O voltage) are in the T1 [OS support spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/os-support.md).
 - OS-020 scope: on the on-board outputs, bit-perfect PCM up to 192 kHz, native DSD up to DSD256 and DoP up to DSD64, the limits of the SoC's I2S block and the CS43198; over USB, bit-perfect up to the external DAC's limit; anything above on-board is converted and labelled ([ADR 0006](../adr/0006-native-dsd-through-upstream-driver-work.md)).
 
 ## Open items

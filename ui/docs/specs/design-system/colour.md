@@ -10,7 +10,7 @@ The palette is graphite, white and one restrained orange accent. Plasma colours 
 
 The palette's tokens, `color.graphite.*` (950 to 500), `color.white.*` and `color.orange.*` (400, 500, 700), are listed with their values and purposes in the generated [token reference](../../reference/tokens.md#color).
 
-The orange is to be validated against the physical accent part (the Action button, [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md)) under the same light, and every pair is to be checked for contrast before production.
+The orange is to be validated against the physical accent part (the Action button, [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md)) under the same light, and every pair is to be checked for contrast before production.
 
 ### 3.2 Semantic colours
 

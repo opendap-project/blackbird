@@ -9,7 +9,7 @@
   - the [system architecture spec](os-architecture.md): §3 package layers, §4.3 services, §4.4 device capabilities;
   - ADR 0009 to ADR 0011;
   - the [composer and UI runtime spec](composer-and-ui-runtime.md);
-  - the [faceplate interface](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) (HID identification, T1-020);
+  - the [faceplate interface](https://github.com/opendap-project/t1/blob/main/product/docs/specs/faceplate-interface.md) (HID identification, T1-020);
   - the HAT standard (HCS-017).
 
 ## 1. Summary

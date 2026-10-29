@@ -4,9 +4,9 @@ Engineered Matter is the name of OpenDAP's design system (maintainers, 2026-10-2
 
 - **Status:** Draft. This is the maintainers' design direction (2026-10-22). Values are starting points: colours, sizes and timings are to be validated on the first prototype's display and hardware.
 - **Date:** 2026-10-22; revised 2026-10-23 (type scale for a 35 cm reading distance, margins and proximity, controls, icons, long text and accessibility)
-- **Scope:** visual language, interaction patterns and design tokens for the Blackbird OS interface, OpenDAP Desktop, documentation and product renders. The physical product's materials and geometry are specified in the [case industrial-design spec](https://github.com/opendap-project/case/blob/main/docs/specs/industrial-design.md); the body buttons in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md).
+- **Scope:** visual language, interaction patterns and design tokens for the Blackbird OS interface, OpenDAP Desktop, documentation and product renders. The physical product's materials and geometry are specified in the [case industrial-design spec](https://github.com/opendap-project/t1/blob/main/case/docs/specs/industrial-design.md); the body buttons in the [controls and status LED spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md).
 - **Tokens:** [`tokens/opendap.tokens.json`](../../tokens/opendap.tokens.json) is the canonical source of every value; the generated [token reference](../reference/tokens.md) lists them.
-- **Requirements:** DS-001, DS-006 to DS-020 in this repository; SYS-061 to SYS-066 (accessibility) and SYS-009, SYS-021 to SYS-030, SYS-033 to SYS-037 in [`system`](../../../system/docs/requirements/README.md); T1-014, T1-015, T1-022, T1-056, T1-057, T1-059 in [`t1`](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md).
+- **Requirements:** DS-001, DS-006 to DS-020 in this repository; SYS-061 to SYS-066 (accessibility) and SYS-009, SYS-021 to SYS-030, SYS-033 to SYS-037 in [`system`](../../../system/docs/requirements/README.md); T1-014, T1-015, T1-022, T1-056, T1-057, T1-059 in [`t1`](https://github.com/opendap-project/t1/blob/main/product/docs/requirements/README.md).
 
 **Design principle: engineering excellence, made approachable.**
 
@@ -23,8 +23,8 @@ The design system is a set of topic specs. Section numbers are those of the whol
 | 3 | Colour | [Colour](design-system/colour.md) |
 | 4 | Plasma gradients | [Effects](design-system/effects.md#4-plasma-gradients) |
 | 5 | Thermal refraction | [Effects](design-system/effects.md#5-thermal-refraction) |
-| 6 | Materials and geometry, including the geometry families shared with the interface | [Case industrial-design spec](https://github.com/opendap-project/case/blob/main/docs/specs/industrial-design.md) §1 and §2 |
-| 7 | Physical controls | [Controls and status LED spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md) §1.4 |
+| 6 | Materials and geometry, including the geometry families shared with the interface | [Case industrial-design spec](https://github.com/opendap-project/t1/blob/main/case/docs/specs/industrial-design.md) §1 and §2 |
+| 7 | Physical controls | [Controls and status LED spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md) §1.4 |
 | 8 | Interaction: a dedicated device, hierarchy, touch targets, feedback, gestures | [Interaction](design-system/interaction.md) |
 | 9 | Typography | [Typography](design-system/typography.md) |
 | 10 | Spacing, radii, borders and elevation | [Layout](design-system/layout.md) |

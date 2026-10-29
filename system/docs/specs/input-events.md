@@ -2,7 +2,7 @@
 
 - **Status:** Draft
 - **Scope:** every event of the T1 and of any faceplate or hardware, following known standards, with raw and domain events, directives with good implicit defaults, and the handling model and payloads.
-- **Requirements:** SYS-039 (gestures), SYS-066 (adjustable timings), SYS-067 and SYS-068 (hardware by description), T1-060 to T1-063 (buttons); the T1 [controls spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md); the design system §8.3 to §8.5
+- **Requirements:** SYS-039 (gestures), SYS-066 (adjustable timings), SYS-067 and SYS-068 (hardware by description), T1-060 to T1-063 (buttons); the T1 [controls spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md); the design system §8.3 to §8.5
 
 One model of input for every device Blackbird OS runs on: the T1's touch faceplate and buttons, other faceplates (buttons, dials, wheels, sliders, switches), HATs, a mouse, a keyboard, the simulator window. Nothing in it is invented where a standard already says it.
 
@@ -126,7 +126,7 @@ A `press` never waits for a second press (T1-063). A held control keeps its pres
 
 ### 3.4 Semantic actions
 
-What most handlers want, whatever produced it. The composer maps controls, gestures and keys to these by context (the [T1 controls spec](https://github.com/opendap-project/t1/blob/main/docs/specs/controls-and-status-led.md), design system §8.4):
+What most handlers want, whatever produced it. The composer maps controls, gestures and keys to these by context (the [T1 controls spec](https://github.com/opendap-project/t1/blob/main/product/docs/specs/controls-and-status-led.md), design system §8.4):
 
 | Action | From (T1) | From a keyboard | From other hardware |
 |---|---|---|---|
