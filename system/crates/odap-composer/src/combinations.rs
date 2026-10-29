@@ -15,12 +15,12 @@
 
 use std::{collections::HashSet, time::Duration};
 
-use opendap_device::Role;
+use blackbird_device::Role;
 
 /// Short against long (spec §1.1, Android's long-press timeout; a proposed value).
-pub const LONG: Duration = Duration::from_millis(opendap_input::thresholds::LONG_MS);
+pub const LONG: Duration = Duration::from_millis(blackbird_ui_input::thresholds::LONG_MS);
 /// Held, for deliberate system actions (spec §1.1; a proposed value).
-pub const HOLD: Duration = Duration::from_millis(opendap_input::thresholds::HOLD_MS);
+pub const HOLD: Duration = Duration::from_millis(blackbird_ui_input::thresholds::HOLD_MS);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {

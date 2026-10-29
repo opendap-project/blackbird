@@ -19,7 +19,7 @@ pub(super) fn system_contact(
                 .layers
                 .as_ref()
                 .is_some_and(|l| l.status_shown())
-                && (at.y as f32) < opendap_input::gesture::STATUS_BAR_PX * unit;
+                && (at.y as f32) < blackbird_ui_input::gesture::STATUS_BAR_PX * unit;
             if in_bar {
                 composer.contacts.system_contacts.push(slot);
             }

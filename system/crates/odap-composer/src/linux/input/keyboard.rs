@@ -26,9 +26,9 @@ pub(super) fn send_key(
 /// so the focus keys the composer sends never repeat twice), after the usual 600 ms at 25 per second
 /// (X11's and GNOME's defaults). Modifiers never repeat, nor Escape, Enter and Space.
 pub(super) const KEY_REPEAT_DELAY: std::time::Duration =
-    std::time::Duration::from_millis(opendap_input::thresholds::KEY_REPEAT_DELAY_MS);
+    std::time::Duration::from_millis(blackbird_ui_input::thresholds::KEY_REPEAT_DELAY_MS);
 pub(super) const KEY_REPEAT_EVERY: std::time::Duration =
-    std::time::Duration::from_millis(opendap_input::thresholds::KEY_REPEAT_EVERY_MS);
+    std::time::Duration::from_millis(blackbird_ui_input::thresholds::KEY_REPEAT_EVERY_MS);
 pub(super) const MODIFIERS: &[u32] = &[29, 42, 54, 56, 97, 100, 125, 126, 58];
 /// Keys whose meaning never repeats (input events §5.1: activate, primary and back): Escape,
 /// Enter, Space, the keypad's Enter.

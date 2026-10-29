@@ -8,9 +8,9 @@ use slint::{ComponentHandle, SharedString, Timer};
 use crate::Testbed;
 
 pub(crate) fn wire(ui: &Testbed) {
-    // Reduce motion is the system's: every animation reads it from opendap-motion.
-    opendap_motion::set_reduce_motion(ui.get_reduce_motion());
-    ui.on_reduce_motion_set(opendap_motion::set_reduce_motion);
+    // Reduce motion is the system's: every animation reads it from blackbird-ui-motion.
+    blackbird_ui_motion::set_reduce_motion(ui.get_reduce_motion());
+    ui.on_reduce_motion_set(blackbird_ui_motion::set_reduce_motion);
 
     // Volume past an end of the screen stays there (input events §3.7): Slint's focus chain wraps
     // around the window, so the screen's end stop sends the opposite key back. An edge reached by

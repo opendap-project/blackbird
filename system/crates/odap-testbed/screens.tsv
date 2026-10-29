@@ -1,5 +1,5 @@
 # The UI primitives activity's screens, in the order its list shows them: the one source of that
-# order for the list (generated into the interface by build.rs), the library (odap_testbed::SCREENS),
+# order for the list (generated into the interface by build.rs), the library (blackbird_apps_testbed::SCREENS),
 # its interface tests and the e2e scenarios (tests/e2e/device.py). Columns: name, detail.
 Calibration	Sizes from this hardware
 Targets	48 · 52 · 64, gap 8

@@ -268,7 +268,7 @@ fn system_layers(composer: &mut Composer, mode: Mode, scale: i32) {
     let main_y = description
         .display
         .as_ref()
-        .zip(description.control(opendap_device::Role::Main))
+        .zip(description.control(blackbird_device::Role::Main))
         .map(|(d, c)| d.mm_to_px(c.offset_mm) / scale as f32)
         .unwrap_or(mode.size().1 as f32 / scale as f32 / 4.0);
     let mut controls: Vec<(String, String, f32, f32)> = Vec::new();

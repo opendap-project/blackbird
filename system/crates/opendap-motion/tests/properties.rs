@@ -2,9 +2,9 @@
 //! of system starts, grabs, drags and releases at any times; presence under any sequence of lists;
 //! interpolation at any progress. A failure is shrunk to the smallest case that breaks one.
 
-use opendap_motion::interpolate::{Frame, color, fade_through, frame};
-use opendap_motion::presence::{Phase, Presence};
-use opendap_motion::transition::{End, Transition};
+use blackbird_ui_motion::interpolate::{Frame, color, fade_through, frame};
+use blackbird_ui_motion::presence::{Phase, Presence};
+use blackbird_ui_motion::transition::{End, Transition};
 use proptest::prelude::*;
 
 #[derive(Debug, Clone)]

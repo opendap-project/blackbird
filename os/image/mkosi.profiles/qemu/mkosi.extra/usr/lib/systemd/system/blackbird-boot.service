@@ -6,7 +6,7 @@
 [Unit]
 Description=Blackbird OS boot UI
 DefaultDependencies=no
-ConditionPathExists=/usr/bin/odap-boot
+ConditionPathExists=/usr/lib/blackbird/boot
 ConditionKernelCommandLine=!blackbird.debug
 After=systemd-sysext.service blackbird-device-description.service
 Before=blackbird-composer.service
@@ -16,5 +16,5 @@ Before=shutdown.target
 
 [Service]
 Type=notify
-ExecStart=/usr/bin/odap-boot
+ExecStart=/usr/lib/blackbird/boot
 StandardError=journal

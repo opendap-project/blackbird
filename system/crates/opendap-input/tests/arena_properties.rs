@@ -7,12 +7,12 @@
 
 use std::collections::HashSet;
 
-use opendap_input::arena::{
+use blackbird_ui_input::arena::{
     Arena, DoubleTap, Drag, Input, LongPress, Outcome, Priority, Sequenced, Tap,
 };
-use opendap_input::gesture::{Axis, DragOptions, DragStart};
-use opendap_input::harness::{Script, play};
-use opendap_input::thresholds::{DOUBLE_TAP_MS, LONG_MS};
+use blackbird_ui_input::gesture::{Axis, DragOptions, DragStart};
+use blackbird_ui_input::harness::{Script, play};
+use blackbird_ui_input::thresholds::{DOUBLE_TAP_MS, LONG_MS};
 use proptest::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

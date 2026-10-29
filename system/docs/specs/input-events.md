@@ -52,7 +52,7 @@ A pointer event is the same whatever made it (W3C): `pointerType` says touch, mo
 
 ### 3.2 Gestures
 
-Recognized from pointer streams (`opendap-input`), with the thresholds of §7. Every gesture carries the **region** it started in: the content, one of the four edge zones, or one of the four corners where two edge zones meet. A corner is a region of its own, so a contact there is never claimed by two edges (design system §8.5). The top zone is the status bar's height, since the system's top gesture is "swipe down from the status bar" (SYS-039); the side and bottom zones are the edge zone's width. Leading and trailing follow the layout's direction (right to left mirrors them, design system §9.5).
+Recognized from pointer streams (`blackbird-ui-input`), with the thresholds of §7. Every gesture carries the **region** it started in: the content, one of the four edge zones, or one of the four corners where two edge zones meet. A corner is a region of its own, so a contact there is never claimed by two edges (design system §8.5). The top zone is the status bar's height, since the system's top gesture is "swipe down from the status bar" (SYS-039); the side and bottom zones are the edge zone's width. Leading and trailing follow the layout's direction (right to left mirrors them, design system §9.5).
 
 **Discrete gestures** fire once:
 
@@ -109,7 +109,7 @@ A level never sees coordinates or regions of the levels above it (an activity ne
 
 ### 3.3 Controls, by role
 
-Physical controls are used through their role (`action`, `volume-up`, `main`…), never their code (SYS-067). The roles are one vocabulary the device and the host share, the crate `opendap-bus-model` ([RFC 0020](https://github.com/opendap-project/rfcs/blob/main/text/0020-input-wire-model.md)): `action`, `volume-up`, `volume-down`, `main`, `back`, `select` and `menu`. A device declares the roles it has and rejects others; a new kind of control adds a role there. Every kind of control (hardware-support §5) produces the same family:
+Physical controls are used through their role (`action`, `volume-up`, `main`…), never their code (SYS-067). The roles are one vocabulary the device and the host share, the crate `blackbird-bus-model` ([RFC 0020](https://github.com/opendap-project/rfcs/blob/main/text/0020-input-wire-model.md)): `action`, `volume-up`, `volume-down`, `main`, `back`, `select` and `menu`. A device declares the roles it has and rejects others; a new kind of control adds a role there. Every kind of control (hardware-support §5) produces the same family:
 
 | Event | Is (Android `KeyEvent`, evdev) |
 |---|---|
@@ -122,7 +122,7 @@ Physical controls are used through their role (`action`, `volume-up`, `main`…)
 | `step` | A dial or wheel turned: `steps` (± detents, from `value120`), `velocity` |
 | `toggle` | A switch moved: its `position` |
 
-A `press` never waits for a second press (T1-063). A held control keeps its press's meaning and repeats it where the meaning repeats (the focus, a value, the volume). A double press exists only where a context gives one, and then without delaying the single press: the first press acts at once and the second, within `DOUBLE_PRESS_MS` (300 ms) of a short first press's release, takes the first one's effect back and does its own (opendap-input's `DoublePress`). On the T1 that is the volume buttons while they are the volume: the track (T1 controls spec §1.3). Elsewhere two quick presses are two presses.
+A `press` never waits for a second press (T1-063). A held control keeps its press's meaning and repeats it where the meaning repeats (the focus, a value, the volume). A double press exists only where a context gives one, and then without delaying the single press: the first press acts at once and the second, within `DOUBLE_PRESS_MS` (300 ms) of a short first press's release, takes the first one's effect back and does its own (blackbird-ui-input's `DoublePress`). On the T1 that is the volume buttons while they are the volume: the track (T1 controls spec §1.3). Elsewhere two quick presses are two presses.
 
 ### 3.4 Semantic actions
 
@@ -156,7 +156,7 @@ Sensors (ambient light, battery, temperature) are states with change notificatio
 
 The buttons give one axis: Volume moves, Action takes. One axis cannot walk a long page of nested content item by item, so navigation has **levels**, as a slider already has (design system §8.4): the focus moves among the stops of the current level; Action **engages** a stop to work inside it, one level down; leaving goes back up. SYS-078, extending the slider's lock to every composite (tvOS focus sections, Android TV rows, ARIA composites with one tab stop, the Apple Watch's crown on a focused control).
 
-**Roles.** Every node is one of these to navigation (`opendap-input::nav`):
+**Roles.** Every node is one of these to navigation (`blackbird-ui-input::nav`):
 
 | Role | Volume | Action | Escape | Examples |
 |---|---|---|---|---|
@@ -175,14 +175,14 @@ The buttons give one axis: Volume moves, Action takes. One axis cannot walk a lo
 - **What releases.** Action again, Escape, moving the focus away, a touch outside the engaged node (a touch inside keeps the levels it is in), the focus hiding, the display going off, a layer opening over it, the engaged node leaving the tree. The focus stays where the buttons can continue: on the stop, when it was inside one.
 - **Layers.** Opening one releases the levels below, puts the focus on its primary action (else its first stop) and remembers the opener; closing it gives the focus back to the opener. A modal traps (Volume wraps, nothing outside is reachable); a popover does not wrap; toasts and the status bar never take the focus. The status panel is a modal.
 - **Disabled is skipped** ([blackbird-ui ADR 0003](../../../ui/docs/adr/0003-screen-states.md)): it keeps its place and its reason shows, but neither the buttons nor a touch give it the focus, and a disabled container's children are skipped with it; a disabled primary action is not landed on at entry. An element disabled while it has the focus keeps it (Action does nothing) until the buttons move on from its place, as Android does.
-- **Ends.** Every sequence the buttons, the arrows or a hand walks (a screen, a navigation level, a list, a shelf, a pager, a value stepped through its options) takes what happens past its ends from one primitive, `opendap-input::ends`: **stop** or **cycle**.
+- **Ends.** Every sequence the buttons, the arrows or a hand walks (a screen, a navigation level, a list, a shelf, a pager, a value stepped through its options) takes what happens past its ends from one primitive, `blackbird-ui-input::ends`: **stop** or **cycle**.
   - **Stop is the default.** The end is information: the library, the queue, the settings are all seen. Wrapping would hide it and, in a long list, throw the focus thousands of items away with one press; no platform's lists wrap (iOS, Android; tvOS and Android TV focus). Volume past the first or the last element of a screen stays there (a boundary cue may show it); past an engaged stop's ends the focus comes back to the stop, released; past a list's ends it goes on to what follows.
   - **Cycle** where the content has no first and no last: hours, minutes, days of the week, months, an angle, a hue (as iOS's and Android's time pickers do), declared on the stop, the list or the pager that holds it. And where the focus cannot leave: a modal traps, so it cycles. A sequence whose end is not known yet (pages still arriving) stops.
   - A wrap is told apart from a move: the view jumps to the far end instead of scrolling through everything between, and a screen reader says the sequence started again.
   - A list that takes the focus before any item has it shows the ring on its first item at the first press.
 - **Order** is reading order through transparent containers: a row's children start to end, right to left mirrored; a grid row by row; Volume + is always previous and Volume − next, by place.
 - **Revealing.** The focus moved is scrolled into view, innermost scroll area first, each one just enough, below what covers its edges (a sticky header at its start, the playing strip at its end), and the part shown is then revealed in its parent (`nested::reveal`; the browser's nested `scrollIntoView`). An element taller than the room shows its start.
-- **Large and lazy content.** A virtual list is transparent over its items by key, never by slot: the buttons walk the whole list, not just what is built, and the focus follows its item when items arrive, move or go (`opendap-layout::focus`). A placeholder (data not arrived) takes the focus; Action on it waits for its data, with the loading shown, and moving the focus away gives the wait up (`opendap-layout::focus::Activation`).
+- **Large and lazy content.** A virtual list is transparent over its items by key, never by slot: the buttons walk the whole list, not just what is built, and the focus follows its item when items arrive, move or go (`blackbird-ui-layout::focus`). A placeholder (data not arrived) takes the focus; Action on it waits for its data, with the loading shown, and moving the focus away gives the wait up (`blackbird-ui-layout::focus::Activation`).
 - **Motion.** The focus moves at once (logically), the ring follows the element's settled place, and the reveal's scroll is animated and retargeted, never queued: a held repeat moves the focus at the repeat's rate and the scroll follows it; with reduced motion it jumps. An element on its way out is no longer reachable; one coming in is reachable at once.
 - **Touch and the focus** (design system §8.4). A touch gives the touched element the focus, hidden, and keeps only the levels it is inside; the next button press shows the ring there.
 
@@ -199,15 +199,15 @@ The buttons give one axis: Volume moves, Action takes. One axis cannot walk a lo
 
 ### 3.8 Text, fields and the keyboard
 
-Fields are built on the same primitives as everything else, one layer on top of another, so the system keyboard, the OS Shell's own fields, every activity's form and a keyboard someone else writes (in the simulator or a custom image) share them (`opendap-forms`; `zwp_input_method_v2` and `text-input-v3` for the protocols). Primitives at every layer, from raw input to the domain and the activity's own ([ADR 0014](../adr/0014-composition-and-test-levels.md)).
+Fields are built on the same primitives as everything else, one layer on top of another, so the system keyboard, the OS Shell's own fields, every activity's form and a keyboard someone else writes (in the simulator or a custom image) share them (`blackbird-ui-forms`; `zwp_input_method_v2` and `text-input-v3` for the protocols). Primitives at every layer, from raw input to the domain and the activity's own ([ADR 0014](../adr/0014-composition-and-test-levels.md)).
 
 | Layer | What | Primitive |
 |---|---|---|
 | Raw | Keys (`key` events), an input method's text (text-input-v3: preedit, commit, delete around the caret), a virtual keyboard's keys (virtual-keyboard-v1) | the composer and Wayland (§2) |
-| Editing | The text, its selection and the composition, changed by edits every source shares (insert, paste, delete and move by grapheme, word or all, select, compose, commit, undo, redo); positions only on grapheme boundaries; a filter before every change (`beforeinput`, cancelable); a bounded undo that takes a typed word at a time | `opendap-forms::text` (`Editor`, `Edit`, a `Boundaries` port: ICU4X's Unicode segmentation) |
-| Kind | What a field holds: text to value and back, what may be typed, the keyboard it asks for (text-input-v3's purpose and hints), its checks (range, step, length, count), a step up or down for the buttons | `opendap-forms::kind` (`Kind`, `Value`, `Issue`, `Purpose`, `Hints`) |
-| Binding | The field's text and the model's value in step both ways, with no echo | `opendap-forms::binding` |
-| Form | Fields together: touched and dirty, rules across fields, checks that answer later, submit, reset, Enter's "next", a field that resets its dependents | `opendap-forms::form` |
+| Editing | The text, its selection and the composition, changed by edits every source shares (insert, paste, delete and move by grapheme, word or all, select, compose, commit, undo, redo); positions only on grapheme boundaries; a filter before every change (`beforeinput`, cancelable); a bounded undo that takes a typed word at a time | `blackbird-ui-forms::text` (`Editor`, `Edit`, a `Boundaries` port: ICU4X's Unicode segmentation) |
+| Kind | What a field holds: text to value and back, what may be typed, the keyboard it asks for (text-input-v3's purpose and hints), its checks (range, step, length, count), a step up or down for the buttons | `blackbird-ui-forms::kind` (`Kind`, `Value`, `Issue`, `Purpose`, `Hints`) |
+| Binding | The field's text and the model's value in step both ways, with no echo | `blackbird-ui-forms::binding` |
+| Form | Fields together: touched and dirty, rules across fields, checks that answer later, submit, reset, Enter's "next", a field that resets its dependents | `blackbird-ui-forms::form` |
 | Domain and custom | An activity's own kind (a catalogue number, an ISRC) and its own rules, through the same contract | `kind::Custom`, `form::Rule` |
 
 **Kinds.** Text (minimum and maximum length), multiline, password, PIN (a numeric code of a length), number (range, step, decimals, the locale's separators), email, URL, phone, date (ISO typed), time, duration (m:ss, h:mm:ss), choice, multiple choice (how many), toggle, tags (deduplicated), search, masked (a pattern of digits, letters and literals), colour, rating; and a player's audio values: frequency (Hz, "1.2k", a twelfth of an octave a step), gain (dB, signed, its step), Q, milliseconds. Each asks the keyboard for its variant: digits for a PIN, a number pad for a gain, @ and . for an email.
@@ -294,7 +294,7 @@ Then by type:
 
 ### 6.1 Coordinate spaces
 
-**Every coordinate is relative** (SYS-079): there is no absolute position, only frames, each placed in its parent by an offset, a scale and a direction. Even the screen is one frame among them, the outermost that software sees: below it are the touch digitizer's raw axes (0 to 32767 on the virtual board), mapped to the display by calibration and rotation. A position always says which frame it is in, and converting between two frames walks the tree through their common ancestor (iOS's `UICoordinateSpace`, Compose's `LayoutCoordinates`, Flutter's `PointerEvent.transform`); `opendap-input`'s `Frame` and `FramePath` implement it.
+**Every coordinate is relative** (SYS-079): there is no absolute position, only frames, each placed in its parent by an offset, a scale and a direction. Even the screen is one frame among them, the outermost that software sees: below it are the touch digitizer's raw axes (0 to 32767 on the virtual board), mapped to the display by calibration and rotation. A position always says which frame it is in, and converting between two frames walks the tree through their common ancestor (iOS's `UICoordinateSpace`, Compose's `LayoutCoordinates`, Flutter's `PointerEvent.transform`); `blackbird-ui-input`'s `Frame` and `FramePath` implement it.
 
 ```text
 digitizer (raw axes) → display (calibration, rotation) → screen → content-area → surface
@@ -362,7 +362,7 @@ A scroll container is two frames, and with scrolling the difference matters most
 
 ### 6.3 Utilities for developers
 
-Primitives first: what any handler can ask of a pointer, as plain functions over frames, with no activity or component runtime behind them (`opendap-input`'s `space`). The activity system and the components will use the same primitives when they come.
+Primitives first: what any handler can ask of a pointer, as plain functions over frames, with no activity or component runtime behind them (`blackbird-ui-input`'s `space`). The activity system and the components will use the same primitives when they come.
 
 | Utility | Answers | In |
 |---|---|---|
@@ -378,7 +378,7 @@ Primitives first: what any handler can ask of a pointer, as plain functions over
 
 ### 6.4 Identity and paths
 
-Every node an event goes through has a kind and a name, and an address from the outermost node down to it, so a handler, a test, a tool or the debug UI mode can name it, select it and convert between it and any other node (`opendap-input`'s `node`). W3C's `composedPath`, the accessibility tree's ancestry and test identifiers do the same.
+Every node an event goes through has a kind and a name, and an address from the outermost node down to it, so a handler, a test, a tool or the debug UI mode can name it, select it and convert between it and any other node (`blackbird-ui-input`'s `node`). W3C's `composedPath`, the accessibility tree's ancestry and test identifiers do the same.
 
 - **Kinds:** `activity` (the outermost), `surface`, `layer`, `group`, `region` (a named area that is not an element), `container` (a viewport over content), `element`.
 - **Names:** stable across frames and data changes (an item's own key, never its index), unique among siblings: `element:track-12`.
@@ -390,7 +390,7 @@ Every node an event goes through has a kind and a name, and an address from the 
 
 ### 6.5 The catalogue, by layer
 
-Every primitive, directive and modifier the composer's domain needs, layer by layer, so the OS Shell and then each activity built with the SDK extend it rather than invent beside it (primitives first, across every layer: [ADR 0014](../adr/0014-composition-and-test-levels.md)). **Built** is in `opendap-input` with tests; **Specified** is defined here and comes with the layer that needs it. The lessons from SwiftUI, Flutter and Compose are named where they apply.
+Every primitive, directive and modifier the composer's domain needs, layer by layer, so the OS Shell and then each activity built with the SDK extend it rather than invent beside it (primitives first, across every layer: [ADR 0014](../adr/0014-composition-and-test-levels.md)). **Built** is in `blackbird-ui-input` with tests; **Specified** is defined here and comes with the layer that needs it. The lessons from SwiftUI, Flutter and Compose are named where they apply.
 
 | Layer | Primitives | Directives and modifiers | State |
 |---|---|---|---|
@@ -410,8 +410,8 @@ Every primitive, directive and modifier the composer's domain needs, layer by la
 | Identity (§6.4) | `NodeId` (unique among siblings, from the data, never an index), `NodePath`, selectors, reserved singletons | `test_id` apart from the accessible label; scoped anchors (`@Namespace`) for pairs across the tree, never global keys | Ids, paths, selectors, `test_id` built; scoped anchors built (`matched`: a source and a destination paired by id in a namespace, in `@screen`) |
 | Dispatch (§4) | capture, target, bubble along the composed path | `once`, `stop`, `prevent`, `capture`, `self`, `passive`, `throttle`, `debounce`, `repeat(off)`, `hold(ms)` | Routing built (`dispatch`: phases and every directive); the protocol to activities comes with their runtime |
 | Focus (design system §8.4) | focus on entry (the primary action, else the first element), focus shown or hidden, tap moves it | a focus scope: default focus, restore the last focused (falling back to the default when it is gone), trap (modals), traversal order (Flutter's `FocusScopeNode`, Compose's `focusRestorer`) | Scopes built (`focus`); entry and visibility built in the components |
-| Text and fields (§3.8) | editing (text, selection, composition), kinds and values, binding, forms, issues; `@keyboard` as an inset of the content area | a filter before every change; update on input or on commit; issues shown once left or submitted; a check that answers later by generation; dismiss on a tap outside a field, never on a scroll | Built (`opendap-forms`: `text`, `kind`, `binding`, `form`); the keyboard's layout and dismissal tried in the UI primitives activity (Keyboard); the system keyboard comes with the OS Shell, the protocols with the composer |
-| Navigation (§3.7) | levels: move, engage, release; roles leaf, adjustable, stop, transparent, layer, none | trap, opener restore, release on touch, focus hidden, display off, layer open or node gone; reveal innermost first with insets; ← → walk without engaging | Built (`nav`, `nested::reveal`, `opendap-layout::focus::Activation`); in the components: the slider's lock, modals, the screen's ends, disabled skipped; stops (a virtual shelf of 10 000 albums, nav for its levels and opendap-layout for its items; a player with a seek inside) tried in the UI primitives activity (Navigation); the reveal's scroll animated and retargeted, below a pinned section header in the virtual list (Virtual) |
+| Text and fields (§3.8) | editing (text, selection, composition), kinds and values, binding, forms, issues; `@keyboard` as an inset of the content area | a filter before every change; update on input or on commit; issues shown once left or submitted; a check that answers later by generation; dismiss on a tap outside a field, never on a scroll | Built (`blackbird-ui-forms`: `text`, `kind`, `binding`, `form`); the keyboard's layout and dismissal tried in the UI primitives activity (Keyboard); the system keyboard comes with the OS Shell, the protocols with the composer |
+| Navigation (§3.7) | levels: move, engage, release; roles leaf, adjustable, stop, transparent, layer, none | trap, opener restore, release on touch, focus hidden, display off, layer open or node gone; reveal innermost first with insets; ← → walk without engaging | Built (`nav`, `nested::reveal`, `blackbird-ui-layout::focus::Activation`); in the components: the slider's lock, modals, the screen's ends, disabled skipped; stops (a virtual shelf of 10 000 albums, nav for its levels and blackbird-ui-layout for its items; a player with a seek inside) tried in the UI primitives activity (Navigation); the reveal's scroll animated and retargeted, below a pinned section header in the virtual list (Virtual) |
 | Testing | a virtual clock (every primitive takes time as an input), synthetic contacts | a harness with finders by path, role and label; a recorder whose recordings replay through the same code as live input, so a device's bug becomes a test | Built (`harness`: clock, scripts, readable recordings, `play`); finders by path come with the runtime |
 | Debugging | gestures named at their level, the debug UI mode | none | Built |
 
@@ -437,7 +437,7 @@ Defaults, in design pixels (px, as the design system writes them) and millisecon
 
 ## 8. Where it lives
 
-- **`opendap-input`** (the crate, formerly `opendap-gesture`): `gesture` (the recognizers, regions, frames and composite gestures, §3.2, §6.1), `control` (press, long press, hold and repeat as a pure state machine, §3.3), `semantic` (roles and context to semantic actions, §3.4), `nav` (navigation without touch: levels, stops, layers, §3.7) and `thresholds` (§7, generated with this section's table from the crate's `thresholds.toml`); `opendap-forms` holds text editing, field kinds, binding and forms (§3.8), platform-agnostic, used by the composer, the UI primitives activity, and later the CLI and OpenDAP Desktop. The device service `odap-input` (OS architecture) will run it; the crate and the service follow the workspace's naming (`opendap-*` crates, `odap-*` binaries). A drag's `bounds`, `snap` and `targets` belong to the element that declares them (Blackbird UI).
+- **`blackbird-ui-input`** (the crate, formerly `opendap-gesture`): `gesture` (the recognizers, regions, frames and composite gestures, §3.2, §6.1), `control` (press, long press, hold and repeat as a pure state machine, §3.3), `semantic` (roles and context to semantic actions, §3.4), `nav` (navigation without touch: levels, stops, layers, §3.7) and `thresholds` (§7, generated with this section's table from the crate's `thresholds.toml`); `blackbird-ui-forms` holds text editing, field kinds, binding and forms (§3.8), platform-agnostic, used by the composer, the UI primitives activity, and later the CLI and OpenDAP Desktop. The device service `odap-input` (OS architecture) will run it; the crate and the service follow the workspace's naming (`opendap-*` crates, `odap-*` binaries). A drag's `bounds`, `snap` and `targets` belong to the element that declares them (Blackbird UI).
 - **The composer** turns raw events into domain events and dispatches them (§4).
 - **Activities** receive them today through Wayland's standard input (touch, pointer, and the keys of focus navigation, composer spec §2); the full domain events, semantic actions and directives need a protocol of their own, opened when the activity runtime is (ADR 0002).
 - **The CLI and the simulator** inject raw events (`opendap input send`), so they test the same pipeline a hand does.

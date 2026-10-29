@@ -95,7 +95,7 @@ fn channel_report(seg: &[f32], ch: usize, c: usize, rate: u32) -> serde_json::Va
     let dc = x.iter().map(|v| f64::from(*v)).sum::<f64>() / x.len().max(1) as f64;
     let clipped = x
         .iter()
-        .filter(|v| v.abs() >= opendap_audio_analysis::meter::CLIP)
+        .filter(|v| v.abs() >= blackbird_services_audio_analysis::meter::CLIP)
         .count();
     let t = tone::analyze(&x, rate);
     serde_json::json!({

@@ -107,7 +107,7 @@ export component ControlsPage inherits Flickable {
         Section {
             title: "SENSORS";
             // The light that falls on the faceplate's sensor, which the device reads as an
-            // IIO illuminance (odap-vdev-hw); fire and forget, as the battery.
+            // IIO illuminance (blackbird-emulator-bsp-hw); fire and forget, as the battery.
             HorizontalLayout {
                 spacing: 8px;
                 Image { source: @image-url("icons/light.svg"); colorize: Palette.text; width: 16px; height: 16px; y: (parent.height - self.height) / 2; }

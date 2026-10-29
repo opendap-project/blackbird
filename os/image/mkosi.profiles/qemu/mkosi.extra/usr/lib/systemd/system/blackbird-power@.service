@@ -1,10 +1,10 @@
-# One request to the power service (blackbird-power.socket): odap-reboot reads it from the connection.
+# One request to the power service (blackbird-power.socket): /usr/lib/blackbird/power reads it from the connection.
 [Unit]
 Description=Blackbird OS power request
 CollectMode=inactive-or-failed
 
 [Service]
-ExecStart=/usr/bin/odap-reboot --serve
+ExecStart=/usr/lib/blackbird/power --serve
 StandardInput=socket
 StandardOutput=socket
 StandardError=journal

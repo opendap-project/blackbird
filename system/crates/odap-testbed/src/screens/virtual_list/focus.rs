@@ -2,10 +2,10 @@
 
 use std::{rc::Rc, time::Duration, time::Instant};
 
-use opendap_input::nested;
-use opendap_layout::extents::Extents;
-use opendap_layout::{data::pages::ItemState, focus as vfocus};
-use opendap_motion::animator::Animator;
+use blackbird_ui_input::nested;
+use blackbird_ui_layout::extents::Extents;
+use blackbird_ui_layout::{data::pages::ItemState, focus as vfocus};
+use blackbird_ui_motion::animator::Animator;
 use slint::{ComponentHandle, Timer};
 
 use super::{HEAD, REVEAL, SECTION, Shared, VCOUNT, Virtual, render::vrender};

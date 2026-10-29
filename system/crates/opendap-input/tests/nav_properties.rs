@@ -3,8 +3,8 @@
 //! and the tree changing. Whatever the combination, these hold after every step; a failure is
 //! shrunk to the smallest screen and sequence that breaks one.
 
-use opendap_input::ends::Ends;
-use opendap_input::nav::{Effect, Key, NavNode, NavRole, Navigator};
+use blackbird_ui_input::ends::Ends;
+use blackbird_ui_input::nav::{Effect, Key, NavNode, NavRole, Navigator};
 use proptest::prelude::*;
 
 /// A node of a generated screen, before names: its role and its children.

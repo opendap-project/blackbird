@@ -7,7 +7,7 @@ use crate::{Description, Error};
 
 /// The places a description is looked for, first match wins.
 pub const SEARCH_PATHS: &[&str] = &[
-    opendap_platform::run::DEVICE_DESCRIPTION,
+    blackbird_platform::run::DEVICE_DESCRIPTION,
     "/usr/share/blackbird/device/description.toml",
 ];
 

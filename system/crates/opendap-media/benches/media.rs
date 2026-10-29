@@ -2,11 +2,11 @@
 
 use std::hint::black_box;
 
-use criterion::{Criterion, criterion_group, criterion_main};
-use opendap_media::{
+use blackbird_ui_media::{
     fit::{Fit, decode_size},
     plot::{Ring, min_max},
 };
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn plot(c: &mut Criterion) {
     // About 23 s of 44.1 kHz audio, to the 300 columns of a waveform.

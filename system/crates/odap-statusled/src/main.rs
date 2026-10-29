@@ -164,11 +164,11 @@ mod linux;
 fn main() {
     #[cfg(target_os = "linux")]
     if let Err(e) = linux::run() {
-        eprintln!("odap-statusled: {e}");
+        eprintln!("statusled: {e}");
         std::process::exit(1);
     }
     #[cfg(not(target_os = "linux"))]
-    eprintln!("odap-statusled: Linux only");
+    eprintln!("statusled: Linux only");
 }
 
 #[cfg(test)]

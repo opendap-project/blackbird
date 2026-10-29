@@ -5,25 +5,25 @@ use std::{
     time::{Duration, Instant},
 };
 
+use blackbird_ui_splash::{COVER_ARMED_PATH, COVER_SHOWN_PATH, SHOWN_AT_PATH};
 use drm::{
     Device as _,
     buffer::Buffer as _,
     buffer::DrmFourcc,
     control::{Device as ControlDevice, ModeTypeFlags, connector},
 };
-use opendap_splash::{COVER_ARMED_PATH, COVER_SHOWN_PATH, SHOWN_AT_PATH};
 use rustix::{
     event::{PollFd, PollFlags, Timespec, poll},
     fs::inotify,
     time::{ClockId, clock_gettime},
 };
 
-/// `odap-boot handoff` creates this file to ask for the display...
-const HANDOFF_PATH: &str = opendap_platform::run::BOOT_HANDOFF;
+/// `blackbird-apps-boot handoff` creates this file to ask for the display...
+const HANDOFF_PATH: &str = blackbird_platform::run::BOOT_HANDOFF;
 /// ...and the boot UI creates this one once it has released it.
-const RELEASED_PATH: &str = opendap_platform::run::BOOT_RELEASED;
+const RELEASED_PATH: &str = blackbird_platform::run::BOOT_RELEASED;
 /// Where the running boot UI records its process id, so a hand-over knows whether to wait.
-const PID_PATH: &str = opendap_platform::run::BOOT_PID;
+const PID_PATH: &str = blackbird_platform::run::BOOT_PID;
 /// The longest a hand-over waits for the release.
 const HANDOFF_TIMEOUT: Duration = Duration::from_secs(2);
 /// The longest the boot UI waits for the composer before it gives the display up anyway.
@@ -71,11 +71,11 @@ impl Drop for Ready {
 }
 
 fn log(msg: &str) {
-    eprintln!("odap-boot: {msg}");
+    eprintln!("boot: {msg}");
 }
 
 fn panel_size() -> Option<(u16, u16)> {
-    let (_, d) = opendap_device::locate::load().ok()?;
+    let (_, d) = blackbird_device::locate::load().ok()?;
     d.display.map(|d| (d.width_px as u16, d.height_px as u16))
 }
 
@@ -171,7 +171,7 @@ pub fn main() -> i32 {
     let pitch = db.pitch() as usize;
     match card.map_dumb_buffer(&mut db) {
         Ok(mut map) => {
-            let pixels = opendap_splash::screen_xrgb(w as u32, h as u32, pitch);
+            let pixels = blackbird_ui_splash::screen_xrgb(w as u32, h as u32, pitch);
             let n = pixels.len().min(map.as_mut().len());
             map.as_mut()[..n].copy_from_slice(&pixels[..n]);
         }
@@ -184,7 +184,7 @@ pub fn main() -> i32 {
         log("cannot create a framebuffer");
         return 1;
     };
-    let _ = std::fs::create_dir_all(opendap_platform::run::BOOT_DIR);
+    let _ = std::fs::create_dir_all(blackbird_platform::run::BOOT_DIR);
     let _ = std::fs::write(COVER_ARMED_PATH, "");
     // At boot nobody holds the display. When the boot UI covers a restart of the composer, DRM master
     // may still be on its way out of the old composer: wait for it, then show the splash screen.
@@ -271,7 +271,7 @@ fn boot_ui_running() -> bool {
 
 /// The composer side of the hand-over: ask, then wait for the release, if a boot UI is running.
 pub fn handoff() -> i32 {
-    let _ = std::fs::create_dir_all(opendap_platform::run::BOOT_DIR);
+    let _ = std::fs::create_dir_all(blackbird_platform::run::BOOT_DIR);
     // A boot UI covering a restart may still be armed, waiting for the old composer's DRM master,
     // with no process id recorded yet: it is about to take the display, so wait for it too
     // (otherwise the new composer and the cover race for the display and the composer fails to start).
@@ -297,7 +297,7 @@ fn wait_for(path: &str, timeout: Duration) -> bool {
     };
     if inotify::add_watch(
         &fd,
-        opendap_platform::run::DIR,
+        blackbird_platform::run::DIR,
         inotify::WatchFlags::CREATE | inotify::WatchFlags::MOVED_TO,
     )
     .is_err()

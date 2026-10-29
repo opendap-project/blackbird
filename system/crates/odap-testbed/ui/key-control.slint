@@ -7,7 +7,7 @@ import { FocusReveal, FocusVisible, FocusNav } from "@blackbird/slint/components
 // control and draws its ring over its box. `kind`: "button" (Action activates), "lockable"
 // (Action locks, then Volume adjusts, as a slider), "list" (Volume walks its items, leaving at
 // the ends), "stop" (a composite with one stop, input events §3.7: the logic navigates inside it
-// with opendap-input's nav; the ring is the stop's until it is engaged, then its child's). Keys
+// with blackbird-ui-input's nav; the ring is the stop's until it is engaged, then its child's). Keys
 // go to the logic as `key(name, what)`, routed to the screen that owns the control (src/keys.rs).
 export component KeyControl inherits FocusScope {
     // A touch is the touch area's under it: it hides the ring, gives this the focus and starts its

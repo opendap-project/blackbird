@@ -4,7 +4,7 @@
 //! contact reports is a well-formed stream (W3C's pointer events: one start, moves, one end), and a
 //! failure is shrunk to the smallest contact that breaks it.
 
-use opendap_input::gesture::{
+use blackbird_ui_input::gesture::{
     Axis, Contact, DragOptions, DragStart, Edge, FLING_PX_S, Frame, FramePath, Gesture, Phase,
     Region,
 };

@@ -9,16 +9,16 @@ use std::{
 
 use std::os::fd::AsRawFd;
 
-use opendap_device::{Description, IndicatorColors, IndicatorRole};
-use opendap_platform::kernel;
+use blackbird_device::{Description, IndicatorColors, IndicatorRole};
+use blackbird_platform::kernel;
 
 use crate::{Inputs, Show, decide, parse_developer};
 
-const REQUESTS: &str = opendap_platform::run::LED_REQUESTS;
-const RUN: &str = opendap_platform::run::DIR;
+const REQUESTS: &str = blackbird_platform::run::LED_REQUESTS;
+const RUN: &str = blackbird_platform::run::DIR;
 /// The composer's runtime directory: it writes `ui-ready` there at its first frame on screen, and
 /// booting ends.
-const COMPOSER: &str = opendap_platform::run::COMPOSER_DIR;
+const COMPOSER: &str = blackbird_platform::run::COMPOSER_DIR;
 
 /// One channel of the LED: its brightness file and its maximum.
 struct Channel {
@@ -80,10 +80,10 @@ impl Led {
 }
 
 fn description() -> io::Result<Description> {
-    opendap_device::locate::load()
+    blackbird_device::locate::load()
         .map(|(_, d)| d)
         .map_err(|e| match e {
-            opendap_device::locate::LoadError::NotFound(_) => {
+            blackbird_device::locate::LoadError::NotFound(_) => {
                 io::Error::new(io::ErrorKind::NotFound, e.to_string())
             }
             _ => io::Error::new(io::ErrorKind::InvalidData, e.to_string()),
@@ -141,7 +141,7 @@ fn inputs(booting: bool) -> Inputs {
         booting,
         ..Default::default()
     };
-    let supplies = opendap_platform::power_supply::read_supplies();
+    let supplies = blackbird_platform::power_supply::read_supplies();
     i.battery = supplies.battery.map(|b| b.level);
     i.charging = supplies.battery.is_some_and(|b| b.charging);
     i.external = supplies.external;

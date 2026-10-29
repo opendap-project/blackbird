@@ -33,7 +33,7 @@ use smithay::{
     },
 };
 
-use opendap_device::Description;
+use blackbird_device::Description;
 
 use super::backend::Backend;
 
@@ -81,13 +81,13 @@ pub struct Contacts {
 #[derive(Default)]
 pub struct Keys {
     /// The keys a role sent the activity when it went down, to release the same ones.
-    pub forwarded: std::collections::HashMap<opendap_device::Role, &'static [u32]>,
+    pub forwarded: std::collections::HashMap<blackbird_device::Role, &'static [u32]>,
     /// Counts the focus steps held down, so a held button's repeat stops with its release.
     pub repeat_gen: u64,
     /// The generation of an attached keyboard's held key (input/keyboard.rs).
     pub key_repeat_gen: u64,
     /// Volume + and Volume −'s presses, for their double press (T1-062).
-    pub volume_presses: [opendap_input::double::DoublePress; 2],
+    pub volume_presses: [blackbird_ui_input::double::DoublePress; 2],
 }
 
 /// Whether the activity answers (input/liveness.rs): input to one that does not is dropped, never

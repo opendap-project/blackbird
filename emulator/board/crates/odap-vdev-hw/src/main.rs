@@ -12,7 +12,7 @@
 //!   `hid-sensor-hub` and `hid-sensor-als` expose as an IIO device (`in_illuminance_raw`, lux).
 //!   The host sets its reading by writing `als <lux>` to the FIFO `/run/blackbird/emulator/hw`; the
 //!   current value is in `/run/blackbird/emulator/als`. It starts at the light last set, kept across
-//!   reboots in `/var/lib/blackbird/emulator/settings` (the board's `virtual-settings`), else 120 lx.
+//!   reboots in `/var/lib/blackbird/emulator/settings` (the board's `emulator-settings`), else 120 lx.
 //!
 //! - **The microphone's privacy light**, which the hardware ties to the microphone's power
 //!   (BRD-027): on the virtual board, the microphone is live while a capture stream runs. procfs
@@ -165,7 +165,7 @@ fn publish(name: &str, text: &str) {
         .and_then(|()| fs::rename(&tmp, &path))
         .is_err()
     {
-        eprintln!("odap-vdev-hw: cannot write {}", path.display());
+        eprintln!("emulator-hw: cannot write {}", path.display());
     }
 }
 
@@ -266,7 +266,7 @@ impl Board {
                     self.als.input(&self.reading())?;
                 }
             }
-            _ => eprintln!("odap-vdev-hw: unknown command: {line}"),
+            _ => eprintln!("emulator-hw: unknown command: {line}"),
         }
         Ok(())
     }
@@ -347,7 +347,7 @@ fn microphone() -> (bool, bool) {
     (false, any)
 }
 
-/// The light the simulator last set, kept across reboots by the board's `virtual-settings`.
+/// The light the simulator last set, kept across reboots by the board's `emulator-settings`.
 fn saved_light() -> Option<u32> {
     let text = fs::read_to_string("/var/lib/blackbird/emulator/settings").ok()?;
     text.lines()

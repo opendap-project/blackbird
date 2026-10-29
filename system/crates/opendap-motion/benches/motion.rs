@@ -3,12 +3,12 @@
 
 use std::hint::black_box;
 
-use criterion::{Criterion, criterion_group, criterion_main};
-use opendap_motion::{
+use blackbird_ui_motion::{
     animator::{Animator, Kind},
     easing::Bezier,
     spring::Spring,
 };
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn motion(c: &mut Criterion) {
     c.bench_function("spring/sample", |b| {

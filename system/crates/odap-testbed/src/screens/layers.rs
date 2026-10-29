@@ -1,16 +1,16 @@
-//! The Layers screen: a dialog's frosted backdrop, and a popover placed by opendap-input's
+//! The Layers screen: a dialog's frosted backdrop, and a popover placed by blackbird-ui-input's
 //! anchor.
 
 use std::time::Instant;
 
-use opendap_input::anchor;
+use blackbird_ui_input::anchor;
 use slint::ComponentHandle;
 
 use crate::{Backdrop, Testbed};
 
 pub(super) fn wire(ui: &Testbed) {
     // A dialog's frosted backdrop: what the window shows, shrunk four times and blurred once
-    // (opendap-media's blur), drawn by Blackbird UI's scrim under a graphite tint.
+    // (blackbird-ui-media's blur), drawn by Blackbird UI's scrim under a graphite tint.
     let weak = ui.as_weak();
     ui.on_frost(move || {
         let Some(ui) = weak.upgrade() else { return };
@@ -23,7 +23,7 @@ pub(super) fn wire(ui: &Testbed) {
         };
         let (w, h) = (shot.width() as usize, shot.height() as usize);
         let started = Instant::now();
-        let (small, sw, sh) = opendap_media::blur::frosted(shot.as_bytes(), w, h, 4, 12);
+        let (small, sw, sh) = blackbird_ui_media::blur::frosted(shot.as_bytes(), w, h, 4, 12);
         let frost = slint::SharedPixelBuffer::<slint::Rgba8Pixel>::clone_from_slice(
             &small, sw as u32, sh as u32,
         );

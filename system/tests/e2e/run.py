@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 The OpenDAP Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Runs the end-to-end scenarios on a running virtual device (ADR 0014, level L3), with the UI
-primitives activity on screen (odap-vdev ui activity odap-testbed). Prints each scenario's result
+primitives activity on screen (odap-vdev ui activity ui-primitives). Prints each scenario's result
 and the matrix cases it covers, saves the captures, report.json and check-result.json (an
 opendap.check-result/v1 document, one result per scenario, id e2e/<scenario>, level V3, for the
 verification matrix to collect) in --out, and exits 1 when one failed.

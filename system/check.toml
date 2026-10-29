@@ -15,7 +15,7 @@ run = ["cargo", "test", "--workspace"]
 
 [[stage.full]]
 name = "clippy-device"
-run = ["odapkit", "cross", "clippy", "-p", "odap-composer", "--", "-D", "warnings"]
+run = ["odapkit", "cross", "clippy", "-p", "blackbird-composer", "--", "-D", "warnings"]
 
 # Last: keep the build outputs out of the Spotlight index (skips while any build runs).
 [[stage.full]]

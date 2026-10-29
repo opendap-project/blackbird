@@ -34,7 +34,7 @@ use crate::tokens;
 use crate::touch_marks::{Shape, ease, lerp, progress, shade};
 
 /// The runtime switch; the environment's default is `BLACKBIRD_SHOW_TOUCHES`.
-const SWITCH_PATH: &str = opendap_platform::run::SHOW_TOUCHES;
+const SWITCH_PATH: &str = blackbird_platform::run::SHOW_TOUCHES;
 
 /// Diameters, in logical pixels: at rest, in contact, at the end of the ripple.
 const REST: f64 = 32.0;

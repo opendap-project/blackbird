@@ -2,9 +2,9 @@
 
 use std::{rc::Rc, time::Duration, time::Instant};
 
-use opendap_input::thresholds::{FLING_PX_S, SLOP_PX};
-use opendap_layout::extents::Extents;
-use opendap_motion::{animator::Animator, decay::Decay};
+use blackbird_ui_input::thresholds::{FLING_PX_S, SLOP_PX};
+use blackbird_ui_layout::extents::Extents;
+use blackbird_ui_motion::{animator::Animator, decay::Decay};
 use slint::{ComponentHandle, Timer};
 
 use super::{HEAD, REVEAL, Shared, Virtual, render::vrender};
@@ -82,7 +82,7 @@ fn moved(v: &mut Virtual, ui: &Testbed, up: bool, y: f32, ms: u64) -> bool {
     if !(up && fast && v.touch.travel >= SLOP_PX * unit) {
         return false;
     }
-    // A fling: the list goes on by itself, slowing as opendap-motion's decay says, and stops
+    // A fling: the list goes on by itself, slowing as blackbird-ui-motion's decay says, and stops
     // where it projects (or at an end).
     let now = v.reveal.clock.elapsed().as_secs_f32();
     v.reveal.fling = Some((v.offset, thrown, now));

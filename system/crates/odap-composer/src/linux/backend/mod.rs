@@ -113,12 +113,12 @@ impl Backend {
         }
     }
 
-    /// Lets the display go to a boot UI that is armed to cover this composer's restart (odap-boot
+    /// Lets the display go to a boot UI that is armed to cover this composer's restart (blackbird-apps-boot
     /// cover): drops DRM master with the last frame still on screen, and waits until the boot UI's
     /// splash screen has replaced it, so the display shows no blank frame. Without an armed boot UI
     /// it returns at once.
     pub fn hand_over(&self) {
-        use opendap_splash::{COVER_ARMED_PATH, COVER_SHOWN_PATH};
+        use blackbird_ui_splash::{COVER_ARMED_PATH, COVER_SHOWN_PATH};
         use smithay::reexports::drm::Device as _;
         if !std::path::Path::new(COVER_ARMED_PATH).exists() {
             return;

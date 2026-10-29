@@ -121,7 +121,7 @@ fn latest_only(queue: &mut Vec<Job>, of: impl Fn(&Job) -> bool) {
 }
 
 /// Follows the faceplate's status LED and microphone as the device changes them: a blocking read
-/// of the board's events (odap-vdev-hw), so nothing polls; reopened when the device restarts.
+/// of the board's events (blackbird-emulator-bsp-hw), so nothing polls; reopened when the device restarts.
 fn watch_board(vd_dir: PathBuf, jobs: Sender<Job>, linked: Arc<AtomicBool>) {
     use std::io::{BufRead, BufReader};
     let odap_vdev = vd_dir.join("bin/odap-vdev");

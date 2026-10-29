@@ -1,7 +1,7 @@
 //! The Instruments tab's drawings and words, from the device's sound and load: level bars, the
 //! spectrum strip and the readouts. Pure, so they are tested without a window.
 
-use opendap_audio_analysis::meter::{CLIP, Level};
+use blackbird_services_audio_analysis::meter::{CLIP, Level};
 use slint::{Rgba8Pixel, SharedPixelBuffer};
 
 use crate::sound::Reading;
@@ -34,7 +34,7 @@ fn db_text(db: f32) -> String {
 
 /// A meter's peak: −∞ only for digital silence, as digital meters show it.
 fn meter_text(db: f32) -> String {
-    if db <= opendap_audio_analysis::FLOOR_DBFS + 1.0 {
+    if db <= blackbird_services_audio_analysis::FLOOR_DBFS + 1.0 {
         "−∞".into()
     } else {
         format!("{db:.1}").replace('-', "−")
@@ -45,8 +45,8 @@ fn meter_text(db: f32) -> String {
 /// bars, so the instrument keeps its size.
 pub fn bars(levels: &[Level]) -> Vec<crate::MeterBar> {
     let silent = Level {
-        peak_dbfs: opendap_audio_analysis::FLOOR_DBFS,
-        rms_dbfs: opendap_audio_analysis::FLOOR_DBFS,
+        peak_dbfs: blackbird_services_audio_analysis::FLOOR_DBFS,
+        rms_dbfs: blackbird_services_audio_analysis::FLOOR_DBFS,
         clipped: 0,
         dc: 0.0,
     };

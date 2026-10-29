@@ -525,6 +525,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "blackbird-emulator-audio"
+version = "0.1.0"
+dependencies = [
+ "blackbird-emulator-qemu-display",
+ "blackbird-services-audio-analysis",
+ "png",
+ "serde_json",
+]
+
+[[package]]
+name = "blackbird-emulator-qemu-display"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "serde_json",
+ "zbus",
+]
+
+[[package]]
+name = "blackbird-emulator-viewer"
+version = "0.1.0"
+dependencies = [
+ "blackbird-emulator-qemu-display",
+ "blackbird-services-audio-analysis",
+ "cpal",
+ "libc",
+ "opendap-host-core",
+ "opendap-host-model",
+ "opendap-host-transports-emulator",
+ "opendap-host-transports-ssh",
+ "png",
+ "serde",
+ "serde_json",
+ "slint",
+ "slint-build",
+]
+
+[[package]]
+name = "blackbird-services-audio-analysis"
+version = "0.0.1"
+dependencies = [
+ "realfft",
+]
+
+[[package]]
 name = "block2"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3225,35 +3270,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "odap-vdev-audio"
-version = "0.1.0"
-dependencies = [
- "opendap-audio-analysis",
- "opendap-qemu-display",
- "png",
- "serde_json",
-]
-
-[[package]]
-name = "odap-vdev-view"
-version = "0.1.0"
-dependencies = [
- "cpal",
- "libc",
- "opendap-audio-analysis",
- "opendap-host-core",
- "opendap-host-model",
- "opendap-host-transports-emulator",
- "opendap-host-transports-ssh",
- "opendap-qemu-display",
- "png",
- "serde",
- "serde_json",
- "slint",
- "slint-build",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3261,13 +3277,6 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 dependencies = [
  "critical-section",
  "portable-atomic",
-]
-
-[[package]]
-name = "opendap-audio-analysis"
-version = "0.0.1"
-dependencies = [
- "realfft",
 ]
 
 [[package]]
@@ -3326,15 +3335,6 @@ dependencies = [
  "opendap-host-core",
  "opendap-host-model",
  "opendap-host-platform",
-]
-
-[[package]]
-name = "opendap-qemu-display"
-version = "0.1.0"
-dependencies = [
- "libc",
- "serde_json",
- "zbus",
 ]
 
 [[package]]

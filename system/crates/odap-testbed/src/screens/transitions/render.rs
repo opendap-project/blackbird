@@ -1,7 +1,7 @@
 //! Places the Transitions screen at a moment.
 
-use opendap_input::anchor::Rect as ARect;
-use opendap_motion::{
+use blackbird_ui_input::anchor::Rect as ARect;
+use blackbird_ui_motion::{
     interpolate::{Frame, frame},
     transition::End as TEnd,
 };

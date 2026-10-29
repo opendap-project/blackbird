@@ -3,7 +3,7 @@
 
 use std::{cell::RefCell, rc::Rc, time::Duration, time::Instant};
 
-use opendap_input::{arena, nested};
+use blackbird_ui_input::{arena, nested};
 use slint::{ComponentHandle, Timer};
 
 use crate::{

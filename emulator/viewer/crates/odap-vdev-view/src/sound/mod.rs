@@ -23,12 +23,12 @@ use std::io;
 use std::sync::{Arc, Mutex, mpsc};
 use std::time::{Duration, Instant};
 
+use blackbird_emulator_qemu_display::Session;
+use blackbird_emulator_qemu_display::audio::{self, Listening, Sink, Source};
+use blackbird_services_audio_analysis::meter::{Level, Meter};
+use blackbird_services_audio_analysis::spectrum::{self, Spectrum};
+use blackbird_services_audio_analysis::{Format, decode, encode_exact, encode_float, tone};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use opendap_audio_analysis::meter::{Level, Meter};
-use opendap_audio_analysis::spectrum::{self, Spectrum};
-use opendap_audio_analysis::{Format, decode, encode_exact, encode_float, tone};
-use opendap_qemu_display::Session;
-use opendap_qemu_display::audio::{self, Listening, Sink, Source};
 
 mod analysis;
 mod host;
@@ -187,7 +187,7 @@ fn trace(what: std::fmt::Arguments) {
     if let Some(t0) = ON.get_or_init(|| std::env::var_os("ODAP_VIEW_TRACE").map(|_| Instant::now()))
     {
         eprintln!(
-            "odap-vdev-view: sound {:.3} {what}",
+            "blackbird-emulator-viewer: sound {:.3} {what}",
             t0.elapsed().as_secs_f64()
         );
     }

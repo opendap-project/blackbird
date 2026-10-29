@@ -1,12 +1,12 @@
-//! The Media screen. A spring (opendap-motion): the block follows the finger, and when let go
+//! The Media screen. A spring (blackbird-ui-motion): the block follows the finger, and when let go
 //! springs back to the centre with the finger's velocity; frames run only while it moves (the
 //! budget), and stop at rest. A waveform decimated to its strip, and covers decoded at the size
 //! they show.
 
 use std::{cell::RefCell, rc::Rc, time::Duration, time::Instant};
 
-use opendap_media::{fit, plot};
-use opendap_motion::{
+use blackbird_ui_media::{fit, plot};
+use blackbird_ui_motion::{
     animator::{Animator, Kind as AnimKind},
     budget::Budget,
     spring::Spring,

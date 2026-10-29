@@ -3,7 +3,7 @@
 
 /// A control's role, as the device description names it: the vocabulary the device and the host
 /// share (RFC 0020).
-pub use opendap_bus_model::Role;
+pub use blackbird_bus_model::Role;
 
 /// What a control event means.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

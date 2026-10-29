@@ -2,13 +2,13 @@
 
 use std::{collections::HashSet, ops::Range, time::Duration};
 
-use opendap_layout::extents::Extents;
-use opendap_layout::{
+use blackbird_ui_layout::extents::Extents;
+use blackbird_ui_layout::{
     anchor,
     data::{gate::Cost, pages::ItemState},
     window::{Overscan, visible, window},
 };
-use opendap_motion::animator::Animator;
+use blackbird_ui_motion::animator::Animator;
 use slint::{ComponentHandle, Model, ModelRc, Timer};
 
 use super::{HEAD, REVEAL, SECTION, Shared, VCOUNT, Virtual};
@@ -43,7 +43,7 @@ pub(super) fn vrender(st: &Shared, ui: &Testbed) {
 
 /// The window to build. Rows are measured as they are built, so sizes above what is on screen
 /// change (a jump far into rows only estimated so far): the focused row, or the first visible,
-/// keeps its place (opendap-layout's anchor), and the window is laid out again where that leaves
+/// keeps its place (blackbird-ui-layout's anchor), and the window is laid out again where that leaves
 /// it.
 fn layout(v: &mut Virtual) -> Range<usize> {
     let mut range = window(
@@ -160,7 +160,9 @@ fn band(v: &Virtual, ui: &Testbed) {
     } else {
         v.extents.total()
     };
-    ui.set_vband_y(opendap_layout::sticky::header_y(start, end, HEAD, v.offset));
+    ui.set_vband_y(blackbird_ui_layout::sticky::header_y(
+        start, end, HEAD, v.offset,
+    ));
     ui.set_vband_text(
         format!(
             "Rows {}–{}",

@@ -8,7 +8,7 @@ The virtual T1 running, with the UI primitives activity on screen:
 
 ```sh
 odap-vdev start
-odap-vdev ui activity odap-testbed
+odap-vdev ui activity ui-primitives
 tests/e2e/run.py                       # every scenario
 tests/e2e/run.py --only keyboard       # one or a few
 ```

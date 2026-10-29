@@ -6,11 +6,11 @@ Description=Virtual board faceplate hardware (status LED, ambient light sensor)
 DefaultDependencies=no
 After=systemd-modules-load.service systemd-sysext.service
 Before=blackbird-composer.service
-ConditionPathExists=/usr/bin/odap-vdev-hw
+ConditionPathExists=/usr/lib/blackbird/emulator-hw
 
 [Service]
 ExecStartPre=-/usr/sbin/modprobe uhid
-ExecStart=/usr/bin/odap-vdev-hw
+ExecStart=/usr/lib/blackbird/emulator-hw
 Restart=on-failure
 
 [Install]

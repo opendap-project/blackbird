@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 
-use opendap_device::Description;
+use blackbird_device::Description;
 
 use crate::{SCREENS, Testbed, keys::Router};
 

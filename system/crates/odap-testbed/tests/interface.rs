@@ -10,8 +10,8 @@
 
 use std::time::Duration;
 
+use blackbird_apps_testbed::{FocusReveal, FocusVisible, Layout, SCREENS, Testbed, wire};
 use i_slint_backend_testing::{ElementHandle, ElementQuery};
-use odap_testbed::{FocusReveal, FocusVisible, Layout, SCREENS, Testbed, wire};
 use slint::platform::{Key, WindowEvent};
 use slint::{ComponentHandle, Model, SharedString};
 

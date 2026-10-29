@@ -2,9 +2,9 @@
 //! edits on any text, in any script; every kind's text and value forms; a field and its model
 //! talking to each other in any order. A failure is shrunk to the smallest case that breaks one.
 
-use opendap_forms::binding::Binding;
-use opendap_forms::kind::{Kind, NumberStyle, Value};
-use opendap_forms::text::{Edit, Editor, Outcome, Selection, Unicode, Unit};
+use blackbird_ui_forms::binding::Binding;
+use blackbird_ui_forms::kind::{Kind, NumberStyle, Value};
+use blackbird_ui_forms::text::{Edit, Editor, Outcome, Selection, Unicode, Unit};
 use proptest::prelude::*;
 
 /// Text in the scripts a field meets: Latin, accents (precomposed and combining), CJK, Arabic,
@@ -112,7 +112,7 @@ proptest! {
         while e.apply(&Unicode, Edit::Undo, |_| true) == Outcome::Changed {
             steps += 1;
         }
-        prop_assert_eq!(steps, opendap_forms::text::UNDO_DEPTH);
+        prop_assert_eq!(steps, blackbird_ui_forms::text::UNDO_DEPTH);
     }
 }
 
@@ -220,7 +220,7 @@ proptest! {
     /// round, a cyclic one comes back after as many steps as it has options.
     #[test]
     fn a_choice_steps_within_its_options(n in 1usize..12, at in 0usize..12, ups in prop::collection::vec(any::<bool>(), 0..40), cyclic in any::<bool>()) {
-        let ends = if cyclic { opendap_input::ends::Ends::Cycle } else { opendap_input::ends::Ends::Stop };
+        let ends = if cyclic { blackbird_ui_input::ends::Ends::Cycle } else { blackbird_ui_input::ends::Ends::Stop };
         let k = Kind::Choice { options: (0..n).map(|i| i.to_string()).collect(), ends };
         let mut v = Value::Choice(at % n);
         for up in ups {

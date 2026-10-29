@@ -14,7 +14,7 @@ fn main() -> std::io::Result<()> {
     let y: u32 = args.next().and_then(|v| v.parse().ok()).expect("Y");
     let changes = Arc::new(AtomicUsize::new(0));
     let counted = changes.clone();
-    let d = opendap_qemu_display::attach(qmp.as_ref(), move |_, _| {
+    let d = blackbird_emulator_qemu_display::attach(qmp.as_ref(), move |_, _| {
         counted.fetch_add(1, Ordering::Relaxed);
     })?;
     std::thread::sleep(Duration::from_millis(300));

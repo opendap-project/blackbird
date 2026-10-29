@@ -16,7 +16,7 @@ import { Panel } from "surfaces.slint";
 // outside it closes it. Open with `show()`.
 export component Overlay inherits PopupWindow {
     in property <float> unit: 1.0;
-    // Where its panel goes (from opendap-input's anchor::place) and how wide: the popup itself
+    // Where its panel goes (from blackbird-ui-input's anchor::place) and how wide: the popup itself
     // covers the window (x, y, width, height of the window), so a tap outside the panel is seen.
     in property <length> panel-x;
     in property <length> panel-y;
@@ -70,7 +70,7 @@ export component Overlay inherits PopupWindow {
 
 // The dimmed ground under a modal: it takes every touch below it.
 // What is under an open modal, frosted (ui-model §9, design system §12.3): the runtime fills
-// `frost` when the modal opens (system opendap-media's blur: shrunk, blurred once, nothing per
+// `frost` when the modal opens (system blackbird-ui-media's blur: shrunk, blurred once, nothing per
 // frame), so the layer above reads as frosted glass, not as a darkened sheet. Empty, or with
 // reduce transparency on (an accessibility setting), the scrim is a solid tint instead.
 export global Backdrop {

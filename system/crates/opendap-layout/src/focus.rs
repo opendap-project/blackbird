@@ -7,7 +7,7 @@
 
 use crate::extents::Extents;
 
-pub use opendap_input::ends::Ends;
+pub use blackbird_ui_input::ends::Ends;
 
 /// Where the focus went after a step.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -58,9 +58,9 @@ pub fn step(focused: Option<usize>, delta: i32, count: usize, ends: Ends) -> Ste
         // Entering: from above, the first; from below, the last.
         None => Step::Item(if delta >= 0 { 0 } else { count - 1 }),
         Some(i) => match ends.step(i, i64::from(delta), Some(count)) {
-            opendap_input::ends::Step::To(j) => Step::Item(j),
-            opendap_input::ends::Step::Wrapped(j) => Step::Wrapped(j),
-            opendap_input::ends::Step::Past => Step::Leave,
+            blackbird_ui_input::ends::Step::To(j) => Step::Item(j),
+            blackbird_ui_input::ends::Step::Wrapped(j) => Step::Wrapped(j),
+            blackbird_ui_input::ends::Step::Past => Step::Leave,
         },
     }
 }

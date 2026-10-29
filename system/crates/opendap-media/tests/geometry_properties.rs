@@ -2,8 +2,8 @@
 //! of any picture at any factor and radius, and content of any shape in a box of any other. A
 //! failure is shrunk to the smallest case that breaks one.
 
-use opendap_media::blur::frosted;
-use opendap_media::fit::{Fit, Rect, decode_size, place};
+use blackbird_ui_media::blur::frosted;
+use blackbird_ui_media::fit::{Fit, Rect, decode_size, place};
 use proptest::prelude::*;
 
 const EPS: f32 = 0.05;

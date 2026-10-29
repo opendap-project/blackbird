@@ -56,7 +56,7 @@ export component Testbed inherits Window {
     in property <string> gesture;
     in property <int> contacts;
     callback pad(string, length, length, length, length);
-    // The Spaces screen (the logic answers through opendap-input): a list scrolled by its own pan,
+    // The Spaces screen (the logic answers through blackbird-ui-input): a list scrolled by its own pan,
     // a dial and a strip; each reports its contact with its place in the surface.
     callback spaces-list(string, length, length, length, length, length, length);
     callback spaces-dial(string, length, length, length, length);
@@ -71,7 +71,7 @@ export component Testbed inherits Window {
     in property <string> strip-text;
     // The strip's direction is the layout's (Calibration's switch, or this screen's).
     out property <bool> strip-rtl: Layout.rtl;
-    // The Arena screen: one owner per contact (opendap-input's arena), and nested scrolling by
+    // The Arena screen: one owner per contact (blackbird-ui-input's arena), and nested scrolling by
     // its own primitive (nested).
     callback arena-pad(string, length, length);
     in-out property <bool> arena-double;
@@ -80,16 +80,16 @@ export component Testbed inherits Window {
     in property <length> nested-outer;
     in property <length> nested-inner;
     in property <string> nested-text;
-    // The Virtual screen (opendap-layout): a hundred thousand rows, only a window of slots built.
+    // The Virtual screen (blackbird-ui-layout): a hundred thousand rows, only a window of slots built.
     in property <[VRow]> vrows;
     in property <string> vtext;
-    // The pinned section header (opendap-layout's sticky): where it sits, and its text.
+    // The pinned section header (blackbird-ui-layout's sticky): where it sits, and its text.
     in property <length> vband-y;
     in property <string> vband-text;
     // Reduce motion, read by the logic's animations.
     out property <bool> reduce-motion: Motion.reduce;
     // The setting changed (Calibration's switch, standing for the system's): the logic hands it to
-    // opendap-motion, which every animation reads.
+    // blackbird-ui-motion, which every animation reads.
     callback reduce-motion-set(bool);
     changed reduce-motion => { root.reduce-motion-set(self.reduce-motion); }
     callback vpan(string, length, length);
@@ -100,7 +100,7 @@ export component Testbed inherits Window {
     callback control-key(string, string) -> bool;
     // The Navigation screen's stops, and what the levels did last.
     in property <NavView> nav-shelf;
-    // The shelf's built albums: only the window of ten thousand (opendap-layout).
+    // The shelf's built albums: only the window of ten thousand (blackbird-ui-layout).
     in property <[NavTile]> nav-tiles;
     in property <NavView> nav-player;
     in property <NavView> nav-days;
@@ -110,8 +110,8 @@ export component Testbed inherits Window {
     // A key of the on-screen keyboard: the logic sends it to the focused field as a key event, as a
     // virtual keyboard does (virtual-keyboard-v1), so the field keeps the focus.
     callback kb-key(string);
-    // The Transitions screen (opendap-motion's transition, interpolate and presence,
-    // opendap-layout's pager, opendap-input's matched): the logic places everything.
+    // The Transitions screen (blackbird-ui-motion's transition, interpolate and presence,
+    // blackbird-ui-layout's pager, blackbird-ui-input's matched): the logic places everything.
     in property <length> tr-pager-offset;
     in property <int> tr-page;
     in property <[TrBox]> tr-tiles;
@@ -130,7 +130,7 @@ export component Testbed inherits Window {
     out property <bool> kb-digits: root.kb-field >= 0 && root.kb-field < root.kb-fields.length
         && (root.kb-fields[root.kb-field].purpose == "number" || root.kb-fields[root.kb-field].purpose == "pin" || root.kb-fields[root.kb-field].purpose == "digits" || root.kb-fields[root.kb-field].purpose == "date" || root.kb-fields[root.kb-field].purpose == "time" || root.kb-fields[root.kb-field].purpose == "phone");
     in property <float> strip-value;
-    // The Media screen (opendap-media, opendap-motion): a spring, a waveform, decode sizes.
+    // The Media screen (blackbird-ui-media, blackbird-ui-motion): a spring, a waveform, decode sizes.
     callback spring-drag(string, length);
     in property <length> spring-x;
     in property <string> spring-text;
@@ -171,9 +171,9 @@ export component Testbed inherits Window {
     // Past an end of the screen's focus chain (blackbird-ui Screen): the logic sends the opposite
     // key, so the focus stays on the element at that end.
     callback screen-edge(bool);
-    // Frosts what is on screen for the next dialog's backdrop (the logic: opendap-media's blur).
+    // Frosts what is on screen for the next dialog's backdrop (the logic: blackbird-ui-media's blur).
     callback frost();
-    // Where the popover goes next to its anchor (the logic: opendap-input's anchor::place).
+    // Where the popover goes next to its anchor (the logic: blackbird-ui-input's anchor::place).
     callback place-menu(length, length, length, length, length);
     Screen {
         unit: root.unit;

@@ -1,13 +1,13 @@
-//! The Transitions screen's state: the pager (opendap-layout::pager), the morph between a tile
-//! and its detail (opendap-motion::transition, opendap-input::matched), and the lines that enter
-//! and leave (opendap-motion::presence).
+//! The Transitions screen's state: the pager (blackbird-ui-layout::pager), the morph between a tile
+//! and its detail (blackbird-ui-motion::transition, blackbird-ui-input::matched), and the lines that enter
+//! and leave (blackbird-ui-motion::presence).
 
-use opendap_input::{
+use blackbird_ui_input::{
     anchor::Rect as ARect,
     matched::{Matched, Side as MSide},
 };
-use opendap_layout::pager::{resist, settle};
-use opendap_motion::{
+use blackbird_ui_layout::pager::{resist, settle};
+use blackbird_ui_motion::{
     animator::{Animator, Kind as AnimKind},
     easing::Bezier,
     presence::Presence,
@@ -118,7 +118,7 @@ impl Tr {
                     self.velocity,
                     TR_W,
                     TR_PAGES,
-                    opendap_layout::pager::Ends::Stop,
+                    blackbird_ui_layout::pager::Ends::Stop,
                 );
                 self.pager = Animator::new(off, AnimKind::Spring(Spring::SETTLE));
                 self.pager
@@ -128,12 +128,15 @@ impl Tr {
     }
 
     pub(super) fn turn(&mut self, d: i32, now: f32, reduce: bool) {
-        // Past the first or the last page the pager stops (opendap-input's ends, the default).
-        let to =
-            match opendap_layout::pager::Ends::Stop.step(self.page, i64::from(d), Some(TR_PAGES)) {
-                opendap_input::ends::Step::To(p) | opendap_input::ends::Step::Wrapped(p) => p,
-                opendap_input::ends::Step::Past => self.page,
-            };
+        // Past the first or the last page the pager stops (blackbird-ui-input's ends, the default).
+        let to = match blackbird_ui_layout::pager::Ends::Stop.step(
+            self.page,
+            i64::from(d),
+            Some(TR_PAGES),
+        ) {
+            blackbird_ui_input::ends::Step::To(p) | blackbird_ui_input::ends::Step::Wrapped(p) => p,
+            blackbird_ui_input::ends::Step::Past => self.page,
+        };
         self.page = to;
         let off = self.offset(now);
         self.pager = Animator::new(

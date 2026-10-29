@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 pub mod locate;
 
-pub const SCHEMA: &str = opendap_bus_model::DEVICE_DESCRIPTION_SCHEMA;
+pub const SCHEMA: &str = blackbird_bus_model::DEVICE_DESCRIPTION_SCHEMA;
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -202,7 +202,7 @@ pub struct Control {
 
 /// What a control means. The UI and capabilities act on roles only: the vocabulary both the device
 /// and the host share (RFC 0020).
-pub use opendap_bus_model::Role;
+pub use blackbird_bus_model::Role;
 
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]

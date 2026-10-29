@@ -7,7 +7,7 @@
 //! input"). This module only knows the Linux names of codes, the kernel's own table
 //! (`linux/input-event-codes.h`), never which device has which button.
 
-use opendap_input::arena::{DoubleTap, Input, Recognizer, Verdict};
+use blackbird_ui_input::arena::{DoubleTap, Input, Recognizer, Verdict};
 use smithay::{
     backend::{
         input::{
@@ -58,7 +58,7 @@ pub(super) enum Seen {
     Key {
         code: u32,
         pressed: bool,
-        role: Option<opendap_device::Role>,
+        role: Option<blackbird_device::Role>,
         time: smithay::backend::input::InputTime,
     },
     Contact {

@@ -2,7 +2,7 @@
 //! nowhere yet (to fetch: from the card, the library, a paired device). Two budgets: memory for
 //! decoded pixels, disk for encoded bytes; each lets go of the least recently used.
 
-use opendap_layout::data::cache::Cache;
+use blackbird_ui_layout::data::cache::Cache;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Found {

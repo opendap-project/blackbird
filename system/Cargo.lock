@@ -543,6 +543,164 @@ dependencies = [
 ]
 
 [[package]]
+name = "blackbird-apps-boot"
+version = "0.0.1"
+dependencies = [
+ "blackbird-device",
+ "blackbird-platform",
+ "blackbird-ui-splash",
+ "drm",
+ "rustix 1.1.5",
+]
+
+[[package]]
+name = "blackbird-apps-player"
+version = "0.0.1"
+dependencies = [
+ "blocking",
+ "opendap-workspace",
+ "slint",
+ "slint-build",
+]
+
+[[package]]
+name = "blackbird-apps-statusled"
+version = "0.0.1"
+dependencies = [
+ "blackbird-device",
+ "blackbird-platform",
+ "libc",
+]
+
+[[package]]
+name = "blackbird-apps-testbed"
+version = "0.0.1"
+dependencies = [
+ "blackbird-device",
+ "blackbird-ui-forms",
+ "blackbird-ui-input",
+ "blackbird-ui-layout",
+ "blackbird-ui-media",
+ "blackbird-ui-motion",
+ "blocking",
+ "i-slint-backend-testing",
+ "libc",
+ "opendap-workspace",
+ "slint",
+ "slint-build",
+]
+
+[[package]]
+name = "blackbird-bus-model"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "blackbird-composer"
+version = "0.0.1"
+dependencies = [
+ "blackbird-device",
+ "blackbird-platform",
+ "blackbird-ui-input",
+ "blackbird-ui-motion",
+ "blackbird-ui-splash",
+ "calloop 0.14.5",
+ "libc",
+ "opendap-workspace",
+ "png",
+ "slint",
+ "slint-build",
+ "smithay",
+ "thiserror 2.0.21",
+ "tracing",
+ "tracing-journald",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "blackbird-device"
+version = "0.0.1"
+dependencies = [
+ "blackbird-bus-model",
+ "blackbird-platform",
+ "serde",
+ "thiserror 2.0.21",
+ "toml",
+]
+
+[[package]]
+name = "blackbird-platform"
+version = "0.0.1"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "blackbird-services-audio-analysis"
+version = "0.0.1"
+dependencies = [
+ "proptest",
+ "realfft",
+]
+
+[[package]]
+name = "blackbird-ui-forms"
+version = "0.0.1"
+dependencies = [
+ "blackbird-ui-input",
+ "icu_segmenter",
+ "proptest",
+]
+
+[[package]]
+name = "blackbird-ui-input"
+version = "0.0.1"
+dependencies = [
+ "blackbird-bus-model",
+ "criterion",
+ "proptest",
+]
+
+[[package]]
+name = "blackbird-ui-layout"
+version = "0.0.1"
+dependencies = [
+ "blackbird-ui-input",
+ "criterion",
+ "proptest",
+]
+
+[[package]]
+name = "blackbird-ui-media"
+version = "0.0.1"
+dependencies = [
+ "blackbird-ui-layout",
+ "criterion",
+ "proptest",
+]
+
+[[package]]
+name = "blackbird-ui-motion"
+version = "0.0.1"
+dependencies = [
+ "criterion",
+ "proptest",
+]
+
+[[package]]
+name = "blackbird-ui-splash"
+version = "0.0.1"
+dependencies = [
+ "blackbird-platform",
+ "opendap-workspace",
+ "resvg",
+]
+
+[[package]]
 name = "block2"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3302,76 +3460,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "odap-boot"
-version = "0.0.1"
-dependencies = [
- "drm",
- "opendap-device",
- "opendap-platform",
- "opendap-splash",
- "rustix 1.1.5",
-]
-
-[[package]]
-name = "odap-composer"
-version = "0.0.1"
-dependencies = [
- "calloop 0.14.5",
- "libc",
- "opendap-device",
- "opendap-input",
- "opendap-motion",
- "opendap-platform",
- "opendap-splash",
- "opendap-workspace",
- "png",
- "slint",
- "slint-build",
- "smithay",
- "thiserror 2.0.21",
- "tracing",
- "tracing-journald",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "odap-product"
-version = "0.0.1"
-dependencies = [
- "blocking",
- "opendap-workspace",
- "slint",
- "slint-build",
-]
-
-[[package]]
-name = "odap-statusled"
-version = "0.0.1"
-dependencies = [
- "libc",
- "opendap-device",
- "opendap-platform",
-]
-
-[[package]]
-name = "odap-testbed"
-version = "0.0.1"
-dependencies = [
- "blocking",
- "i-slint-backend-testing",
- "libc",
- "opendap-device",
- "opendap-forms",
- "opendap-input",
- "opendap-layout",
- "opendap-media",
- "opendap-motion",
- "opendap-workspace",
- "slint",
- "slint-build",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3386,94 +3474,6 @@ name = "oorandom"
 version = "11.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
-
-[[package]]
-name = "opendap-audio-analysis"
-version = "0.0.1"
-dependencies = [
- "proptest",
- "realfft",
-]
-
-[[package]]
-name = "opendap-bus-model"
-version = "0.1.0"
-dependencies = [
- "proptest",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "opendap-device"
-version = "0.0.1"
-dependencies = [
- "opendap-bus-model",
- "opendap-platform",
- "serde",
- "thiserror 2.0.21",
- "toml",
-]
-
-[[package]]
-name = "opendap-forms"
-version = "0.0.1"
-dependencies = [
- "icu_segmenter",
- "opendap-input",
- "proptest",
-]
-
-[[package]]
-name = "opendap-input"
-version = "0.0.1"
-dependencies = [
- "criterion",
- "opendap-bus-model",
- "proptest",
-]
-
-[[package]]
-name = "opendap-layout"
-version = "0.0.1"
-dependencies = [
- "criterion",
- "opendap-input",
- "proptest",
-]
-
-[[package]]
-name = "opendap-media"
-version = "0.0.1"
-dependencies = [
- "criterion",
- "opendap-layout",
- "proptest",
-]
-
-[[package]]
-name = "opendap-motion"
-version = "0.0.1"
-dependencies = [
- "criterion",
- "proptest",
-]
-
-[[package]]
-name = "opendap-platform"
-version = "0.0.1"
-dependencies = [
- "libc",
-]
-
-[[package]]
-name = "opendap-splash"
-version = "0.0.1"
-dependencies = [
- "opendap-platform",
- "opendap-workspace",
- "resvg",
-]
 
 [[package]]
 name = "opendap-workspace"

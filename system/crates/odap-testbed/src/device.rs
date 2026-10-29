@@ -1,8 +1,8 @@
 //! The device description the testbed reads, and the calibration it gives (the Calibration
 //! screen).
 
-use opendap_device::Description;
-use opendap_input::gesture;
+use blackbird_device::Description;
+use blackbird_ui_input::gesture;
 use slint::SharedString;
 
 /// Where the device description is, first match wins (as the composer reads it).

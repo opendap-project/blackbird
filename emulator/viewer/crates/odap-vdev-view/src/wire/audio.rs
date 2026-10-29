@@ -10,7 +10,7 @@ pub(crate) type Save = Rc<dyn Fn(&dyn Fn(&mut Prefs))>;
 /// its D-Bus audio.
 pub(crate) fn sound(
     ui: &View,
-    display: &Arc<opendap_qemu_display::Display>,
+    display: &Arc<blackbird_emulator_qemu_display::Display>,
     input_direct: bool,
 ) -> Option<Arc<sound::Sound>> {
     let weak = ui.as_weak();
@@ -79,7 +79,7 @@ pub(crate) fn sound(
         Ok(s) => Some(Arc::new(s)),
         Err(e) => {
             // A device started without the D-Bus audio (QEMU's own window): no sound here.
-            eprintln!("odap-vdev-view: sound: {e}");
+            eprintln!("blackbird-emulator-viewer: sound: {e}");
             ui.set_out_note("No sound: the device was started without its D-Bus audio".into());
             None
         }

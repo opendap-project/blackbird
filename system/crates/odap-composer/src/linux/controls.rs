@@ -6,7 +6,7 @@
 
 use std::time::Instant;
 
-use opendap_device::Role;
+use blackbird_device::Role;
 use smithay::reexports::calloop::timer::{TimeoutAction, Timer};
 use tracing::info;
 

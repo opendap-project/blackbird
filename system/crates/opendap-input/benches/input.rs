@@ -3,8 +3,7 @@
 
 use std::hint::black_box;
 
-use criterion::{Criterion, criterion_group, criterion_main};
-use opendap_input::{
+use blackbird_ui_input::{
     arena::{Arena, DoubleTap, LongPress, Priority, Tap},
     dispatch::{Directives, Listener, dispatch},
     gesture::Frame,
@@ -13,6 +12,7 @@ use opendap_input::{
     nested::{RevealArea, Scroller, reveal},
     node::{Node, NodeId, NodeKind, NodePath},
 };
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn arena(c: &mut Criterion) {
     let script = Script::tap((10.0, 10.0), 0, 80).then(Script::drag(
@@ -78,7 +78,7 @@ fn navigation(c: &mut Criterion) {
     c.bench_function("nav/a step in a level of 1000", |b| {
         let mut n = Navigator::new(tree.clone());
         b.iter(|| {
-            if n.key(Key::Next) == opendap_input::nav::Effect::AtEnd {
+            if n.key(Key::Next) == blackbird_ui_input::nav::Effect::AtEnd {
                 n = Navigator::new(tree.clone());
             }
         })

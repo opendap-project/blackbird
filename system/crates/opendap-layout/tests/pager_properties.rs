@@ -1,7 +1,7 @@
 //! The pager's invariants over generated releases (ADR 0014, level L1). A failure is shrunk to the
 //! smallest case that breaks one.
 
-use opendap_layout::pager::{Ends, resist, settle};
+use blackbird_ui_layout::pager::{Ends, resist, settle};
 use proptest::prelude::*;
 
 proptest! {

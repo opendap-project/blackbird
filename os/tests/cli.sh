@@ -8,19 +8,19 @@ tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 fails=0
 fail() { echo "FAIL: $*" >&2; fails=$((fails + 1)); }
 run() { out="$("$@" 2>"$tmp/err")"; rc=$?; err="$(cat "$tmp/err")"; }
-reboot="$root/image/mkosi.extra/usr/bin/odap-reboot"
+power="$root/image/mkosi.extra/usr/lib/blackbird/power"
 
-run "$reboot" --help
-[ "$rc" = 0 ] && [ "$(printf '%s\n' "$out" | head -1 | cut -d: -f1)" = odap-reboot ] || fail "odap-reboot --help: exit $rc"
-run "$reboot" --odw-no-such-flag
-[ "$rc" = 2 ] || fail "odap-reboot unknown flag: exit $rc"
-case "$err" in *"error input.invalid:"*"hint: "*"fix: odap-reboot --help"*) ;; *) fail "odap-reboot unknown flag: '$err'" ;; esac
+run "$power" --help
+[ "$rc" = 0 ] && [ "$(printf '%s\n' "$out" | head -1 | cut -d: -f1)" = /usr/lib/blackbird/power ] || fail "power --help: exit $rc"
+run "$power" --odw-no-such-flag
+[ "$rc" = 2 ] || fail "power unknown flag: exit $rc"
+case "$err" in *"error input.invalid:"*"hint: "*"fix: /usr/lib/blackbird/power --help"*) ;; *) fail "power unknown flag: '$err'" ;; esac
 # No such mode here (no boot-modes.d on the host): refused before anything restarts.
-run "$reboot" no-such-mode
-[ "$rc" = 2 ] || fail "odap-reboot unknown mode: exit $rc"
-case "$err" in *"error mode.unknown:"*"fix: odap-reboot --list"*) ;; *) fail "odap-reboot unknown mode: '$err'" ;; esac
-run "$reboot" ../x
-[ "$rc" = 2 ] || fail "odap-reboot path as mode: exit $rc"
+run "$power" no-such-mode
+[ "$rc" = 2 ] || fail "power unknown mode: exit $rc"
+case "$err" in *"error mode.unknown:"*"fix: /usr/lib/blackbird/power --list"*) ;; *) fail "power unknown mode: '$err'" ;; esac
+run "$power" ../x
+[ "$rc" = 2 ] || fail "power path as mode: exit $rc"
 
 # Build scripts say on stderr what failed and what to run when a step fails (here: no /usr/lib/modules).
 for s in "$root"/image/mkosi.profiles/*/scripts/*.chroot; do

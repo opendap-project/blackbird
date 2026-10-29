@@ -14,7 +14,7 @@ pub(super) fn debug(composer: &mut Composer, at: Point<f64, Logical>, contact: L
     if matches!(contact, LayerContact::Down) && crate::linux::layers::debug_ui() {
         let _ = composer.handle.insert_source(
             calloop::timer::Timer::from_duration(std::time::Duration::from_millis(
-                opendap_input::gesture::LONG_MS,
+                blackbird_ui_input::gesture::LONG_MS,
             )),
             |_, _, composer| {
                 if let Some(layers) = composer.system.layers.as_mut() {

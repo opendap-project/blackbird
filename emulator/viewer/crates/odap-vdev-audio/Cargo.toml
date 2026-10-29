@@ -1,5 +1,5 @@
 [package]
-name = "odap-vdev-audio"
+name = "blackbird-emulator-audio"
 version = "0.1.0"
 description = "Records a virtual device's sound exactly as the guest plays it (QEMU's D-Bus audio) and measures it: levels, a sine's THD and THD+N, the spectrum, bit-exact comparison"
 edition.workspace = true
@@ -8,7 +8,7 @@ license.workspace = true
 publish = false
 
 [dependencies]
-opendap-qemu-display.workspace = true
-opendap-audio-analysis.workspace = true
+blackbird-emulator-qemu-display.workspace = true
+blackbird-services-audio-analysis.workspace = true
 serde_json.workspace = true
 png = "0.18"

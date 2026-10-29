@@ -1,5 +1,5 @@
 [package]
-name = "odap-composer"
+name = "blackbird-composer"
 version = "0.0.1"
 description = "Blackbird OS compositor and system layers (bring-up)"
 edition.workspace = true
@@ -7,12 +7,17 @@ rust-version.workspace = true
 license.workspace = true
 publish = false
 
+# Installed as /usr/lib/blackbird/composer (RFC 0017 §3: an internal daemon, no prefix).
+[[bin]]
+name = "composer"
+path = "src/main.rs"
+
 [dependencies]
-opendap-platform.workspace = true
-opendap-device.workspace = true
-opendap-input.workspace = true
-opendap-motion.workspace = true
-opendap-splash.workspace = true
+blackbird-platform.workspace = true
+blackbird-device.workspace = true
+blackbird-ui-input.workspace = true
+blackbird-ui-motion.workspace = true
+blackbird-ui-splash.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 thiserror.workspace = true

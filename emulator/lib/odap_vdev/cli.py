@@ -18,10 +18,10 @@ from .qmp import Qmp, QmpError
 
 
 # The simulator's settings hold across reboots, as a real device keeps its charge and its light: each
-# setter also records its value on the device (the board's virtual-settings, restored at boot before
+# setter also records its value on the device (the board's emulator-settings, restored at boot before
 # the composer). An image older than that script just does not remember.
 def remember(key, value):
-    tool = "/usr/libexec/opendap/virtual-settings"
+    tool = "/usr/lib/blackbird/emulator-settings"
     return f"{{ ! [ -x {tool} ] || {tool} set {key} {value}; }}"
 
 def parser():
@@ -222,13 +222,13 @@ def run(args):
             print(f"microSD: {'in' if hw['sd'] else 'out'}; USB: {', '.join(hw['usb']) or 'none'}; "
                   f"charger: {'on' if hw['charger'] else 'off'}; battery: {hw['battery'] if hw['battery'] is not None else '?'} %; "
                   f"LED: {' '.join(map(str, hw['led'])) if hw['led'] else '?'}; light: {hw['light'] if hw['light'] is not None else '?'} lx")
-    elif c in ("light", "led") and inst.ssh("test -x /usr/bin/odap-vdev-hw", check=False).returncode != 0:
+    elif c in ("light", "led") and inst.ssh("test -x /usr/lib/blackbird/emulator-hw", check=False).returncode != 0:
         # The board's adapter arrives as a development extension, as the system's programs do
         # until packages carry them: say what is missing and how to put it there.
-        raise ValueError("the virtual board's adapter (odap-vdev-hw: status LED, light sensor, "
+        raise ValueError("the virtual board's adapter (blackbird-emulator-bsp-hw: status LED, light sensor, "
                          "microphone light) is not on the device: run `odapkit deploy` in virtual-devices/board")
     elif c == "light":
-        # The faceplate's sensor (odap-vdev-hw): the guest's driver reads it as an IIO device.
+        # The faceplate's sensor (blackbird-emulator-bsp-hw): the guest's driver reads it as an IIO device.
         if args.lux is not None:
             if not 0 <= args.lux <= 100000:
                 raise ValueError("light: 0 to 100000 lux")

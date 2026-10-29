@@ -6,9 +6,11 @@
 
 use std::collections::{HashMap, HashSet};
 
-use opendap_input::dispatch::{Action, Directives, Intent, Listener, Phase, dispatch, resolve};
-use opendap_input::gesture::Frame;
-use opendap_input::node::{Node, NodeId, NodeKind, NodePath, Selector};
+use blackbird_ui_input::dispatch::{
+    Action, Directives, Intent, Listener, Phase, dispatch, resolve,
+};
+use blackbird_ui_input::gesture::Frame;
+use blackbird_ui_input::node::{Node, NodeId, NodeKind, NodePath, Selector};
 use proptest::prelude::*;
 
 const KINDS: [NodeKind; 5] = [

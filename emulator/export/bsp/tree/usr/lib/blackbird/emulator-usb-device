@@ -4,7 +4,7 @@
 # dummy_hcd, whose host side is this same instance, so it enumerates the gadget as a computer would.
 # dummy_hcd has no isochronous transfers, so UAC2 cannot bind here: it is left out of the virtual
 # board's configuration and tested on the T1.
-# Usage: virtual-usb-device plug | unplug | status | remove
+# Usage: emulator-usb-device plug | unplug | status | remove
 #   plug     create the gadget if needed and attach it (the cable is connected)
 #   unplug   detach it (the cable is pulled)
 # Until dap-usb composes the gadget itself, this script stands in for it on the virtual board only.

@@ -11,12 +11,12 @@ pub mod run {
     /// The run directory itself.
     pub const DIR: &str = "/run/blackbird";
 
-    /// The device description the hardware hands over at boot (read through `opendap_device::locate`).
+    /// The device description the hardware hands over at boot (read through `blackbird_device::locate`).
     pub const DEVICE_DESCRIPTION: &str = "/run/blackbird/device/description.toml";
 
     /// The boot UI's directory: the hand-over and the cover's state.
     pub const BOOT_DIR: &str = "/run/blackbird/boot";
-    /// Written by `odap-boot handoff` to ask the boot UI for the display.
+    /// Written by `blackbird-apps-boot handoff` to ask the boot UI for the display.
     pub const BOOT_HANDOFF: &str = "/run/blackbird/boot/handoff";
     /// Written by the boot UI once it has released the display.
     pub const BOOT_RELEASED: &str = "/run/blackbird/boot/released";
@@ -26,7 +26,7 @@ pub mod run {
     pub const BOOT_ARMED: &str = "/run/blackbird/boot/armed";
     /// The boot UI's splash screen is on the display.
     pub const BOOT_ON_SCREEN: &str = "/run/blackbird/boot/on-screen";
-    /// When the splash screen first showed, in CLOCK_MONOTONIC milliseconds (written by `odap-boot`).
+    /// When the splash screen first showed, in CLOCK_MONOTONIC milliseconds (written by `blackbird-apps-boot`).
     pub const SPLASH_SHOWN: &str = "/run/blackbird/boot/splash-shown";
 
     /// The composer's runtime directory.

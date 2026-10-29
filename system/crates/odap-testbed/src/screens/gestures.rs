@@ -1,9 +1,9 @@
-//! The Gestures screen's pad: a contact followed while it lasts (opendap-input's Contact), so a
+//! The Gestures screen's pad: a contact followed while it lasts (blackbird-ui-input's Contact), so a
 //! long press is named while the finger is still down and nothing follows when it lifts.
 
 use std::{cell::RefCell, rc::Rc, time::Duration, time::Instant};
 
-use opendap_input::gesture;
+use blackbird_ui_input::gesture;
 use slint::{ComponentHandle, Timer};
 
 use crate::Testbed;

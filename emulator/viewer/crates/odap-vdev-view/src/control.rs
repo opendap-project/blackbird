@@ -30,7 +30,10 @@ pub fn serve(frame: &Path, sound: Option<Arc<Sound>>) {
     let listener = match UnixListener::bind(&at) {
         Ok(l) => l,
         Err(e) => {
-            eprintln!("odap-vdev-view: control socket {}: {e}", at.display());
+            eprintln!(
+                "blackbird-emulator-viewer: control socket {}: {e}",
+                at.display()
+            );
             return;
         }
     };

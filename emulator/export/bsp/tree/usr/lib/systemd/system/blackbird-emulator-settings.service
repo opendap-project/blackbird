@@ -1,4 +1,4 @@
-# The simulator's settings put back at boot (virtual-settings): the debug UI mode, the battery and the
+# The simulator's settings put back at boot (emulator-settings): the debug UI mode, the battery and the
 # charger as they were last set, before the composer starts, so its first frame follows them. The
 # composer pulls it in (blackbird-composer.service.d/50-virtual-board.conf).
 [Unit]
@@ -12,4 +12,4 @@ ConditionPathExists=/var/lib/blackbird/emulator/settings
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/libexec/opendap/virtual-settings restore
+ExecStart=/usr/lib/blackbird/emulator-settings restore

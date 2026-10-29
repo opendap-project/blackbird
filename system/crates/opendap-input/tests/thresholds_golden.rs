@@ -2,7 +2,7 @@
 //! the data file that moves one of these is a behaviour change, decided on its own, and updates
 //! this list with it.
 
-use opendap_input::thresholds::*;
+use blackbird_ui_input::thresholds::*;
 
 #[test]
 fn every_threshold_keeps_its_value() {
@@ -25,7 +25,7 @@ fn every_threshold_keeps_its_value() {
 
 #[test]
 fn the_gesture_module_still_names_its_thresholds() {
-    use opendap_input::gesture;
+    use blackbird_ui_input::gesture;
     assert_eq!(gesture::SLOP_PX, SLOP_PX);
     assert_eq!(gesture::LONG_MS, LONG_MS);
     assert_eq!(gesture::EDGE_PX, EDGE_PX);

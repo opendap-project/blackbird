@@ -8,7 +8,7 @@
 
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use opendap_input::gesture::Level;
+use blackbird_ui_input::gesture::Level;
 use slint::{
     ComponentHandle, LogicalPosition, PhysicalSize,
     platform::{
@@ -52,7 +52,7 @@ impl Platform for ComposerPlatform {
 }
 
 /// The debug UI mode's runtime switch; the environment's default is `BLACKBIRD_DEBUG_UI`.
-const DEBUG_SWITCH: &str = opendap_platform::run::DEBUG_UI;
+const DEBUG_SWITCH: &str = blackbird_platform::run::DEBUG_UI;
 
 /// Whether the debug UI mode is on: the switch file, or the environment.
 pub fn debug_ui() -> bool {
@@ -73,7 +73,7 @@ pub struct SystemLayers {
     buffer: Option<MemoryRenderBuffer>,
     requests: Rc<RefCell<Vec<Request>>>,
     controls: Rc<slint::VecModel<ControlMark>>,
-    contact: Option<opendap_input::gesture::Contact>,
+    contact: Option<blackbird_ui_input::gesture::Contact>,
     /// When the composer started, for the contacts' times.
     started: Instant,
     /// Logical pixels per design pixel (the hardware's exact scale over the applied one).
@@ -249,11 +249,11 @@ impl SystemLayers {
         );
         let now = self.started.elapsed().as_millis() as u64;
         // The screen frame: the composer recognizes at the screen level (input events §3.2.1).
-        let surface = opendap_input::gesture::Frame::screen(size, self.unit);
+        let surface = blackbird_ui_input::gesture::Frame::screen(size, self.unit);
         let mut gesture = None;
         match event {
             Contact::Down => {
-                self.contact = Some(opendap_input::gesture::Contact::down(at, now, surface));
+                self.contact = Some(blackbird_ui_input::gesture::Contact::down(at, now, surface));
                 self.ui.set_touch_zone(zone(at, surface).into());
                 self.ui.set_touching(true);
             }
@@ -451,10 +451,10 @@ impl SystemLayers {
     }
 }
 
-/// The region a contact starts in, for the debug UI mode to light it (`opendap-input`'s
+/// The region a contact starts in, for the debug UI mode to light it (`blackbird-ui-input`'s
 /// regions: corners of their own where two edge zones meet).
-fn zone(at: (f32, f32), surface: opendap_input::gesture::Frame) -> &'static str {
-    use opendap_input::gesture::{Corner, Edge, Region};
+fn zone(at: (f32, f32), surface: blackbird_ui_input::gesture::Frame) -> &'static str {
+    use blackbird_ui_input::gesture::{Corner, Edge, Region};
     match surface.region(at) {
         Region::Content => "",
         Region::Edge(Edge::Leading) => "edge-leading",

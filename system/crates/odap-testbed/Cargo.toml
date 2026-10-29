@@ -1,5 +1,5 @@
 [package]
-name = "odap-testbed"
+name = "blackbird-apps-testbed"
 version = "0.0.1"
 description = "The UI primitives activity of Blackbird OS (SYS-071): a developer activity that exercises the UI primitives, one screen each"
 edition.workspace = true
@@ -7,16 +7,21 @@ rust-version.workspace = true
 license.workspace = true
 publish = false
 
+# Installed as /usr/lib/blackbird/testbed (RFC 0017 §3: an internal daemon, no prefix).
+[[bin]]
+name = "testbed"
+path = "src/main.rs"
+
 [dependencies]
-opendap-device.workspace = true
-opendap-input.workspace = true
-opendap-layout.workspace = true
-opendap-media.workspace = true
-opendap-motion.workspace = true
-opendap-forms.workspace = true
+blackbird-device.workspace = true
+blackbird-ui-input.workspace = true
+blackbird-ui-layout.workspace = true
+blackbird-ui-media.workspace = true
+blackbird-ui-motion.workspace = true
+blackbird-ui-forms.workspace = true
 # The same renderers as the product host, so the testbed exercises the same paths.
 slint = { workspace = true, features = ["std", "compat-1-2", "backend-winit", "renderer-femtovg", "renderer-software", "accessibility"] }
-# See odap-product: holds zbus's thread pool below 1.7.0 (smol-rs/blocking#83).
+# See blackbird-apps-player: holds zbus's thread pool below 1.7.0 (smol-rs/blocking#83).
 blocking = ">=1.6.2, <1.7"
 
 [build-dependencies]

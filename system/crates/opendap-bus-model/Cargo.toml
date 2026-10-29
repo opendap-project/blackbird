@@ -1,5 +1,5 @@
 [package]
-name = "opendap-bus-model"
+name = "blackbird-bus-model"
 version = "0.1.0"
 description = "One input model for the device and the host (RFC 0020): control roles, the events of opendap.input/v1, and the schema identifiers both sides check"
 edition.workspace = true

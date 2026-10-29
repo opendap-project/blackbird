@@ -1,11 +1,11 @@
-//! The Spaces screen: the input primitives in use (opendap-input's space and node). A list
+//! The Spaces screen: the input primitives in use (blackbird-ui-input's space and node). A list
 //! scrolled by its own pan: the finger moves in the viewport, while in the content, which follows
 //! it, it stays put; the row under it, its address and its own coordinates.
 
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use opendap_input::{gesture, node, space};
-use opendap_layout::focus as vfocus;
+use blackbird_ui_input::{gesture, node, space};
+use blackbird_ui_layout::focus as vfocus;
 use slint::{ComponentHandle, ModelRc, SharedString, VecModel};
 
 use crate::{
@@ -170,7 +170,7 @@ fn focus_key(ui: &Testbed, l: &mut ListState, key: &str) -> bool {
     };
     l.focused = Some(i);
     ui.set_spaces_focused(i as i32);
-    let rows = opendap_layout::extents::Fixed {
+    let rows = blackbird_ui_layout::extents::Fixed {
         count: ROWS,
         size: 42.0,
     };

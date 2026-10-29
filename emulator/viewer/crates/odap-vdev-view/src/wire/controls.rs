@@ -22,7 +22,7 @@ pub(crate) fn sender(
                 .filter_map(|(r, q)| match r.parse::<Role>() {
                     Ok(role) => Some((role, q.clone())),
                     Err(e) => {
-                        eprintln!("odap-vdev-view: {e}");
+                        eprintln!("blackbird-emulator-viewer: {e}");
                         None
                     }
                 })
@@ -33,10 +33,10 @@ pub(crate) fn sender(
             let trace = std::env::var_os("ODAP_VIEW_TRACE").is_some();
             for event in key_rx {
                 if trace {
-                    eprintln!("odap-vdev-view: {event:?}");
+                    eprintln!("blackbird-emulator-viewer: {event:?}");
                 }
                 if let Err(e) = live.send(&event) {
-                    eprintln!("odap-vdev-view: {}", e.message);
+                    eprintln!("blackbird-emulator-viewer: {}", e.message);
                 }
             }
         });
@@ -94,7 +94,7 @@ pub(crate) fn mouse(ui: &View, press: &Press) {
         let trace = std::env::var_os("ODAP_VIEW_TRACE").is_some();
         ui.on_key(move |role, down| {
             if trace {
-                eprintln!("odap-vdev-view: key {role} {down}");
+                eprintln!("blackbird-emulator-viewer: key {role} {down}");
             }
             press(role.as_str(), down)
         });
@@ -104,7 +104,7 @@ pub(crate) fn mouse(ui: &View, press: &Press) {
         let trace = std::env::var_os("ODAP_VIEW_TRACE").is_some();
         ui.on_combo(move |down| {
             if trace {
-                eprintln!("odap-vdev-view: combo {down}");
+                eprintln!("blackbird-emulator-viewer: combo {down}");
             }
             press("main", down);
             press("volume-down", down);
@@ -128,7 +128,10 @@ pub(crate) fn host_keys(
     let trace = std::env::var_os("ODAP_VIEW_TRACE").is_some();
     ui.on_host_key(move |text, down| {
         if trace {
-            eprintln!("odap-vdev-view: host key {:?} {down}", text.as_str());
+            eprintln!(
+                "blackbird-emulator-viewer: host key {:?} {down}",
+                text.as_str()
+            );
         }
         // ↑ and ↓ are the buttons by their place (Volume + above, Volume − below), as the
         // faceplate's host keys say. ← and → are no button (the buttons stand vertically):

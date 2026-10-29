@@ -11,7 +11,7 @@ export struct NavView {
     value: float,
 }
 
-// A box of the Transitions screen, as the logic's primitives place it (opendap-motion's interpolate).
+// A box of the Transitions screen, as the logic's primitives place it (blackbird-ui-motion's interpolate).
 export struct TrBox {
     x: length,
     y: length,
@@ -27,7 +27,7 @@ export struct FieldView {
     label: string,
     text: string,
     issue: string,
-    // The keyboard it asks for (opendap-forms' Purpose): "number", "pin", "email", "normal"…
+    // The keyboard it asks for (blackbird-ui-forms' Purpose): "number", "pin", "email", "normal"…
     purpose: string,
 }
 
@@ -45,7 +45,7 @@ export struct VRow {
     // Its page has arrived; its cover is decoded (only when the scroll is slow).
     ready: bool,
     cover: bool,
-    // The item that has the focus (opendap-layout's focus: by item, never by slot).
+    // The item that has the focus (blackbird-ui-layout's focus: by item, never by slot).
     focused: bool,
     // A section's first row carries its section's header above it, in the content.
     head: length,

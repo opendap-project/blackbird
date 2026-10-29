@@ -1,12 +1,12 @@
-//! The splash screen (opendap-splash; composer and UI runtime spec §9): the composer's first frames show
-//! the same splash screen the boot UI (`odap-boot`) put on the display while the OS loaded, keep it at least
+//! The splash screen (blackbird-ui-splash; composer and UI runtime spec §9): the composer's first frames show
+//! the same splash screen the boot UI (`blackbird-apps-boot`) put on the display while the OS loaded, keep it at least
 //! `MINIMUM_MS` from when it first showed, then fade it out once the product host has drawn
 //! (crate::splash_timeline decides when).
 //! Nothing else is drawn at boot (OS-035).
 
 use std::time::{Duration, Instant};
 
-use opendap_splash::{FADE_MS, MINIMUM_MS, SHOWN_AT_PATH};
+use blackbird_ui_splash::{FADE_MS, MINIMUM_MS, SHOWN_AT_PATH};
 use smithay::{
     backend::{
         allocator::Fourcc,
@@ -38,7 +38,7 @@ fn monotonic_ms() -> u64 {
 impl Splash {
     pub fn new(display: Size<i32, smithay::utils::Physical>) -> Self {
         let (w, h) = (display.w.max(1) as u32, display.h.max(1) as u32);
-        let pixels = opendap_splash::screen_xrgb(w, h, w as usize * 4);
+        let pixels = blackbird_ui_splash::screen_xrgb(w, h, w as usize * 4);
         // B, G, R, 0xff bytes: ARGB8888 on little-endian hosts, opaque.
         let buffer = MemoryRenderBuffer::from_slice(
             &pixels,
@@ -48,7 +48,7 @@ impl Splash {
             Transform::Normal,
             None,
         );
-        // The minimum counts from when odap-boot first showed it, or from now without it.
+        // The minimum counts from when blackbird-apps-boot first showed it, or from now without it.
         let shown = std::fs::read_to_string(SHOWN_AT_PATH).ok();
         let left = minimum_left(shown.as_deref(), monotonic_ms(), MINIMUM_MS);
         Self {

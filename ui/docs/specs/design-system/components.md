@@ -58,5 +58,5 @@ What the screen shows while the OS loads (blackbird-os OS-035): the OpenDAP vert
 
 - **Minimum time:** 5 s on screen, so it is seen as an intended moment while the system loads, not as a flash (maintainers, 2026-10-23). If the interface is ready sooner it waits; if not, the splash screen stays until it is.
 - **To the interface:** a fade of `motion.duration.slow` (320 ms). With reduced motion, no fade.
-- **Who draws it:** the boot UI (`odap-boot`) from the moment a display exists, then the composer's first frames, from the same rasterization (system `opendap-splash`), so the hand-over shows no change. On a board with a boot-loader logo, that logo is the same lockup.
+- **Who draws it:** the boot UI (`blackbird-apps-boot`) from the moment a display exists, then the composer's first frames, from the same rasterization (system `blackbird-ui-splash`), so the hand-over shows no change. On a board with a boot-loader logo, that logo is the same lockup.
 - **The same place** shows the boot-mode menu, progress of updates that need a reboot and other screens that keep the system from normal use, in the same visual language. Updates that do not need a reboot happen in the background, with the system in use.

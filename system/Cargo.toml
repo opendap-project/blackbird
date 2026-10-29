@@ -21,7 +21,7 @@ members = [
 
 # What toolkit-image odapkit-deploy puts on a running device by default, and what it restarts.
 [workspace.metadata.odap]
-deploy = ["odap-boot", "odap-composer", "odap-product", "odap-testbed", "odap-statusled"]
+deploy = ["blackbird-apps-boot", "blackbird-composer", "blackbird-apps-player", "blackbird-apps-testbed", "blackbird-apps-statusled"]
 restart = ["blackbird-composer.service", "blackbird-statusled.service"]
 
 [workspace.package]
@@ -31,25 +31,25 @@ license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
 opendap-workspace = { path = "crates/opendap-workspace" }
-opendap-device = { path = "crates/opendap-device" }
-opendap-platform = { path = "crates/opendap-platform" }
-opendap-input = { path = "crates/opendap-input" }
-opendap-layout = { path = "crates/opendap-layout" }
-opendap-media = { path = "crates/opendap-media" }
-opendap-audio-analysis = { path = "crates/opendap-audio-analysis" }
-opendap-motion = { path = "crates/opendap-motion" }
-opendap-bus-model = { path = "crates/opendap-bus-model" }
-opendap-forms = { path = "crates/opendap-forms" }
-opendap-splash = { path = "crates/opendap-splash" }
+blackbird-device = { path = "crates/opendap-device" }
+blackbird-platform = { path = "crates/opendap-platform" }
+blackbird-ui-input = { path = "crates/opendap-input" }
+blackbird-ui-layout = { path = "crates/opendap-layout" }
+blackbird-ui-media = { path = "crates/opendap-media" }
+blackbird-services-audio-analysis = { path = "crates/opendap-audio-analysis" }
+blackbird-ui-motion = { path = "crates/opendap-motion" }
+blackbird-bus-model = { path = "crates/opendap-bus-model" }
+blackbird-ui-forms = { path = "crates/opendap-forms" }
+blackbird-ui-splash = { path = "crates/opendap-splash" }
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.21"
-# JSON (dev): the input model's wire format checked as JSON (opendap-bus-model).
+# JSON (dev): the input model's wire format checked as JSON (blackbird-bus-model).
 serde_json = "1"
 toml = "1.1.8"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 tracing-journald = "0.3.2"
-# Real-input FFT for the audio measurements (opendap-audio-analysis), on rustfft.
+# Real-input FFT for the audio measurements (blackbird-services-audio-analysis), on rustfft.
 realfft = "3.5.0"
 slint = { version = "1.18.1", default-features = false }
 slint-build = "1.18.1"

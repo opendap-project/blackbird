@@ -77,7 +77,7 @@ fn open_output(
         device.build_output_stream::<f32, _, _>(
             config,
             move |data, _| ring.lock().unwrap_or_else(|p| p.into_inner()).pull(data),
-            |e| eprintln!("odap-vdev-view: sound out: {e}"),
+            |e| eprintln!("blackbird-emulator-viewer: sound out: {e}"),
             None,
         )
     };
@@ -138,7 +138,7 @@ fn open_microphone(
                     .unwrap_or_else(|p| p.into_inner())
                     .push(&converted);
             },
-            |e| eprintln!("odap-vdev-view: sound in: {e}"),
+            |e| eprintln!("blackbird-emulator-viewer: sound in: {e}"),
             None,
         )
         .map_err(|e| e.to_string())?;

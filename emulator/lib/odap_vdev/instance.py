@@ -18,6 +18,10 @@ import time
 from . import compose, workspace
 from .qmp import Qmp
 
+# The device's power service (RFC 0017 §3). An image from before the rename has odap-reboot on the
+# PATH instead: tried second, for one minor release (HL-89 follow-up removes it).
+POWER = 'p=/usr/lib/blackbird/power; [ -x "$p" ] || p=odap-reboot; "$p"'
+
 SSH_OPTS = ["-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-o", "LogLevel=ERROR"]
 
 
@@ -250,10 +254,11 @@ class Instance:
         self.pid_file.unlink(missing_ok=True)
 
     def reboot(self, mode="normal"):
-        """Restart into a boot mode, through the device's own odap-reboot (blackbird-os)."""
-        r = self.ssh("odap-reboot", mode, check=False)
+        """Restart into a boot mode, through the device's own power service (blackbird os)."""
+        r = self.ssh(POWER, mode, check=False)
         if r.returncode == 2:
-            raise ValueError((r.stderr or "").strip().removeprefix("odap-reboot: ") or f"no mode {mode}")
+            err = (r.stderr or "").strip()
+            raise ValueError(err.removeprefix("power: ").removeprefix("odap-reboot: ") or f"no mode {mode}")
         if r.returncode not in (0, 255):  # 255: the connection closed as the device went down
             raise InstanceError((r.stderr or "").strip() or "the reboot failed")
 
@@ -267,7 +272,7 @@ class Instance:
         sd = any(b.get("qdev") == "sd0" and "inserted" in b for b in q.cmd("query-block"))
         usb = re.findall(r"ID: (\S+)", q.cmd("human-monitor-command", **{"command-line": "info usb"}) or "")
         charger, battery, led, light, mic = False, None, None, None, None
-        # One round trip: the battery model, then the faceplate (odap-vdev-hw), each line or "-".
+        # One round trip: the battery model, then the faceplate (blackbird-emulator-bsp-hw), each line or "-".
         r = self.ssh("for f in /sys/module/test_power/parameters/usb_online /sys/module/test_power/parameters/battery_capacity "
                      "/run/blackbird/emulator/led /run/blackbird/emulator/als /run/blackbird/emulator/mic; do (cat $f 2>/dev/null || echo -) | head -1; done", check=False)
         if r.returncode == 0:
@@ -283,7 +288,7 @@ class Instance:
                 "led": led, "light": light, "mic": mic}
 
     def boot_modes(self):
-        return self.ssh("odap-reboot", "--list").stdout.split()
+        return self.ssh(POWER, "--list").stdout.split()
 
     def wait_ssh(self, timeout=120):
         end = time.time() + timeout
@@ -363,7 +368,7 @@ def build_viewer():
     if r.returncode != 0:
         print(f"odap-vdev: the simulator window did not build; using QEMU's own window:\n{r.stderr.strip()[-800:]}", file=sys.stderr)
         return None
-    return str(ROOT / "viewer/target/release/odap-vdev-view")
+    return str(ROOT / "viewer/target/release/blackbird-emulator-viewer")
 
 
 def window_on_top_library():

@@ -1,14 +1,14 @@
-//! The Navigation screen's stops (input events §3.7), each navigated by opendap-input's nav: a
+//! The Navigation screen's stops (input events §3.7), each navigated by blackbird-ui-input's nav: a
 //! shelf of albums, the days of the week, and a player whose seek is adjustable inside it (two
 //! levels).
 
 use std::{cell::RefCell, rc::Rc};
 
-use opendap_input::{
+use blackbird_ui_input::{
     nav::{self, Effect, NavNode, Navigator},
     nested,
 };
-use opendap_layout::{
+use blackbird_ui_layout::{
     focus as vfocus,
     window::{Overscan, window},
 };
@@ -40,7 +40,7 @@ impl Stops {
     fn new() -> Self {
         Stops {
             // The shelf is a stop over a virtual list (input events §3.7): nav keeps its levels
-            // with one child standing for the list, and opendap-layout walks the list's items by
+            // with one child standing for the list, and blackbird-ui-layout walks the list's items by
             // index.
             shelf: Navigator::new(NavNode::group(
                 "screen",
@@ -54,7 +54,7 @@ impl Stops {
                     vec![NavNode::leaf("play"), NavNode::adjustable("seek")],
                 )],
             )),
-            // The days of the week: cyclic content, so the stop goes round (opendap-input's
+            // The days of the week: cyclic content, so the stop goes round (blackbird-ui-input's
             // ends); the shelf above keeps the default and stops.
             days: Navigator::new(NavNode::group(
                 "screen",
@@ -128,7 +128,7 @@ fn nav_key(key: &str, rtl: bool) -> Option<nav::Key> {
     }
 }
 
-/// Inside the engaged shelf, Volume and the arrows walk its list by index (opendap-layout); past
+/// Inside the engaged shelf, Volume and the arrows walk its list by index (blackbird-ui-layout); past
 /// either end the shelf lets go, as nav does for any stop. `None` for a key that does not walk.
 fn shelf_walk(st: &mut Stops, k: Option<nav::Key>) -> Option<String> {
     let d = match k {
@@ -266,7 +266,7 @@ fn stop_view(ui: &Testbed, st: &mut Stops, name: &str, said: &str) {
 
 /// The albums to build for the shelf at `offset`: only the window around what shows.
 fn shelf_tiles(ui: &Testbed, offset: f32) {
-    let extents = opendap_layout::extents::Fixed {
+    let extents = blackbird_ui_layout::extents::Fixed {
         count: SHELF,
         size: 80.0,
     };

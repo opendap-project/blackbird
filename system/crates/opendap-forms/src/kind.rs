@@ -4,7 +4,7 @@
 //! text-input-v3's content purposes) and the audio values a player edits; an activity adds its own
 //! through [`Custom`].
 
-use opendap_input::ends::{Ends, Step};
+use blackbird_ui_input::ends::{Ends, Step};
 use std::fmt;
 use std::sync::Arc;
 

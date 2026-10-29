@@ -3,7 +3,7 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use opendap_input::{gesture, space};
+use blackbird_ui_input::{gesture, space};
 use slint::ComponentHandle;
 
 use crate::{

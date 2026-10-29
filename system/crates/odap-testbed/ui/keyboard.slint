@@ -7,7 +7,7 @@ import { Blueprint, Label, FocusReveal, FocusVisible, Layout, Motion } from "@bl
 // A text field for the keyboard experiment (input events §3.7, §3.8): the box takes the focus like
 // any control; editing it is a level, entered by a touch on it or by Action, left by Escape or a tap
 // outside, which the screen decides (`editing`). What is typed goes to the logic's form
-// (opendap-forms), which may refuse it (the kind's filter) and says the field's issue once it is left.
+// (blackbird-ui-forms), which may refuse it (the kind's filter) and says the field's issue once it is left.
 export component Field inherits VerticalLayout {
     in property <string> label;
     // The model's text (two-way binding without loops, input events §3.8): it reaches the input

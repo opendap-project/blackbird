@@ -1,10 +1,10 @@
-//! The Keyboard screen's form (opendap-forms): fields of several kinds, their filter before
+//! The Keyboard screen's form (blackbird-ui-forms): fields of several kinds, their filter before
 //! anything is typed, their values bound without echo, issues once a field is left; and the
 //! keyboard experiment's keys.
 
 use std::{cell::RefCell, rc::Rc};
 
-use opendap_forms::{
+use blackbird_ui_forms::{
     form::Form,
     kind::{Issue, Kind, Value},
 };

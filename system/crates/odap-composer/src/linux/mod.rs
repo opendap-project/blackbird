@@ -11,8 +11,8 @@ mod touches;
 
 use std::{path::PathBuf, process::Command, time::Instant};
 
+use blackbird_device::Description;
 use calloop::signals::{Signal, Signals};
-use opendap_device::Description;
 use smithay::reexports::{calloop::EventLoop, wayland_server::Display};
 use tracing::{error, info, warn};
 use tracing_subscriber::{EnvFilter, prelude::*};
@@ -21,13 +21,13 @@ use state::Composer;
 
 /// The developer activities the composer can start in place of the product (SYS-071), by name, until
 /// the orchestrator's activity launcher exists.
-const ACTIVITIES: &[(&str, &str)] = &[("ui-primitives", "/usr/bin/odap-testbed")];
+const ACTIVITIES: &[(&str, &str)] = &[("ui-primitives", "/usr/lib/blackbird/testbed")];
 
 /// The activity asked for by the flag: `BLACKBIRD_ACTIVITY`, or the name in `/run/blackbird/composer/activity`.
 fn activity() -> Option<&'static str> {
     let name = std::env::var("BLACKBIRD_ACTIVITY")
         .ok()
-        .or_else(|| std::fs::read_to_string(opendap_platform::run::ACTIVITY).ok())?;
+        .or_else(|| std::fs::read_to_string(blackbird_platform::run::ACTIVITY).ok())?;
     let name = name.trim();
     match ACTIVITIES.iter().find(|(n, _)| *n == name) {
         Some((_, program)) => Some(program),
@@ -46,8 +46,8 @@ struct Args {
 }
 
 fn args() -> Args {
-    let mut description = opendap_device::locate::find()
-        .unwrap_or_else(|| PathBuf::from(opendap_device::locate::SEARCH_PATHS[0]));
+    let mut description = blackbird_device::locate::find()
+        .unwrap_or_else(|| PathBuf::from(blackbird_device::locate::SEARCH_PATHS[0]));
     let mut client = Vec::new();
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
@@ -59,7 +59,7 @@ fn args() -> Args {
             }
             other => {
                 eprintln!(
-                    "odap-composer: unknown argument {other}\nusage: odap-composer [--description FILE] [-- COMMAND...]"
+                    "composer: unknown argument {other}\nusage: composer [--description FILE] [-- COMMAND...]"
                 );
                 std::process::exit(2);
             }

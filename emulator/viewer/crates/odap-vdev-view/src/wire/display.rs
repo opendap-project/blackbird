@@ -5,7 +5,10 @@ use super::super::*;
 
 /// Attached over the window's QMP socket before any key uses it (QMP serves one client at a
 /// time; the keys open their session on first use); the pointer over it follows.
-pub(crate) fn display(ui: &View, qmp: &std::path::Path) -> Arc<opendap_qemu_display::Display> {
+pub(crate) fn display(
+    ui: &View,
+    qmp: &std::path::Path,
+) -> Arc<blackbird_emulator_qemu_display::Display> {
     let weak = ui.as_weak();
     // ODAP_VIEW_FRAMES_LOG=FILE: one line per change the window receives (seconds since it opened,
     // and the rectangle), to measure the window's own frame rate (odapkit motion measures the
@@ -14,19 +17,19 @@ pub(crate) fn display(ui: &View, qmp: &std::path::Path) -> Arc<opendap_qemu_disp
         .and_then(|p| std::fs::File::create(p).ok())
         .map(|f| std::sync::Mutex::new(std::io::LineWriter::new(f)));
     let opened = std::time::Instant::now();
-    let display = match opendap_qemu_display::attach(qmp, move |frame, change| {
+    let display = match blackbird_emulator_qemu_display::attach(qmp, move |frame, change| {
         if let Some(log) = &frames_log {
             use std::io::Write as _;
             let at = opened.elapsed().as_secs_f64();
             let line = match change {
-                opendap_qemu_display::Change::Pixels { x, y, w, h } => {
+                blackbird_emulator_qemu_display::Change::Pixels { x, y, w, h } => {
                     format!("{at:.4} {x} {y} {w} {h}")
                 }
                 c => format!("{at:.4} {c:?}"),
             };
             let _ = writeln!(log.lock().unwrap_or_else(|p| p.into_inner()), "{line}");
         }
-        if change == opendap_qemu_display::Change::Disabled {
+        if change == blackbird_emulator_qemu_display::Change::Disabled {
             return;
         }
         let (w, h) = (frame.width, frame.height);
@@ -61,7 +64,7 @@ pub(crate) fn display(ui: &View, qmp: &std::path::Path) -> Arc<opendap_qemu_disp
 }
 
 /// The device stopped: the window goes with it.
-pub(crate) fn close_with(display: &Arc<opendap_qemu_display::Display>) {
+pub(crate) fn close_with(display: &Arc<blackbird_emulator_qemu_display::Display>) {
     let display = display.clone();
     std::thread::spawn(move || {
         display.wait_closed();
@@ -87,10 +90,10 @@ pub(crate) fn snapshot(ui: &View) {
                         shot.as_bytes(),
                     );
                     if let Err(e) = saved {
-                        eprintln!("odap-vdev-view: snapshot: {e}");
+                        eprintln!("blackbird-emulator-viewer: snapshot: {e}");
                     }
                 }
-                Err(e) => eprintln!("odap-vdev-view: snapshot: {e}"),
+                Err(e) => eprintln!("blackbird-emulator-viewer: snapshot: {e}"),
             }
         });
     }

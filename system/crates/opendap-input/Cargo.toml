@@ -1,5 +1,5 @@
 [package]
-name = "opendap-input"
+name = "blackbird-ui-input"
 version = "0.0.1"
 description = "The input domain of Blackbird OS (input events spec): gestures, controls by role (press, long press, hold, repeat), semantic actions and thresholds, platform-agnostic"
 edition.workspace = true
@@ -8,7 +8,7 @@ license = "MPL-2.0"
 publish = false
 
 [dependencies]
-opendap-bus-model.workspace = true
+blackbird-bus-model.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

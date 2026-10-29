@@ -2,7 +2,7 @@
 
 use std::{rc::Rc, time::Duration};
 
-use opendap_device::Description;
+use blackbird_device::Description;
 use slint::{ComponentHandle, ModelRc, Timer, VecModel};
 
 use crate::{

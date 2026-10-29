@@ -1,5 +1,5 @@
 [package]
-name = "opendap-qemu-display"
+name = "blackbird-emulator-qemu-display"
 version = "0.1.0"
 description = "A client of QEMU's D-Bus display (org.qemu.Display1), peer to peer through QMP: frames as the guest draws them, and the absolute pointer"
 edition.workspace = true

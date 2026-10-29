@@ -3,8 +3,7 @@
 
 use std::hint::black_box;
 
-use criterion::{Criterion, criterion_group, criterion_main};
-use opendap_layout::{
+use blackbird_ui_layout::{
     data::{
         cache::Cache,
         pages::{Pages, Paging},
@@ -14,6 +13,7 @@ use opendap_layout::{
     recycle::Pool,
     window::{Overscan, window},
 };
+use criterion::{Criterion, criterion_group, criterion_main};
 
 const ITEMS: usize = 1_000_000;
 

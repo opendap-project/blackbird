@@ -10,7 +10,7 @@ rust-version = "1.89"
 license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
-opendap-qemu-display = { path = "crates/opendap-qemu-display" }
+blackbird-emulator-qemu-display = { path = "crates/opendap-qemu-display" }
 # The host root's crates (RFC 0017 §3, opendap-host-*): the use cases and adapters `opendap` and OpenDAP Desktop
 # run, consumed as published, never from a checkout's sources.
 opendap-host-model = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
@@ -18,7 +18,7 @@ opendap-host-core = { git = "https://github.com/opendap-project/host", rev = "8a
 opendap-host-transports-ssh = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
 opendap-host-transports-emulator = { git = "https://github.com/opendap-project/host", rev = "8a887a3" }
 # OpenDAP's audio measurements (system/ in this repository): the instruments' meters and spectra.
-opendap-audio-analysis = { path = "../../system/crates/opendap-audio-analysis" }
+blackbird-services-audio-analysis = { path = "../../system/crates/opendap-audio-analysis" }
 # The host's audio, to play the device's output and record its input (CoreAudio, ALSA, PulseAudio).
 cpal = "0.18.2"
 slint = { version = "1.18.1", default-features = false }

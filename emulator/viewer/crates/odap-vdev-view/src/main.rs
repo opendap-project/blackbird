@@ -1,6 +1,6 @@
-//! `odap-vdev-view`: the simulator window of a virtual device (virtual-devices ADR 0001).
+//! `blackbird-emulator-viewer`: the simulator window of a virtual device (virtual-devices ADR 0001).
 //!
-//! It shows the guest's display over QEMU's D-Bus display (opendap-qemu-display, ADR 0002), framed
+//! It shows the guest's display over QEMU's D-Bus display (blackbird-emulator-qemu-display, ADR 0002), framed
 //! by the device as `odap-vdev frame` describes it, and sends the device's controls with real
 //! presses and releases, so long presses and combinations work as on the hardware. Everything it
 //! does to the device goes through the OpenDAP CLI's crates, the use cases `opendap` and OpenDAP
@@ -231,10 +231,10 @@ fn args() -> Args {
 
 fn usage(msg: &str) -> ! {
     if !msg.is_empty() {
-        eprintln!("odap-vdev-view: {msg}");
+        eprintln!("blackbird-emulator-viewer: {msg}");
     }
     eprintln!(
-        "usage: odap-vdev-view --frame FRAME.json --qmp SOCKET --checkout VIRTUAL_DEVICES_DIR [--name NAME] [--no-frame] [--no-on-top] [--input-direct]"
+        "usage: blackbird-emulator-viewer --frame FRAME.json --qmp SOCKET --checkout VIRTUAL_DEVICES_DIR [--name NAME] [--no-frame] [--no-on-top] [--input-direct]"
     );
     std::process::exit(if msg.is_empty() { 0 } else { 2 });
 }

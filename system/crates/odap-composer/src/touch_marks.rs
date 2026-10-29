@@ -25,9 +25,9 @@ pub fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a + (b - a) * t
 }
 
-/// `motion.easing.standard` (opendap-motion's, the design system's curve).
+/// `motion.easing.standard` (blackbird-ui-motion's, the design system's curve).
 pub fn ease(t: f64) -> f64 {
-    f64::from(opendap_motion::easing::Bezier::STANDARD.at(t as f32))
+    f64::from(blackbird_ui_motion::easing::Bezier::STANDARD.at(t as f32))
 }
 
 /// The shape's premultiplied (B, G, R, A) at distance `r` from the centre, for a texture `px`

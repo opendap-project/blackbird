@@ -1,5 +1,5 @@
 //! Requests to the power service (blackbird-os `blackbird-power.socket`): the composer's user cannot power
-//! off or pick a boot mode itself; the service, as root, runs `odap-reboot` for it.
+//! off or pick a boot mode itself; the service, as root, runs `/usr/lib/blackbird/power` for it.
 //!
 //! Nothing here blocks the caller (T1-047): power-off and reboot are sent from a thread of their own,
 //! and the boot modes are fetched in the background and answered from a cache.
@@ -16,7 +16,7 @@ use std::{
 use tracing::warn;
 
 #[cfg(target_os = "linux")]
-const SOCKET: &str = opendap_platform::run::POWER_SOCKET;
+const SOCKET: &str = blackbird_platform::run::POWER_SOCKET;
 const TIMEOUT: Duration = Duration::from_secs(2);
 
 /// The power service at one socket path.

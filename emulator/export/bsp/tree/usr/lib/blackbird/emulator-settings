@@ -5,10 +5,10 @@
 # Each lands where it acts, which is tmpfs or a module's parameters and lasts one boot; this script
 # records it on the device's disk and puts it back at boot, before the composer starts, so the first
 # frame already follows it.
-# Usage: virtual-settings set KEY VALUE | get KEY | restore
+# Usage: emulator-settings set KEY VALUE | get KEY | restore
 #   KEY      debug-ui (0 or 1), battery (0 to 100), charger (on or off), light (lux)
 #   restore  put every recorded setting back (blackbird-emulator-settings.service, at boot)
-# The light is restored by odap-vdev-hw itself, which reads it from this file when it starts.
+# The light is restored by blackbird-emulator-bsp-hw itself, which reads it from this file when it starts.
 set -eu
 file=/var/lib/blackbird/emulator/settings
 power=/sys/module/test_power/parameters
@@ -30,7 +30,7 @@ get() {
 case "${1:-}" in
   set)
     # shellcheck disable=SC2015 # the error branch is meant to run when either test fails
-    [ $# -eq 3 ] && valid "$2" "$3" || { echo "virtual-settings: bad setting: ${2:-} ${3:-}" >&2; exit 2; }
+    [ $# -eq 3 ] && valid "$2" "$3" || { echo "emulator-settings: bad setting: ${2:-} ${3:-}" >&2; exit 2; }
     mkdir -p "${file%/*}"
     # Replaced whole, never half written: a reboot mid-write keeps the previous file.
     { [ -f "$file" ] && grep -v "^$2=" "$file" || true; echo "$2=$3"; } > "$file.new"
@@ -57,7 +57,7 @@ case "${1:-}" in
     fi
     ;;
   *)
-    echo "usage: virtual-settings set KEY VALUE | get KEY | restore" >&2
+    echo "usage: emulator-settings set KEY VALUE | get KEY | restore" >&2
     exit 2
     ;;
 esac

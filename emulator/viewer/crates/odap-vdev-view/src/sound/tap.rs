@@ -29,7 +29,9 @@ impl Tap {
             }
             self.format = Some(*f);
             self.wanted = (self.seconds * f64::from(f.rate)) as usize * f.bytes_per_frame();
-            if let Err(e) = opendap_audio_analysis::wav::write_header(&mut self.file, f, 0) {
+            if let Err(e) =
+                blackbird_services_audio_analysis::wav::write_header(&mut self.file, f, 0)
+            {
                 return self.finish(Err(e.to_string()));
             }
         }
@@ -46,8 +48,12 @@ impl Tap {
         let r = r.and_then(|()| {
             let f = self.format.ok_or("nothing played")?;
             std::io::Write::flush(&mut self.file).map_err(|e| e.to_string())?;
-            opendap_audio_analysis::wav::finalize(self.file.get_mut(), &f, self.written as u32)
-                .map_err(|e| e.to_string())?;
+            blackbird_services_audio_analysis::wav::finalize(
+                self.file.get_mut(),
+                &f,
+                self.written as u32,
+            )
+            .map_err(|e| e.to_string())?;
             Ok((
                 f,
                 self.written as f64 / f.bytes_per_frame() as f64 / f64::from(f.rate),

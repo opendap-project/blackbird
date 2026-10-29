@@ -37,7 +37,7 @@ export component LayersScreen inherits Body {
             label: "Open a popover";
             unit: root.unit;
             clicked => {
-                // Placed by opendap-input's anchor: below the button, or above it
+                // Placed by blackbird-ui-input's anchor: below the button, or above it
                 // when it does not fit, slid to stay on the screen.
                 root.anchor-w = self.width;
                 root.place-menu(self.absolute-position.x, self.absolute-position.y, self.width, self.height, 2 * Tokens.size-row + 2 * Tokens.space-unit + 2px);

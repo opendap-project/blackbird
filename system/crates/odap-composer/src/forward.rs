@@ -9,9 +9,9 @@
 //! (§1.3, T1-060). Main stays the system's. Other hardware's controls map as input events §3.4
 //! says: a select button is Enter, a back button Escape.
 
-use opendap_device::Role;
-use opendap_input::double::{DoublePress, Down};
-use opendap_input::semantic::{self, Context, Semantic};
+use blackbird_device::Role;
+use blackbird_ui_input::double::{DoublePress, Down};
+use blackbird_ui_input::semantic::{self, Context, Semantic};
 
 // Linux key codes (linux/input-event-codes.h) the activity receives.
 pub const KEY_ESC: u32 = 1;

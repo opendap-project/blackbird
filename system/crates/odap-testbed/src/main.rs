@@ -1,15 +1,14 @@
-//! `odap-testbed`: the UI primitives activity's binary: the window, its arguments and the debug
+//! `blackbird-apps-testbed`: the UI primitives activity's binary: the window, its arguments and the debug
 //! UI flag; the logic is in the library (`wire`).
 
 #[cfg(target_os = "linux")]
-use odap_testbed::watch_debug;
-use odap_testbed::{Blueprint, SCREENS, Testbed, debug_ui, description, wire};
+use blackbird_apps_testbed::watch_debug;
+use blackbird_apps_testbed::{Blueprint, SCREENS, Testbed, debug_ui, description, wire};
 use slint::ComponentHandle;
 
 /// The usage, with every screen the list has (screens.tsv), wrapped under the argument.
 fn usage() -> String {
-    let mut out =
-        String::from("usage: odap-testbed [SCREEN]\n  SCREEN   open that primitive's screen:");
+    let mut out = String::from("usage: testbed [SCREEN]\n  SCREEN   open that primitive's screen:");
     let mut width = 80;
     for (i, name) in SCREENS.iter().enumerate() {
         let item = if i + 1 < SCREENS.len() {

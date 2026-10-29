@@ -4,8 +4,8 @@
 //! first or the last page the content resists the finger rather than stopping dead, then springs
 //! back (iOS's rubber band).
 
-pub use opendap_input::ends::Ends;
-use opendap_input::ends::Step;
+pub use blackbird_ui_input::ends::Ends;
+use blackbird_ui_input::ends::Step;
 
 /// Where a pager released at `offset` (pixels, from page 0's start) with `velocity` (pixels a
 /// second, positive toward later pages) settles: a page index. `from` is the page the drag began

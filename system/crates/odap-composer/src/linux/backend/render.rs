@@ -91,7 +91,7 @@ fn client_ready(backend: &mut Backend) {
     backend.splash.client_ready();
     static READY: std::sync::Once = std::sync::Once::new();
     READY.call_once(|| {
-        let _ = std::fs::write(opendap_platform::run::COMPOSER_UI_READY, b"");
+        let _ = std::fs::write(blackbird_platform::run::COMPOSER_UI_READY, b"");
     });
 }
 

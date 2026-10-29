@@ -9,14 +9,14 @@ use super::*;
 /// REPEAT_FACTOR of the last, down to REPEAT_FASTEST. Precise at first, fast through long lists.
 /// SYS-066 asks for these to be adjustable.
 pub(super) const REPEAT_DELAY: std::time::Duration =
-    std::time::Duration::from_millis(opendap_input::thresholds::REPEAT_DELAY_MS);
-pub(super) const REPEAT_FIRST: f64 = opendap_input::thresholds::REPEAT_FIRST_MS;
-pub(super) const REPEAT_FACTOR: f64 = opendap_input::thresholds::REPEAT_FACTOR;
-pub(super) const REPEAT_FASTEST: f64 = opendap_input::thresholds::REPEAT_FASTEST_MS;
+    std::time::Duration::from_millis(blackbird_ui_input::thresholds::REPEAT_DELAY_MS);
+pub(super) const REPEAT_FIRST: f64 = blackbird_ui_input::thresholds::REPEAT_FIRST_MS;
+pub(super) const REPEAT_FACTOR: f64 = blackbird_ui_input::thresholds::REPEAT_FACTOR;
+pub(super) const REPEAT_FASTEST: f64 = blackbird_ui_input::thresholds::REPEAT_FASTEST_MS;
 
 /// One more focus step while a volume button is held: the keys its press sent, released and
 /// pressed again (crate::forward::step_again), so Volume + is Shift+Tab every time.
-pub(super) fn step_again(composer: &mut Composer, role: opendap_device::Role) {
+pub(super) fn step_again(composer: &mut Composer, role: blackbird_device::Role) {
     let Some(&keys) = composer.keys.forwarded.get(&role) else {
         return;
     };
@@ -61,10 +61,10 @@ pub(super) fn sound_playing() -> bool {
 /// ([`release_forwarded`]).
 pub(super) fn forward(
     composer: &mut Composer,
-    role: opendap_device::Role,
+    role: blackbird_device::Role,
     time: smithay::backend::input::InputTime,
 ) {
-    use opendap_input::semantic::Semantic;
+    use blackbird_ui_input::semantic::Semantic;
     let display_on = !composer.backend.as_ref().is_some_and(|b| !b.display_on());
     let sound = display_on && sound_playing();
     let Some(press) = crate::forward::press(
@@ -77,7 +77,7 @@ pub(super) fn forward(
         return;
     };
     match press.meaning {
-        // No audio engine yet to take these (system ADR 0002 odap-audiod).
+        // No audio engine yet to take these (system ADR 0002 /usr/lib/blackbird/audio).
         Semantic::PlayPause => info!("play/pause, display off"),
         // The volume: a step as the button goes down, repeated while it is held; a second press
         // within the double-press time takes the first one's step back and changes the track, as
@@ -109,10 +109,10 @@ pub(super) fn forward(
 /// REPEAT_DELAY, accelerating down to REPEAT_FASTEST, until it is released (T1-062).
 fn repeat_held(
     composer: &mut Composer,
-    role: opendap_device::Role,
-    meaning: opendap_input::semantic::Semantic,
+    role: blackbird_device::Role,
+    meaning: blackbird_ui_input::semantic::Semantic,
 ) {
-    use opendap_input::semantic::Semantic;
+    use blackbird_ui_input::semantic::Semantic;
     composer.keys.repeat_gen += 1;
     let generation = composer.keys.repeat_gen;
     let mut interval = REPEAT_FIRST;
@@ -142,7 +142,7 @@ fn repeat_held(
 /// The focus stays where it is, with no step after (SYS-074).
 pub(super) fn release_forwarded(
     composer: &mut Composer,
-    role: opendap_device::Role,
+    role: blackbird_device::Role,
     time: smithay::backend::input::InputTime,
 ) {
     let Some(keys) = composer.keys.forwarded.remove(&role) else {

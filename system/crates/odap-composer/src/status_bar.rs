@@ -5,7 +5,7 @@
 //! joins the end of this group once the audio engine provides the level and its safe or warning
 //! state, SYS-012); at the end Bluetooth, Wi-Fi and the battery.
 
-/// The low battery, in percent: the status LED's threshold (odap-statusled), Android's default
+/// The low battery, in percent: the status LED's threshold (blackbird-apps-statusled), Android's default
 /// (familiar, early enough to act; SYS-076). At it or less, discharging, the battery's
 /// icon turns amber (and linux/status.rs warns once).
 pub const LOW_PERCENT: u8 = 15;

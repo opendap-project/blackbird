@@ -1,4 +1,4 @@
-//! The Virtual screen: a hundred thousand rows scrolled by the list's own pan. opendap-layout
+//! The Virtual screen: a hundred thousand rows scrolled by the list's own pan. blackbird-ui-layout
 //! says which rows to build (the window, with prefetch ahead by velocity), measures them as they
 //! are built (every seventh is taller), reuses a bounded set of slots by key, loads the rows' data
 //! a page at a time (each page takes 250 ms, as a slow card would), and decodes covers only while
@@ -12,7 +12,7 @@ mod render;
 
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use opendap_layout::{
+use blackbird_ui_layout::{
     data::{
         cache::Cache,
         gate::Gate,
@@ -22,7 +22,7 @@ use opendap_layout::{
     focus as vfocus,
     recycle::Pool,
 };
-use opendap_motion::{
+use blackbird_ui_motion::{
     animator::{Animator, Kind as AnimKind},
     easing::Bezier,
 };
@@ -32,7 +32,7 @@ use crate::{Testbed, VRow};
 
 const VCOUNT: usize = 100_000;
 // Sections of a thousand rows, each headed by a 28 px header above its first row, pinned at the
-// list's top while it passes (opendap-layout's sticky).
+// list's top while it passes (blackbird-ui-layout's sticky).
 const SECTION: usize = 1000;
 const HEAD: f32 = 28.0;
 // The reveal's scroll: a curve the system starts, retargeted by every press (ui-model §8).
@@ -75,7 +75,7 @@ struct Reveal {
     clock: Instant,
     /// The reveal's scroll toward the focused item.
     animator: Animator,
-    /// A free fling after the finger left (opendap-motion's decay): where it began, its velocity
+    /// A free fling after the finger left (blackbird-ui-motion's decay): where it began, its velocity
     /// and when, by the reveal's clock; and where it is projected to stop.
     fling: Option<(f32, f32, f32)>,
     fling_end: Option<f32>,

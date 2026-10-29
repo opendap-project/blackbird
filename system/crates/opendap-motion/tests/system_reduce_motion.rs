@@ -1,9 +1,9 @@
 //! The system's reduce motion setting reaches every animation, those already running included.
 //! A test binary of its own: the setting is process-wide.
 
-use opendap_motion::animator::{Animator, Kind};
-use opendap_motion::spring::Spring;
-use opendap_motion::transition::{End, Transition};
+use blackbird_ui_motion::animator::{Animator, Kind};
+use blackbird_ui_motion::spring::Spring;
+use blackbird_ui_motion::transition::{End, Transition};
 
 #[test]
 fn the_system_setting_lands_every_animation_at_once() {
@@ -12,7 +12,7 @@ fn the_system_setting_lands_every_animation_at_once() {
     assert!(thrown.running(0.05), "moving while motion is on");
     let mut t = Transition::new(End::From, 320.0);
     t.go(End::To, 0.0);
-    opendap_motion::set_reduce_motion(true);
+    blackbird_ui_motion::set_reduce_motion(true);
     assert!(
         !thrown.running(0.05),
         "the one already running lands at once"
@@ -26,6 +26,6 @@ fn the_system_setting_lands_every_animation_at_once() {
         9.0,
         "one made without saying so honours it"
     );
-    opendap_motion::set_reduce_motion(false);
+    blackbird_ui_motion::set_reduce_motion(false);
     assert!(new.running(0.01) || new.sample(0.01).0 == 9.0);
 }

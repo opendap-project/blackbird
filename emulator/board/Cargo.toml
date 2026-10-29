@@ -12,5 +12,5 @@ rust-version = "1.89"
 license = "GPL-3.0-or-later"
 
 [workspace.metadata.odap]
-deploy = ["odap-vdev-hw"]
+deploy = ["blackbird-emulator-bsp-hw"]
 restart = ["blackbird-emulator-hw.service"]

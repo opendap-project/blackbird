@@ -3,11 +3,11 @@
 use super::*;
 
 pub(crate) const USAGE: &str = "usage:
-  odap-vdev-audio record --qmp SOCKET [--direction out|in] [--seconds S] [--wait S] [--run CMD] --out FILE.wav
-  odap-vdev-audio analyze FILE.wav [--from S] [--to S] [--bands N] [--blocks S] [--json]
-  odap-vdev-audio compare REFERENCE.wav CAPTURE.wav [--json]
-  odap-vdev-audio spectrum FILE.wav --out FILE.png [--from S] [--to S]
-  odap-vdev-audio spectrogram FILE.wav --out FILE.png [--from S] [--to S] [--channel N]
+  blackbird-emulator-audio record --qmp SOCKET [--direction out|in] [--seconds S] [--wait S] [--run CMD] --out FILE.wav
+  blackbird-emulator-audio analyze FILE.wav [--from S] [--to S] [--bands N] [--blocks S] [--json]
+  blackbird-emulator-audio compare REFERENCE.wav CAPTURE.wav [--json]
+  blackbird-emulator-audio spectrum FILE.wav --out FILE.png [--from S] [--to S]
+  blackbird-emulator-audio spectrogram FILE.wav --out FILE.png [--from S] [--to S] [--channel N]
 
   record    the guest's output, exactly as the guest played it (or, --direction in, what it was
             given to record), from its first sound for --seconds (default 5); --run starts CMD
@@ -38,7 +38,7 @@ pub(crate) const USAGE: &str = "usage:
             --channel N (from 1).";
 
 pub(crate) fn fail(msg: impl std::fmt::Display) -> ExitCode {
-    eprintln!("odap-vdev-audio: {msg}");
+    eprintln!("blackbird-emulator-audio: {msg}");
     ExitCode::FAILURE
 }
 

@@ -2,8 +2,8 @@
 //! delays a press (every down is answered at once), a double is exactly a short press released
 //! within the window before it, and no double follows a double.
 
-use opendap_input::double::{DoublePress, Down};
-use opendap_input::thresholds::{DOUBLE_PRESS_MS, REPEAT_DELAY_MS};
+use blackbird_ui_input::double::{DoublePress, Down};
+use blackbird_ui_input::thresholds::{DOUBLE_PRESS_MS, REPEAT_DELAY_MS};
 use proptest::prelude::*;
 
 proptest! {

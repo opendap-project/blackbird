@@ -68,7 +68,8 @@ fn record_from_qemu(
     wait: f64,
 ) -> Result<(), String> {
     let (tx, rx) = mpsc::channel();
-    let session = opendap_qemu_display::connect(Path::new(&qmp)).map_err(|e| e.to_string())?;
+    let session =
+        blackbird_emulator_qemu_display::connect(Path::new(&qmp)).map_err(|e| e.to_string())?;
     let _listening = session
         .audio_out(Arc::new(Rec(Mutex::new(tx))))
         .map_err(|e| format!("{e} (is the device started with the D-Bus audio?)"))?;
@@ -125,7 +126,7 @@ fn capture(
             Msg::Init(f) => {
                 if file.is_some() && format != Some(f) {
                     eprintln!(
-                        "odap-vdev-audio: the guest changed its format ({}): stopped there",
+                        "blackbird-emulator-audio: the guest changed its format ({}): stopped there",
                         f.describe()
                     );
                     break;

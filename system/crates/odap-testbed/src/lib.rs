@@ -1,4 +1,4 @@
-//! `odap-testbed`: the UI primitives activity (SYS-071), a developer activity included in
+//! `blackbird-apps-testbed`: the UI primitives activity (SYS-071), a developer activity included in
 //! Blackbird OS that exercises the UI primitives one screen at a time, built from Blackbird UI's
 //! components. The debug UI mode (SYS-070) draws over it as over any activity: with the system's
 //! flag on, its components draw as blueprints, and the composer draws its regions, the physical
@@ -10,7 +10,7 @@
 //! screens' order is kept once, in `screens.tsv`: build.rs makes the interface's list and
 //! [`SCREENS`] from it.
 
-use opendap_device::Description;
+use blackbird_device::Description;
 use slint::ComponentHandle;
 
 slint::include_modules!();

@@ -1,6 +1,6 @@
-//! The Transitions screen: a pager (opendap-layout::pager), a morph between a tile and its detail
-//! (opendap-motion::transition and interpolate, opendap-input::matched), enter and exit
-//! (opendap-motion::presence). Frames only while something moves.
+//! The Transitions screen: a pager (blackbird-ui-layout::pager), a morph between a tile and its detail
+//! (blackbird-ui-motion::transition and interpolate, blackbird-ui-input::matched), enter and exit
+//! (blackbird-ui-motion::presence). Frames only while something moves.
 
 mod render;
 mod state;

@@ -10,7 +10,7 @@ test tone, both Measure switches on, so the window does all its work meanwhile, 
 speakers.
 
   output   a random full-range 48 kHz 16-bit stereo reference of M minutes, played in the guest
-           (aplay on the sound card) while odap-vdev-audio records the guest's output: the capture
+           (aplay on the sound card) while blackbird-emulator-audio records the guest's output: the capture
            must carry it bit for bit, every frame.
   input    the guest records the window's test tone (arecord, stereo) for the same minutes:
            analysed one second at a time, no block may stand out (a dropout, a click or a phase
@@ -39,7 +39,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 VDEV = ROOT / "bin/odap-vdev"
-AUDIO = ROOT / "viewer/target/release/odap-vdev-audio"
+AUDIO = ROOT / "viewer/target/release/blackbird-emulator-audio"
 STATE = Path.home() / ".local/state/opendap/vdev/virtual-t1"
 
 
@@ -70,7 +70,7 @@ def main():
     seconds = int(a.minutes * 60)
     status = vdev("status")
     qmp = next((l.split()[1] for l in status.stdout.splitlines() if l.strip().startswith("qmp:")), None)
-    view, qemu = pid_of("MacOS/odap-vdev-view"), pid_of("qemu-system-aarch64")
+    view, qemu = pid_of("MacOS/blackbird-emulator-viewer"), pid_of("qemu-system-aarch64")
     if not (qmp and view and qemu):
         sys.exit("sound-soak: the device and its window must be running")
     prefs = json.loads((STATE / "view.json").read_text()) if (STATE / "view.json").exists() else {}
@@ -79,7 +79,7 @@ def main():
     if prefs.get("out_play") is not False:
         sys.exit("sound-soak: turn \"Play on this computer\" off first: the reference is full-scale noise")
     if not AUDIO.exists():
-        subprocess.run(["cargo", "build", "--release", "-q", "-p", "odap-vdev-audio", "--manifest-path", str(ROOT / "viewer/Cargo.toml")], check=True)
+        subprocess.run(["cargo", "build", "--release", "-q", "-p", "blackbird-emulator-audio", "--manifest-path", str(ROOT / "viewer/Cargo.toml")], check=True)
 
     # The reference: random full-range samples (urandom), M minutes of 48 kHz 16-bit stereo.
     ref = a.out / "reference.wav"

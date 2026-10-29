@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// The display-off double tap: one finger (the first down), recognized by opendap-input's
+/// The display-off double tap: one finger (the first down), recognized by blackbird-ui-input's
 /// `DoubleTap`, with its timing and slop (input events §7).
 #[derive(Default)]
 pub struct Wake {

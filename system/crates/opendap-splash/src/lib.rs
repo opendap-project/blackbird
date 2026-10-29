@@ -1,6 +1,6 @@
 //! The splash screen of Blackbird OS (design system, "Splash screen"; composer and UI runtime spec §9):
 //! the OpenDAP vertical lockup, light, centred on the background, shown while the OS loads. The
-//! boot UI (`odap-boot`) and the composer draw it from here, so the screen shows one image
+//! boot UI (`blackbird-apps-boot`) and the composer draw it from here, so the screen shows one image
 //! from the first frame to the interface.
 
 /// The official light vertical lockup (Blackbird UI brand/svg), never redrawn.
@@ -19,13 +19,13 @@ pub const BACKGROUND: [u8; 3] = tokens::BG;
 pub const MINIMUM_MS: u64 = 5000;
 /// The fade from the splash screen to the interface, `--motion-duration-slow`.
 pub const FADE_MS: u64 = tokens::MOTION_DURATION_SLOW_MS;
-/// Where `odap-boot` records, in CLOCK_MONOTONIC milliseconds, when the splash screen first showed.
-pub const SHOWN_AT_PATH: &str = opendap_platform::run::SPLASH_SHOWN;
+/// Where `blackbird-apps-boot` records, in CLOCK_MONOTONIC milliseconds, when the splash screen first showed.
+pub const SHOWN_AT_PATH: &str = blackbird_platform::run::SPLASH_SHOWN;
 /// The boot UI covering a restart of the composer has the display device open and its splash screen
-/// ready, and waits for DRM master: a stopping composer may let it go (odap-boot cover).
-pub const COVER_ARMED_PATH: &str = opendap_platform::run::BOOT_ARMED;
+/// ready, and waits for DRM master: a stopping composer may let it go (blackbird-apps-boot cover).
+pub const COVER_ARMED_PATH: &str = blackbird_platform::run::BOOT_ARMED;
 /// The boot UI's splash screen is on the display.
-pub const COVER_SHOWN_PATH: &str = opendap_platform::run::BOOT_ON_SCREEN;
+pub const COVER_SHOWN_PATH: &str = blackbird_platform::run::BOOT_ON_SCREEN;
 
 /// The lockup rasterized as premultiplied RGBA, with its top-left corner on the display.
 pub struct Lockup {

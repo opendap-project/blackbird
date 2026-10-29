@@ -1,10 +1,15 @@
 [package]
-name = "odap-vdev-hw"
+name = "blackbird-emulator-bsp-hw"
 version = "0.1.0"
 description = "The virtual board's faceplate hardware in the guest: a status LED and an ambient light sensor as uhid devices"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+
+# Installed as /usr/lib/blackbird/emulator-hw (RFC 0017 §3: an internal daemon, no prefix).
+[[bin]]
+name = "emulator-hw"
+path = "src/main.rs"
 
 [dependencies]
 libc = "0.2"

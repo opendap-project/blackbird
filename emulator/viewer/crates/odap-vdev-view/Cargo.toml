@@ -1,5 +1,5 @@
 [package]
-name = "odap-vdev-view"
+name = "blackbird-emulator-viewer"
 version = "0.1.0"
 description = "The simulator window of virtual devices: the display, framed by the device, and a sidebar of hardware actions"
 edition.workspace = true
@@ -8,8 +8,8 @@ license.workspace = true
 publish = false
 
 [dependencies]
-opendap-qemu-display.workspace = true
-opendap-audio-analysis.workspace = true
+blackbird-emulator-qemu-display.workspace = true
+blackbird-services-audio-analysis.workspace = true
 cpal.workspace = true
 opendap-host-model.workspace = true
 opendap-host-core.workspace = true

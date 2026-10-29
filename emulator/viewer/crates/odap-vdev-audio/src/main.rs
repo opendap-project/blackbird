@@ -1,4 +1,4 @@
-//! odap-vdev-audio: a virtual device's sound, recorded as the guest plays it and measured.
+//! blackbird-emulator-audio: a virtual device's sound, recorded as the guest plays it and measured.
 //!
 //! The recording comes from QEMU's D-Bus audio (virtual-devices ADR 0003), the PCM the guest sent
 //! its sound card, in the guest's own format, with nothing of the host in between: what it
@@ -11,11 +11,11 @@ use std::process::{Command, ExitCode};
 use std::sync::{Arc, Mutex, mpsc};
 use std::time::{Duration, Instant};
 
-use opendap_audio_analysis::spectrum::{self, Spectrum};
-use opendap_audio_analysis::{
+use blackbird_emulator_qemu_display::audio::{self, Sink};
+use blackbird_services_audio_analysis::spectrum::{self, Spectrum};
+use blackbird_services_audio_analysis::{
     Format, amplitude_db, compare, decode, decode_exact, power_db, tone, wav,
 };
-use opendap_qemu_display::audio::{self, Sink};
 
 mod analyze;
 mod cli;

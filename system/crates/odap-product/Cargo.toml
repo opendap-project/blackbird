@@ -1,11 +1,16 @@
 [package]
-name = "odap-product"
+name = "blackbird-apps-player"
 version = "0.0.1"
 description = "Blackbird OS product host: Now Playing, Library, Sound and This device (bring-up)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish = false
+
+# Installed as /usr/lib/blackbird/player (RFC 0017 §3: an internal daemon, no prefix).
+[[bin]]
+name = "player"
+path = "src/main.rs"
 
 [dependencies]
 # FemtoVG on a GPU, the software renderer where there is none (selected at run time).

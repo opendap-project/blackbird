@@ -4,7 +4,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use opendap_qemu_display::audio::{Format, Sink, Source};
+use blackbird_emulator_qemu_display::audio::{Format, Sink, Source};
 
 struct Probe(Mutex<(u64, Instant)>, Mutex<Option<std::fs::File>>);
 
@@ -79,7 +79,7 @@ fn main() {
     let qmp = a.next().expect("QMP socket");
     let secs: u64 = a.next().map(|s| s.parse().unwrap()).unwrap_or(10);
     let dump = a.next().map(|p| std::fs::File::create(p).unwrap());
-    let session = opendap_qemu_display::connect(qmp.as_ref()).expect("connect");
+    let session = blackbird_emulator_qemu_display::connect(qmp.as_ref()).expect("connect");
     let _o = session
         .audio_out(Arc::new(Probe(
             Mutex::new((0, Instant::now())),

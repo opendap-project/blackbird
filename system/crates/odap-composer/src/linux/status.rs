@@ -50,10 +50,10 @@ pub fn now() -> Status {
         time: clock(),
         ..Default::default()
     };
-    let battery = opendap_platform::power_supply::read_supplies().battery;
+    let battery = blackbird_platform::power_supply::read_supplies().battery;
     s.battery = battery.map(|b| b.level);
     s.charging = battery.is_some_and(|b| b.charging);
-    let sys = opendap_platform::sysfs::Sysfs::default();
+    let sys = blackbird_platform::sysfs::Sysfs::default();
     s.microsd = sys.microsd();
     s.bluetooth = sys.radio("bluetooth");
     s.wifi = sys
@@ -105,11 +105,11 @@ fn redraw(composer: &mut Composer) {
 pub fn start(composer: &mut Composer) {
     refresh(composer);
     watch_debug(composer);
-    match opendap_platform::kernel::uevents() {
+    match blackbird_platform::kernel::uevents() {
         Ok(fd) => {
             let source = Generic::new(fd, Interest::READ, Mode::Level);
             let inserted = composer.handle.insert_source(source, |_, fd, composer| {
-                opendap_platform::kernel::drain(&**fd);
+                blackbird_platform::kernel::drain(&**fd);
                 refresh(composer);
                 Ok(PostAction::Continue)
             });
@@ -130,15 +130,16 @@ pub fn start(composer: &mut Composer) {
 }
 
 fn watch_debug(composer: &mut Composer) {
-    // The debug UI switch and the show-touches switch (opendap-platform run).
-    let Ok(fd) = opendap_platform::kernel::inotify(&[opendap_platform::run::COMPOSER_DIR]) else {
+    // The debug UI switch and the show-touches switch (blackbird-platform run).
+    let Ok(fd) = blackbird_platform::kernel::inotify(&[blackbird_platform::run::COMPOSER_DIR])
+    else {
         return;
     };
-    opendap_platform::kernel::watch(&fd, opendap_platform::run::DEBUG_DIR);
+    blackbird_platform::kernel::watch(&fd, blackbird_platform::run::DEBUG_DIR);
     let inserted = composer.handle.insert_source(
         Generic::new(fd, Interest::READ, Mode::Level),
         |_, fd, composer| {
-            opendap_platform::kernel::drain(&**fd);
+            blackbird_platform::kernel::drain(&**fd);
             if composer
                 .system
                 .layers
